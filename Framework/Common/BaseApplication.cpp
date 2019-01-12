@@ -13,7 +13,7 @@ void Panda::BaseApplication::Finalize() {
 }
 
 
-void Panda::BaseApplication:Tick() {
+void Panda::BaseApplication::Tick() {
 }
 
 bool Panda::BaseApplication::IsQuit() {
