@@ -77,13 +77,28 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
     // 排序，找到合适的处理过程
     switch(message)
     {
+		case WM_PAINT:
+		{
+			PAINTSTRUCT ps;
+			
+			HDC hdc = BeginPaint(hWnd, &ps);
+			RECT rect = {20, 20, 60, 80};
+			HBRUSH brush = (HBRUSH)GetStockObject(BLACK_BRUSH);
+			
+			FillRect(hdc, &rect, brush);
+			
+			EndPaint(hWnd, &ps);
+		}
+			break;
+			
         // 窗口关闭的时候这个消息会处理
         case WM_DESTROY:
             {
                 // 关闭整个应用
                 PostQuitMessage(0);
                 return 0;
-            } break;
+            } 
+			break;
     }
 
     // 处理剩余的消息
