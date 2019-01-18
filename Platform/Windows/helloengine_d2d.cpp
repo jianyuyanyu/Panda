@@ -1,3 +1,4 @@
+#include <windows.h>
 #include <windowsx.h>
 #include <tchar.h>
 
@@ -52,12 +53,10 @@ void DiscardGraphicsResources() {
 // WindowProc 函数原型
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 
-int WINAPI WinMain(
-    HINSTANCE  hInstance ,
-    HINSTANCE  hPrevInstance ,
-    LPSTR  lpCmdLine ,
-    int  nCmdShow 
-    )
+int WINAPI WinMain(HINSTANCE  hInstance ,
+					HINSTANCE  hPrevInstance ,
+					LPSTR  lpCmdLine ,
+					int  nCmdShow)
 {
 	WNDCLASSEX wc;
 	
@@ -67,12 +66,16 @@ int WINAPI WinMain(
 	// 清理窗口类
 	ZeroMemory(&wc, sizeof (WNDCLASSEX));
 	
+	wc.cbSize = sizeof (WNDCLASSEX);
 	wc.style = CS_HREDRAW | CS_VREDRAW;
 	wc.lpfnWndProc = WindowProc;
 	wc.hInstance = hInstance;
 	wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
 	wc.hbrBackground = (HBRUSH)COLOR_WINDOW;
 	wc.lpszClassName = _T("WindowClass1");
+	
+	// 注册窗口类
+    RegisterClassEx(&wc);
 	
 	// 创建窗口
 	HWND hWnd = CreateWindowEx(0,
@@ -88,6 +91,9 @@ int WINAPI WinMain(
 								hInstance,									// 应用句柄
 								NULL);
 								
+    // 显示窗口
+    ShowWindow(hWnd, nCmdShow);
+	
 	MSG msg;
 	while (GetMessage(&msg, nullptr, 0, 0)) {
 		TranslateMessage(&msg);
