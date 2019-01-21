@@ -138,7 +138,7 @@ HRESULT CreateGraphicsResources(HWND hWnd) {
 		DXGI_SWAP_CHAIN_DESC	scd;
 		
 		// 清空结构体
-		ZeroMemory(&scd, sizeof (DXGI_SWA_CHAIN_DESC));
+		ZeroMemory(&scd, sizeof (DXGI_SWAP_CHAIN_DESC));
 		
 		// 填充交换链描述结构体
 		scd.BufferCount = 1;	// 我们的后备缓冲
@@ -151,7 +151,7 @@ HRESULT CreateGraphicsResources(HWND hWnd) {
 		scd.OutputWindow = hWnd;	// 使用的窗口
 		scd.SampleDesc.Count = 4;	// 多重采样的数量
 		scd.Windowed = TRUE;		// 窗口化还是全屏
-		scd.Flags = DXGI_SWAP_CHAIN_FLAT_ALLOW_MODE_SWITCH;	// 允许全屏切换
+		scd.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;	// 允许全屏切换
 		
 		const D3D_FEATURE_LEVEL FeatureLevels[] = {D3D_FEATURE_LEVEL_11_1,
 													D3D_FEATURE_LEVEL_11_0,
@@ -196,7 +196,7 @@ HRESULT CreateGraphicsResources(HWND hWnd) {
 		
 		if (hr == S_OK)  {
 			CreateRenderTarget();
-			SetViewport();
+			SetViewPort();
 			InitPipeline();
 			InitGraphics();
 		}
@@ -271,7 +271,7 @@ int WINAPI WinMain(HINSTANCE  hInstance ,
 								WS_OVERLAPPEDWINDOW,						// 窗口风格
 								100,										// 窗口的x坐标
 								100,										// 窗口的y坐标
-								SCREEN_WIDHT,								// 窗口宽度
+								SCREEN_WIDTH,								// 窗口宽度
 								SCREEN_HEIGHT,								// 窗口高度
 								NULL,										// 父窗口
 								NULL,										// 菜单句柄
@@ -319,7 +319,7 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 		break;
 		case WM_DESTROY:
 		{
-			DiscardGraphicsResources();}
+			DiscardGraphicsResources();
 			PostQuitMessage(0);
 			wasHandled = true;
 		}
