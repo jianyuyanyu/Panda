@@ -109,7 +109,7 @@ void InitGraphics() {
     VERTEX OurVertices[] =
     {
         {XMFLOAT3(0.0f, 0.5f, 0.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f)},
-        {XMFLOAT3(0.45f, -0.5, 0.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f)},
+        {XMFLOAT3(0.45f, -0.5f, 0.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f)},
         {XMFLOAT3(-0.45f, -0.5f, 0.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f)}
     };
 	
@@ -185,7 +185,7 @@ HRESULT CreateGraphicsResources(HWND hWnd) {
 								NULL,
 								0,
 								&FeatureLevelSupported,
-								_countof(FeatureLevels),
+								1,
 								D3D11_SDK_VERSION,
 								&scd,
 								&g_pSwapchain,
