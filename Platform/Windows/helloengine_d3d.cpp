@@ -112,7 +112,7 @@ void InitGraphics() {
     VERTEX OurVertices[] =
     {
         {XMFLOAT3(0.0f, 0.5f, 0.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f)},
-        {XMFLOAT3(0.45f, -0.5, 0.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f)},
+        {XMFLOAT3(0.45f, -0.5f, 0.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f)},
         {XMFLOAT3(-0.45f, -0.5f, 0.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f)}
     };
 
@@ -199,7 +199,9 @@ HRESULT CreateGraphicsResources(HWND hWnd)
                                       NULL,
                                       &g_pDevcon);
         }
-
+		
+		UINT s = 0;
+		s = hr;
         if (hr == S_OK) {
             CreateRenderTarget();
             SetViewPort();
