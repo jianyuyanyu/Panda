@@ -33,3 +33,7 @@
 
 # directories
 build/*
+
+# vso, pso
+*.vso
+*.pso

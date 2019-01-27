@@ -1,3 +1,0 @@
-[submodule "Platform/Windows/DirectXMath"]
-	path = Platform/Windows/DirectXMath
-	url = https://github.com/Microsoft/DirectXMath.git
