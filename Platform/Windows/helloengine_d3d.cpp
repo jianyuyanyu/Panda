@@ -141,6 +141,41 @@ HRESULT CreateGraphicsResources(HWND hWnd)
     HRESULT hr = S_OK;
     if (g_pSwapchain == nullptr)
     {
+		// 创建设备和设备上下文
+		UINT createDeviceFlags = 0;
+		#if defined(DEBUG) || defined (_DEBUG)
+			createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
+		#endif
+		
+		D3D_FEATURE_LEVEL featureLevel;
+		HRESULT hr = D3D11CreateDevice(
+						0,	// 默认显示器
+						D3D_DRIVER_TYPE_HARDWARE,
+						0,	// 非软设备
+						createDeviceFlags,
+						0, 0,	// 默认功能等级数组
+						D3D11_SDK_VERSION,
+						&g_pDev,
+						&featureLevel,
+						&g_pDevcon);
+		if (FAILED(hr)) {
+			MessageBox(0, L"D3D11CreateDevice Failed", 0, 0);
+			return hr;
+		}
+		
+		if (featureLevel != D3D_FEATURE_LEVEL_11_0) {
+			MessageBox(0, L"Direct3D Feature Level 11 unsupported.", 0, 0);
+			return hr;
+		}
+		
+		// 检查后备缓冲区是否支持4倍MSAA（多重采样抗锯齿）
+		// 所有的Direct3D 11兼容设备支持4倍MSAA，对所有渲染目标格式
+		// 所以我们只需要检查支持到何种程度
+		UINT msaaQuality;
+		HR(g_pDev->CheckMultisampleQualityLevels(
+			DXGI_FORMAT_R8G8B8A8_UNORM, 4, &msaaQuality));
+		assert(msaaQuality > 0);
+		
         // create a struct to hold information about the swap chain
         DXGI_SWAP_CHAIN_DESC scd;
 
@@ -148,61 +183,96 @@ HRESULT CreateGraphicsResources(HWND hWnd)
         ZeroMemory(&scd, sizeof(DXGI_SWAP_CHAIN_DESC));
 
         // fill the swap chain description struct
-        scd.BufferCount = 1;                                    // one back buffer
+        //scd.BufferCount = 1;                                    // one back buffer
         scd.BufferDesc.Width = SCREEN_WIDTH;
         scd.BufferDesc.Height = SCREEN_HEIGHT;
         scd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;     // use 32-bit color
         scd.BufferDesc.RefreshRate.Numerator = 60;
         scd.BufferDesc.RefreshRate.Denominator = 1;
-        scd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;      // how swap chain is to be used
-        scd.OutputWindow = hWnd;                                // the window to be used
-        scd.SampleDesc.Count = 4;                               // how many multisamples
-        scd.Windowed = TRUE;                                    // windowed/full-screen mode
-        scd.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;     // allow full-screen switching
-
-        const D3D_FEATURE_LEVEL FeatureLevels[] = { D3D_FEATURE_LEVEL_11_1,
-                                                    D3D_FEATURE_LEVEL_11_0,
-                                                    D3D_FEATURE_LEVEL_10_1,
-                                                    D3D_FEATURE_LEVEL_10_0,
-                                                    D3D_FEATURE_LEVEL_9_3,
-                                                    D3D_FEATURE_LEVEL_9_2,
-                                                    D3D_FEATURE_LEVEL_9_1};
-        D3D_FEATURE_LEVEL FeatureLevelSupported;
-
-        HRESULT hr = S_OK;
-
-        // create a device, device context and swap chain using the information in the scd struct
-        hr = D3D11CreateDeviceAndSwapChain(NULL,
-                                      D3D_DRIVER_TYPE_HARDWARE,
-                                      NULL,
-                                      0,
-                                      FeatureLevels,
-                                      _countof(FeatureLevels),
-                                      D3D11_SDK_VERSION,
-                                      &scd,
-                                      &g_pSwapchain,
-                                      &g_pDev,
-                                      &FeatureLevelSupported,
-                                      &g_pDevcon);
-
-        if (hr == E_INVALIDARG) {
-            hr = D3D11CreateDeviceAndSwapChain(NULL,
-                                      D3D_DRIVER_TYPE_HARDWARE,
-                                      NULL,
-                                      0,
-                                      &FeatureLevelSupported,
-                                      1,
-                                      D3D11_SDK_VERSION,
-                                      &scd,
-                                      &g_pSwapchain,
-                                      &g_pDev,
-                                      NULL,
-                                      &g_pDevcon);
-        }
+		scd.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+		scd.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
 		
-		UINT s = 0;
-		s = hr;
-        if (hr == S_OK) {
+    //    scd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;      // how swap chain is to be used
+    //    scd.OutputWindow = hWnd;                                // the window to be used
+    //    scd.SampleDesc.Count = 4;                               // how many multisamples
+    //    scd.Windowed = TRUE;                                    // windowed/full-screen mode
+    //    scd.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;     // allow full-screen switching
+	
+		// 使用4倍MSAA？
+		{
+			scd.SampleDesc.Count = 1;
+			scd.SampleDesc.Quality = 0;
+		}
+		
+		scd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+		scd.BufferCount = 1;
+		scd.OutputWindow = hWnd;
+		scd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+		scd.Windowed = true;
+		scd.Flags = 0;
+		
+		// 为了正确的创建交换链，我们必须要使用IDXGIFactory创建设备。
+		// 如果我们使用一个不同的IDXGIFactory实例（通过CreateDXGIFactory创建），
+		// 我们就会得到一个错误：“IDXGIFactory::CreateSwapChain：这个函数
+		// 正在被一个不同的IDXGIFactory设备调用。）
+		
+		IDXGIDevice* dxgiDevice = 0;
+		HR(g_pDev->QueryInterface(__uuidof(IDXGIDevice), (void**)&dxgiDevice));
+		
+		IDXGIAdapter* dxgiAdapter = 0;
+		HR(dxgiDevice->GetParent(__uuidof(IDXGIAdapter), (void**)&dxgiAdapter));
+		
+		IDXGIFactory* dxgiFactory = 0;
+		HR(dxgiAdapter->GetParent(__uuidof(IDXGIFactory), (void**)& dxgiFactory));
+		
+		HR(dxgiFactory->CreateSwapChain(g_pDev, &scd, &g_pSwapchain));
+		
+		ReleaseCOM(dxgiDevice);
+		ReleaseCOM(dxgiAdapter);
+		ReleaseCOM(dxgiFactory);
+		
+
+        // const D3D_FEATURE_LEVEL FeatureLevels[] = { D3D_FEATURE_LEVEL_11_1,
+                                                    // D3D_FEATURE_LEVEL_11_0,
+                                                    // D3D_FEATURE_LEVEL_10_1,
+                                                    // D3D_FEATURE_LEVEL_10_0,
+                                                    // D3D_FEATURE_LEVEL_9_3,
+                                                    // D3D_FEATURE_LEVEL_9_2,
+                                                    // D3D_FEATURE_LEVEL_9_1};
+        // D3D_FEATURE_LEVEL FeatureLevelSupported;
+
+        // HRESULT hr = S_OK;
+
+        // // create a device, device context and swap chain using the information in the scd struct
+        // hr = D3D11CreateDeviceAndSwapChain(NULL,
+                                      // D3D_DRIVER_TYPE_HARDWARE,
+                                      // NULL,
+                                      // 0,
+                                      // FeatureLevels,
+                                      // _countof(FeatureLevels),
+                                      // D3D11_SDK_VERSION,
+                                      // &scd,
+                                      // &g_pSwapchain,
+                                      // &g_pDev,
+                                      // &FeatureLevelSupported,
+                                      // &g_pDevcon);
+
+        // if (hr == E_INVALIDARG) {
+            // hr = D3D11CreateDeviceAndSwapChain(NULL,
+                                      // D3D_DRIVER_TYPE_HARDWARE,
+                                      // NULL,
+                                      // 0,
+                                      // &FeatureLevelSupported,
+                                      // 1,
+                                      // D3D11_SDK_VERSION,
+                                      // &scd,
+                                      // &g_pSwapchain,
+                                      // &g_pDev,
+                                      // NULL,
+                                      // &g_pDevcon);
+        // }
+		
+        if (g_pSwapchain != nullptr) {
             CreateRenderTarget();
             SetViewPort();
             InitPipeline();
