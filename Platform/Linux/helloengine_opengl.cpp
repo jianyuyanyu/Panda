@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 #include <X11/Xlib.h>
 #include <X11/Xlib-xcb.h>
@@ -25,7 +26,7 @@ static bool isExtensionSupported(const char* extList, const char* extension) {
   /* 解析OpenGL扩展字符串的时候需要小心一点才能保证安全。
    * 别被那些子字符串给愚弄了。*/
   for (start = extList; ; ) {
-    where strstr(start, extension);
+    where = strstr(start, extension);
 
     if (!where)
       break;
@@ -60,7 +61,7 @@ void DrawAQuad() {
   glLoadIdentity();
   gluLookAt(0., 0., 10., 0., 0., 0., 0., 1., 0.);
 
-  glBegin(GL_QUEDS);
+  glBegin(GL_QUADS);
   glColor3f(1., 0., 0.);
   glVertex3f(-.75, -.75, 0.);
   glColor3f(0., 1., 0.);
@@ -87,11 +88,11 @@ int main (void) {
   char title[] = "Hello, Engine![OpenGL]";
   char title_icon[] = "Hello, Engine! (iconified)";
 
-  Display* dislay;
+  Display* display;
   int default_screen;
   GLXContext context;
   GLXFBConfig* fb_configs;
-  GLXFBConfig* fb_config;
+  GLXFBConfig fb_config;
 
   int num_fb_configs = 0;
   XVisualInfo* vi;
@@ -103,7 +104,7 @@ int main (void) {
   /* 找一个匹配的FB配置 */
   static int visual_attribs[] = {
     GLX_X_RENDERABLE    , True,
-    GLX_DRAWABLE_TYPE   , GLX_WIDNOW_BIT,
+    GLX_DRAWABLE_TYPE   , GLX_WINDOW_BIT,
     GLX_RENDER_TYPE     , GLX_RGBA_BIT,
     GLX_X_VISUAL_TYPE   , GLX_TRUE_COLOR,
     GLX_RED_SIZE        , 8,
@@ -138,7 +139,11 @@ int main (void) {
 
   // 查询帧缓存配置
   fb_configs = glXChooseFBConfig(display, default_screen, visual_attribs, &num_fb_configs);
-  if (!fb_configs || num_fb_configs) {
+  if (!fb_configs) {
+    fprintf(stderr, "fb_configs = nullptr");
+    return -1;
+  }
+  if (!fb_configs || num_fb_configs == 0) {
     fprintf(stderr, "glXGetFBConfigs failed\n");
     return -1;
   }
@@ -152,7 +157,7 @@ int main (void) {
       if (vi) {
         int samp_buf, samples;
         glXGetFBConfigAttrib(display, fb_configs[i], GLX_SAMPLE_BUFFERS, &samp_buf);
-        glXGetFBConfigAttrib(display, fb_configs[i], GLX_SMAPLES, &samples);
+        glXGetFBConfigAttrib(display, fb_configs[i], GLX_SAMPLES, &samples);
 
         printf(" Matching fbcofnig %d, visual ID 0x%lx: SAMPLE_BUFFERS = %d,"
                " SAMPLES = %d\n",
@@ -245,9 +250,9 @@ int main (void) {
 
   /* 创建OpenGL上下文 */
   ctxErrorOccurred = false;
-  int (*oldHandler)(Display*, XErrorEvent*) = XSetErrorHandler(&ctxErrorHandler);
+  int (*oldHandler)(Display*, XErrorEvent*) = XSetErrorHandler(&cxtErrorHandler);
 
-  if (!isExtensionSupperted(glxExts, "GLX_ARB_create_context") || 
+  if (!isExtensionSupported(glxExts, "GLX_ARB_create_context") || 
       !glXCreateContextAttribsARB) {
     printf("glXCreateContextAttribsARB() not found"
         "... using old-style GLX context\n");
@@ -259,7 +264,7 @@ int main (void) {
   }
   else {
     int context_attribs[] = {
-      GLX_CONTEXT_MAJOR_VERSION_ARB, 4,
+      GLX_CONTEXT_MAJOR_VERSION_ARB, 3,
       GLX_CONTEXT_MINOR_VERSION_ARB, 0,
       None
     };
