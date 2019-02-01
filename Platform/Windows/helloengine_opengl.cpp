@@ -1,4 +1,4 @@
-// include the basic windows header file
+// 包含windows头文件
 #include <windows.h>
 #include <windowsx.h>
 #include <tchar.h>
@@ -77,6 +77,7 @@ typedef void (APIENTRY * PFNGLDISABLEVERTEXATTRIBARRAYPROC) (GLuint index);
 typedef void (APIENTRY * PFNGLUNIFORM3FVPROC) (GLint location, GLsizei count, const GLfloat *value);
 typedef void (APIENTRY * PFNGLUNIFORM4FVPROC) (GLint location, GLsizei count, const GLfloat *value);
 
+// 函数指针
 PFNGLATTACHSHADERPROC glAttachShader;
 PFNGLBINDBUFFERPROC glBindBuffer;
 PFNGLBINDVERTEXARRAYPROC glBindVertexArray;
@@ -115,21 +116,21 @@ PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB;
 PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB;
 PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT;
 
-typedef struct VertexType
+typedef struct VertexType 
 {
-    VectorType position;
-    VectorType color;
+	VectorType position;
+	VectorType color;
 } VertexType;
 
-HDC     g_deviceContext = 0;
-HGLRC   g_renderingContext = 0;
-char    g_videoCardDescription[128];
+HDC g_deviceContext = 0;
+HGLRC g_renderingContext = 0;
+char g_videoCardDescription[128];
 
 const bool VSYNC_ENABLED = true;
 const float SCREEN_DEPTH = 1000.0f;
 const float SCREEN_NEAR = 0.1f;
 
-int     g_vertexCount, g_indexCount;
+int g_vertexCount, g_indexCount;
 unsigned int g_vertexArrayId, g_vertexBufferId, g_indexBufferId;
 
 unsigned int g_vertexShader;
@@ -145,18 +146,17 @@ float g_worldMatrix[16];
 float g_viewMatrix[16];
 float g_projectionMatrix[16];
 
-bool InitializeOpenGL(HWND hwnd, int screenWidth, int screenHeight, float screenDepth, float screenNear, bool vsync)
+bool InitializeOpenGL (HWND hwnd, int screenWidth, int screenHeight, float screenDepth, float screenNear, bool vsync) 
 {
-        int attributeListInt[19];
-        int pixelFormat[1];
-        unsigned int formatCount;
-        int result;
-        PIXELFORMATDESCRIPTOR pixelFormatDescriptor;
-        int attributeList[5];
-        float fieldOfView, screenAspect;
-        char *vendorString, *rendererString;
-
-
+	int attributeListInt[19];
+	int pixelFormat[1];
+	unsigned int formatCount;
+	int result;
+	PIXELFORMATDESCRIPTOR pixelFormatDescriptor;
+	int attributeList[5];
+	float fieldOfView, screenAspect;
+	char *vendorString, *rendererString;
+	
         // Get the device context for this window.
         g_deviceContext = GetDC(hwnd);
         if(!g_deviceContext)
@@ -293,7 +293,7 @@ bool InitializeOpenGL(HWND hwnd, int screenWidth, int screenHeight, float screen
 
 bool LoadExtensionList()
 {
-        // Load the OpenGL extensions that this application will be using.
+        // 加载需要用到的OpenGL扩展
         wglChoosePixelFormatARB = (PFNWGLCHOOSEPIXELFORMATARBPROC)wglGetProcAddress("wglChoosePixelFormatARB");
         if(!wglChoosePixelFormatARB)
         {
@@ -513,7 +513,7 @@ bool LoadExtensionList()
         return true;
 }
 
-void FinalizeOpenGL(HWND hwnd)
+void FinalizeOpenGL(HWND hwnd) 
 {
         // Release the rendering context.
         if(g_renderingContext)
@@ -531,15 +531,15 @@ void FinalizeOpenGL(HWND hwnd)
         }
 }
 
-void GetVideoCardInfo(char* cardName)
+void GetVideoCardInfo(char* cardName) 
 {
-        strcpy_s(cardName, 128, g_videoCardDescription);
-        return;
+	strcpy_s(cardName, 128, g_videoCardDescription);
+	return;
 }
 
-bool InitializeExtensions(HWND hwnd)
+bool InitializeExtensions(HWND hwnd) 
 {
-        HDC deviceContext;
+       HDC deviceContext;
         PIXELFORMATDESCRIPTOR pixelFormat;
         int error;
         HGLRC renderContext;
@@ -593,7 +593,7 @@ bool InitializeExtensions(HWND hwnd)
         return true;
 }
 
-void OutputShaderErrorMessage(HWND hwnd, unsigned int shaderId, const char* shaderFilename)
+void OutputShaderErrorMessage(HWND hwnd, unsigned int shaderId, const char* shaderFilename) 
 {
         int logSize, i;
         char* infoLog;
@@ -644,7 +644,7 @@ void OutputShaderErrorMessage(HWND hwnd, unsigned int shaderId, const char* shad
         return;
 }
 
-void OutputLinkerErrorMessage(HWND hwnd, unsigned int programId)
+void OutputLinkerErrorMessage(HWND hwnd, unsigned int programId) 
 {
         int logSize, i;
         char* infoLog;
@@ -683,7 +683,7 @@ void OutputLinkerErrorMessage(HWND hwnd, unsigned int programId)
         MessageBox(hwnd, _T("Error compiling linker.  Check linker-error.txt for message."), _T("Linker Error"), MB_OK);
 }
 
-char* LoadShaderSourceFile(const char* filename)
+char* LoadShaderSourceFile (const char* filename) 
 {
         ifstream fin;
         int fileSize;
@@ -738,219 +738,209 @@ char* LoadShaderSourceFile(const char* filename)
         return buffer;
 }
 
-bool InitializeShader(HWND hwnd, const char* vsFilename, const char* fsFilename)
+bool InitializeShader (HWND hwnd, const char* vsFilename, const char* fsFilename) 
 {
-        const char* vertexShaderBuffer;
-        const char* fragmentShaderBuffer;
-        int status;
-
-        // Load the vertex shader source file into a text buffer.
-        vertexShaderBuffer = LoadShaderSourceFile(vsFilename);
-        if(!vertexShaderBuffer)
-        {
-                return false;
-        }
-
-        // Load the fragment shader source file into a text buffer.
-        fragmentShaderBuffer = LoadShaderSourceFile(fsFilename);
-        if(!fragmentShaderBuffer)
-        {
-                return false;
-        }
-
-        // Create a vertex and fragment shader object.
-        g_vertexShader = glCreateShader(GL_VERTEX_SHADER);
-        g_fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-
-        // Copy the shader source code strings into the vertex and fragment shader objects.
-        glShaderSource(g_vertexShader, 1, &vertexShaderBuffer, NULL);
-        glShaderSource(g_fragmentShader, 1, &fragmentShaderBuffer, NULL);
-
-        // Release the vertex and fragment shader buffers.
-        delete [] vertexShaderBuffer;
-        vertexShaderBuffer = 0;
-
-        delete [] fragmentShaderBuffer;
-        fragmentShaderBuffer = 0;
-
-        // Compile the shaders.
-        glCompileShader(g_vertexShader);
-        glCompileShader(g_fragmentShader);
-
-        // Check to see if the vertex shader compiled successfully.
-        glGetShaderiv(g_vertexShader, GL_COMPILE_STATUS, &status);
-        if(status != 1)
-        {
-                // If it did not compile then write the syntax error message out to a text file for review.
-                OutputShaderErrorMessage(hwnd, g_vertexShader, vsFilename);
-                return false;
-        }
-
-        // Check to see if the fragment shader compiled successfully.
-        glGetShaderiv(g_fragmentShader, GL_COMPILE_STATUS, &status);
-        if(status != 1)
-        {
-                // If it did not compile then write the syntax error message out to a text file for review.
-                OutputShaderErrorMessage(hwnd, g_fragmentShader, fsFilename);
-                return false;
-        }
-
-        // Create a shader program object.
-        g_shaderProgram = glCreateProgram();
-
-        // Attach the vertex and fragment shader to the program object.
-        glAttachShader(g_shaderProgram, g_vertexShader);
-        glAttachShader(g_shaderProgram, g_fragmentShader);
-
-        // Bind the shader input variables.
-        glBindAttribLocation(g_shaderProgram, 0, "inputPosition");
-        glBindAttribLocation(g_shaderProgram, 1, "inputColor");
-
-        // Link the shader program.
-        glLinkProgram(g_shaderProgram);
-
-        // Check the status of the link.
-        glGetProgramiv(g_shaderProgram, GL_LINK_STATUS, &status);
-        if(status != 1)
-        {
-                // If it did not link then write the syntax error message out to a text file for review.
-                OutputLinkerErrorMessage(hwnd, g_shaderProgram);
-                return false;
-        }
-
-        return true;
+	const char* vertexShaderBuffer;
+	const char* fragmentShaderBuffer;
+	int status;
+	
+	// 加载顶点着色器源码到缓冲区
+	vertexShaderBuffer = LoadShaderSourceFile(vsFilename);
+	if (!vertexShaderBuffer) {
+		return false;
+	}
+	
+	// 加载片段着色器代码到缓冲区
+	fragmentShaderBuffer = LoadShaderSourceFile(fsFilename);
+	if (!fragmentShaderBuffer) {
+		return false;
+	}
+	
+	// 创建顶点和片元着色器对象
+	g_vertexShader = glCreateShader(GL_VERTEX_SHADER);
+	g_fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+	
+	// 把着色器源码拷贝到对象中
+	glShaderSource(g_vertexShader, 1, &vertexShaderBuffer, NULL);
+	glShaderSource(g_fragmentShader, 1, &fragmentShaderBuffer, NULL);
+	
+	// 释放着色器缓冲区
+	delete[] vertexShaderBuffer;
+	vertexShaderBuffer = 0;
+	delete[] fragmentShaderBuffer;
+	fragmentShaderBuffer = 0;
+	
+	// 编译着色器
+	glCompileShader(g_vertexShader);
+	glCompileShader(g_fragmentShader);
+	
+	// 检查顶点着色器是否编译成功了
+	glGetShaderiv(g_vertexShader, GL_COMPILE_STATUS, &status);
+	if (status != 1) {
+		// 如果编译失败，保存失败信息
+		OutputShaderErrorMessage(hwnd, g_vertexShader, vsFilename);
+		return false;
+	}
+	
+	// 检查片元着色器是否编译成功了
+	glGetShaderiv(g_fragmentShader, GL_COMPILE_STATUS, &status);
+	if (status != 1) {
+		// 同样，如果编译失败，保存失败信息
+		OutputShaderErrorMessage(hwnd, g_fragmentShader, fsFilename);
+		return false;
+	}
+	
+	// 创建着色器程序对象
+	g_shaderProgram = glCreateProgram();
+	
+	// 将顶点和片元着色器附加到着色器程序对象上
+	glAttachShader(g_shaderProgram, g_vertexShader);
+	glAttachShader(g_shaderProgram, g_fragmentShader);
+	
+	// 绑定着色器输入变量
+	glBindAttribLocation(g_shaderProgram, 0, "inputPosition");
+	glBindAttribLocation(g_shaderProgram, 1, "inputColor");
+	
+	// 连接着色器程序
+	glLinkProgram(g_shaderProgram);
+	
+	// 检查连接是否成功
+	glGetProgramiv(g_shaderProgram, GL_LINK_STATUS, &status);
+	if (status != 1) {
+		// 如果连接失败，写入失败信息
+		OutputLinkerErrorMessage(hwnd, g_shaderProgram);
+		return false;
+	}
+	
+	return true;
 }
 
-void ShutdownShader()
+void ShutdownShader() 
 {
-        // Detach the vertex and fragment shaders from the program.
-        glDetachShader(g_shaderProgram, g_vertexShader);
-        glDetachShader(g_shaderProgram, g_fragmentShader);
-
-        // Delete the vertex and fragment shaders.
-        glDeleteShader(g_vertexShader);
-        glDeleteShader(g_fragmentShader);
-
-        // Delete the shader program.
-        glDeleteProgram(g_shaderProgram);
+	// 从着色器程序中剥离顶点和片元着色器
+	glDetachShader(g_shaderProgram, g_vertexShader);
+	glDetachShader(g_shaderProgram, g_fragmentShader);
+	
+	// 删除顶点和片元着色器
+	glDeleteShader(g_vertexShader);
+	glDeleteShader(g_fragmentShader);
+	
+	// 删除着色器程序
+	glDeleteProgram(g_shaderProgram);
 }
 
-bool SetShaderParameters(float* worldMatrix, float* viewMatrix, float* projectionMatrix)
+bool SetShaderParameters(float* worldMatrix, float* viewMatrix, float* projectionMatrix) 
 {
-        unsigned int location;
-
-        // Set the world matrix in the vertex shader.
-        location = glGetUniformLocation(g_shaderProgram, "worldMatrix");
-        if(location == -1)
-        {
-                return false;
-        }
-        glUniformMatrix4fv(location, 1, false, worldMatrix);
-
-        // Set the view matrix in the vertex shader.
-        location = glGetUniformLocation(g_shaderProgram, "viewMatrix");
-        if(location == -1)
-        {
-                return false;
-        }
-        glUniformMatrix4fv(location, 1, false, viewMatrix);
-
-        // Set the projection matrix in the vertex shader.
-        location = glGetUniformLocation(g_shaderProgram, "projectionMatrix");
-        if(location == -1)
-        {
-                return false;
-        }
-        glUniformMatrix4fv(location, 1, false, projectionMatrix);
-
-        return true;
+	unsigned int location;
+	
+	// 设置顶点着色器中的世界变换矩阵
+	location = glGetUniformLocation(g_shaderProgram, "worldMatrix");
+	if (location == -1) {
+		return false;
+	}
+	glUniformMatrix4fv(location, 1, false, worldMatrix);
+	
+	// 设置观察变换矩阵
+	location = glGetUniformLocation(g_shaderProgram, "viewMatrix");
+	if (location == -1) {
+		return false;
+	}
+	glUniformMatrix4fv(location, 1, false, viewMatrix);
+	
+	// 设置投影矩阵
+	location = glGetUniformLocation(g_shaderProgram, "projectionMatrix");
+	if (location == -1) {
+		return false;
+	}
+	glUniformMatrix4fv(location, 1, false, projectionMatrix);
+	
+	return true;
 }
 
-bool InitializeBuffers()
+bool InitializeBuffers() 
 {
-        VertexType vertices[] = {
-            {{  1.0f,  1.0f,  1.0f }, { 1.0f, 0.0f, 0.0f }},
-            {{  1.0f,  1.0f, -1.0f }, { 0.0f, 1.0f, 0.0f }},
-            {{ -1.0f,  1.0f, -1.0f }, { 0.0f, 0.0f, 1.0f }},
-            {{ -1.0f,  1.0f,  1.0f }, { 1.0f, 1.0f, 0.0f }},
-            {{  1.0f, -1.0f,  1.0f }, { 1.0f, 0.0f, 1.0f }},
-            {{  1.0f, -1.0f, -1.0f }, { 0.0f, 1.0f, 1.0f }},
-            {{ -1.0f, -1.0f, -1.0f }, { 0.5f, 1.0f, 0.5f }},
-            {{ -1.0f, -1.0f,  1.0f }, { 1.0f, 0.5f, 1.0f }},
-        };
-        uint16_t indices[] = { 1, 2, 3, 3, 2, 6, 6, 7, 3, 3, 0, 1, 0, 3, 7, 7, 6, 4, 4, 6, 5, 0, 7, 4, 1, 0, 4, 1, 4, 5, 2, 1, 5, 2, 5, 6 };
+	VertexType vertices[] = {
+		{{  1.0f,  1.0f,  1.0f }, { 1.0f, 0.0f, 0.0f }},
+		{{  1.0f,  1.0f, -1.0f }, { 0.0f, 1.0f, 0.0f }},
+		{{ -1.0f,  1.0f, -1.0f }, { 0.0f, 0.0f, 1.0f }},
+		{{ -1.0f,  1.0f,  1.0f }, { 1.0f, 1.0f, 0.0f }},
+		{{  1.0f, -1.0f,  1.0f }, { 1.0f, 0.0f, 1.0f }},
+		{{  1.0f, -1.0f, -1.0f }, { 0.0f, 1.0f, 1.0f }},
+		{{ -1.0f, -1.0f, -1.0f }, { 0.5f, 1.0f, 0.5f }},
+		{{ -1.0f, -1.0f,  1.0f }, { 1.0f, 0.5f, 1.0f }},
+	};
+	uint16_t indices[] = { 1, 2, 3, 3, 2, 6, 6, 7, 3, 3, 0, 1, 0, 3, 7, 7, 6, 4, 4, 6, 5, 0, 7, 4, 1, 0, 4, 1, 4, 5, 2, 1, 5, 2, 5, 6 };
+	
+	// 设置顶点数组的顶点数
+	g_vertexCount = sizeof (vertices) / sizeof(VertexType);
+	
+	// 设置索引数组的索引数
+	g_indexCount = sizeof(indices) / sizeof (uint16_t);
+	
+	// 分配一个顶点数组对象
+	glGenVertexArrays(1, &g_vertexArrayId);
+	
+	// 绑定顶点数组对象
+	glBindVertexArray(g_vertexArrayId);
+	
+	// 为顶点缓冲区生成ID
+	glGenBuffers(1, &g_vertexBufferId);
+	
+	// 绑定顶点缓冲区，加载顶点数据到顶点缓冲区
+	glBindBuffer(GL_ARRAY_BUFFER, g_vertexBufferId);
+	glBufferData(GL_ARRAY_BUFFER, g_vertexCount * sizeof (VertexType), vertices, GL_STATIC_DRAW);
+	
+	// 启用两个顶点数组属性
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
+	
+	// 指定颜色的位置与格式
+	glBindBuffer(GL_ARRAY_BUFFER, g_vertexBufferId);
+	glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof (VertexType), 0);
 
-        // Set the number of vertices in the vertex array.
-        g_vertexCount = sizeof(vertices) / sizeof(VertexType);
+	// Specify the location and format of the color portion of the vertex buffer.
+	glBindBuffer(GL_ARRAY_BUFFER, g_vertexBufferId);
+	glVertexAttribPointer(1, 3, GL_FLOAT, false, sizeof(VertexType), (char*)NULL + (3 * sizeof(float)));	
 
-        // Set the number of indices in the index array.
-        g_indexCount = sizeof(indices) / sizeof(uint16_t);
-
-        // Allocate an OpenGL vertex array object.
-        glGenVertexArrays(1, &g_vertexArrayId);
-
-        // Bind the vertex array object to store all the buffers and vertex attributes we create here.
-        glBindVertexArray(g_vertexArrayId);
-
-        // Generate an ID for the vertex buffer.
-        glGenBuffers(1, &g_vertexBufferId);
-
-        // Bind the vertex buffer and load the vertex (position and color) data into the vertex buffer.
-        glBindBuffer(GL_ARRAY_BUFFER, g_vertexBufferId);
-        glBufferData(GL_ARRAY_BUFFER, g_vertexCount * sizeof(VertexType), vertices, GL_STATIC_DRAW);
-
-        // Enable the two vertex array attributes.
-        glEnableVertexAttribArray(0);  // Vertex position.
-        glEnableVertexAttribArray(1);  // Vertex color.
-
-        // Specify the location and format of the position portion of the vertex buffer.
-        glBindBuffer(GL_ARRAY_BUFFER, g_vertexBufferId);
-        glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof(VertexType), 0);
-
-        // Specify the location and format of the color portion of the vertex buffer.
-        glBindBuffer(GL_ARRAY_BUFFER, g_vertexBufferId);
-        glVertexAttribPointer(1, 3, GL_FLOAT, false, sizeof(VertexType), (char*)NULL + (3 * sizeof(float)));
-
-        // Generate an ID for the index buffer.
-        glGenBuffers(1, &g_indexBufferId);
-
-        // Bind the index buffer and load the index data into it.
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_indexBufferId);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, g_indexCount* sizeof(uint16_t), indices, GL_STATIC_DRAW);
-
-        return true;
+	// 为索引缓冲区生成一个ID
+	glGenBuffers(1, &g_indexBufferId);
+	
+	// 绑定索引数组，加载索引
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_indexBufferId);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, g_indexCount * sizeof (uint16_t), indices, GL_STATIC_DRAW);
+	
+	return true;
 }
 
-void ShutdownBuffers()
-{
-        // Disable the two vertex array attributes.
-        glDisableVertexAttribArray(0);
-        glDisableVertexAttribArray(1);
-
-        // Release the vertex buffer.
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glDeleteBuffers(1, &g_vertexBufferId);
-
-        // Release the index buffer.
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-        glDeleteBuffers(1, &g_indexBufferId);
-
-        // Release the vertex array object.
-        glBindVertexArray(0);
-        glDeleteVertexArrays(1, &g_vertexArrayId);
-
-        return;
+void ShutdownBuffers() {
+	// 禁用两个顶点数组
+	glDisableVertexAttribArray(0);
+	glDisableVertexAttribArray(1);
+	
+	// 释放顶点缓冲区
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glDeleteBuffers(1, &g_vertexBufferId);
+	
+	// 释放索引缓冲区
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	glDeleteBuffers(1, &g_indexBufferId);
+	
+	// 释放顶点数组对象
+	glBindVertexArray(0);
+	glDeleteVertexArrays(1, &g_vertexArrayId);
+	
+	return;
 }
 
-void RenderBuffers()
+void RenderBuffers() 
 {
-        // Bind the vertex array object that stored all the information about the vertex and index buffers.
-        glBindVertexArray(g_vertexArrayId);
-
-        // Render the vertex buffer using the index buffer.
-        glDrawElements(GL_TRIANGLES, g_indexCount, GL_UNSIGNED_SHORT, 0);
-
-        return;
+	// 绑定顶点数组对象
+	glBindVertexArray(g_vertexArrayId);
+	
+	// 渲染索引缓冲区
+	glDrawElements(GL_TRIANGLES, g_indexCount, GL_UNSIGNED_SHORT, 0);
+	
+	return;
 }
 
 void CalculateCameraPosition()
@@ -1027,61 +1017,60 @@ void Draw()
     SwapBuffers(g_deviceContext);
 }
 
-// the WindowProc function prototype
+// WindowProc函数原型
 LRESULT CALLBACK WindowProc(HWND hWnd,
                          UINT message,
                          WPARAM wParam,
                          LPARAM lParam);
 
-// the entry point for any Windows program
+// Windows应用的入口函数
 int WINAPI WinMain(HINSTANCE hInstance,
-    HINSTANCE hPrevInstance,
-    LPTSTR lpCmdLine,
-    int nCmdShow)
+                   HINSTANCE hPrevInstance,
+                   LPTSTR lpCmdLine,
+                   int nCmdShow)
 {
-    // the handle for the window, filled by a function
+  // 窗口句柄，由函数生成
     HWND hWnd;
-    // this struct holds information for the window class
+    // 保存窗口类的信息
     WNDCLASSEX wc;
 
-    // clear out the window class for use
+    // 初始化数据
     ZeroMemory(&wc, sizeof(WNDCLASSEX));
 
-    // fill in the struct with the needed information
+    // 使用需要的数据填充类结构
     wc.cbSize = sizeof(WNDCLASSEX);
-    wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
+    wc.style = CS_HREDRAW | CS_VREDRAW;
     wc.lpfnWndProc = DefWindowProc;
     wc.hInstance = hInstance;
     wc.hCursor = LoadCursor(NULL, IDC_ARROW);
     wc.hbrBackground = (HBRUSH)COLOR_WINDOW;
     wc.lpszClassName = _T("Temporary");
 
-    // register the window class
+    // 注册窗口类
     RegisterClassEx(&wc);
 
-    // create the temporary window for OpenGL extension setup.
+    // 创建窗口，保存句柄
     hWnd = CreateWindowEx(WS_EX_APPWINDOW,
-                          _T("Temporary"),    // name of the window class
-                          _T("Temporary"),   // title of the window
-                          WS_OVERLAPPEDWINDOW,    // window style
-                          0,    // x-position of the window
-                          0,    // y-position of the window
-                          640,    // width of the window
-                          480,    // height of the window
-                          NULL,    // we have no parent window, NULL
-                          NULL,    // we aren't using menus, NULL
-                          hInstance,    // application handle
-                          NULL);    // used with multiple windows, NULL
+                          _T("Temporary"),    // 窗口名
+                          _T("Temporary"),   // 窗口标题
+                          WS_OVERLAPPEDWINDOW,    // 窗口格式
+                          0,    // 窗口x坐标
+                          0,    // 窗口y坐标
+                          640,    //窗口宽度
+                          480,    // 窗口高度
+                          NULL,    // 父窗口
+                          NULL,    // 菜单项
+                          hInstance,    // 实例句柄
+                          NULL);    // 多窗口应用
 
-                                    // Don't show the window.
-    ShowWindow(hWnd, SW_HIDE);
+	ShowWindow(hWnd, SW_HIDE);	
 
-    InitializeExtensions(hWnd);
-
-    DestroyWindow(hWnd);
-    hWnd = NULL;
-
-    // clear out the window class for use
+	InitializeExtensions(hWnd);
+	
+	DestroyWindow(hWnd);
+	hWnd = NULL;
+	
+	    // clear out the window class for use
     ZeroMemory(&wc, sizeof(WNDCLASSEX));
 
     // fill in the struct with the needed information
@@ -1111,60 +1100,58 @@ int WINAPI WinMain(HINSTANCE hInstance,
         NULL);    // used with multiple windows, NULL
 
     InitializeOpenGL(hWnd, 960, 540, SCREEN_DEPTH, SCREEN_NEAR, true);
-
-    // display the window on the screen
-    ShowWindow(hWnd, nCmdShow);
-    SetForegroundWindow(hWnd);
-
-    InitializeShader(hWnd, VS_SHADER_SOURCE_FILE, PS_SHADER_SOURCE_FILE);
+	
+	ShowWindow(hWnd, nCmdShow);
+	SetForegroundWindow(hWnd);
+	
+	InitializeShader(hWnd, VS_SHADER_SOURCE_FILE, PS_SHADER_SOURCE_FILE);
     InitializeBuffers();
 
-    // enter the main loop:
+    // 进入主循环
 
-    // this struct holds Windows event messages
+    // 这个结构提保存了Windows事件消息
     MSG msg;
 
-    // wait for the next message in the queue, store the result in 'msg'
+    // 等待下一个消息，保存到msg结构中
     while(GetMessage(&msg, NULL, 0, 0))
     {
-        // translate keystroke messages into the right format
+        // 转换按键消息到合适的结构
         TranslateMessage(&msg);
 
-        // send the message to the WindowProc function
+        // 发送消息到WindowProc函数
         DispatchMessage(&msg);
     }
-
-    ShutdownBuffers();
+	
+	ShutdownBuffers();
     ShutdownShader();
     FinalizeOpenGL(hWnd);
 
-    // return this part of the WM_QUIT message to Windows
+    // 返回WM_QUIT的部分内容给Windows
     return msg.wParam;
 }
 
-// this is the main message handler for the program
+// 这是消息处理函数
 LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    // sort through and find what code to run for the message given
+    // 排序，找到合适的处理过程
     switch(message)
     {
-    case WM_CREATE:
-        {
-        }
-    case WM_PAINT:
-        {
-          Draw();
-          return 0;
-        }
-        // this message is read when the window is closed
-    case WM_DESTROY:
-        {
-                // close the application entirely
-           PostQuitMessage(0);
-           return 0;
-        }
+		case WM_PAINT:
+		{
+			Draw();
+			return 0;
+		}
+			
+        // 窗口关闭的时候这个消息会处理
+        case WM_DESTROY:
+            {
+                // 关闭整个应用
+                PostQuitMessage(0);
+                return 0;
+            } 
     }
 
-    // Handle any messages the switch statement didn't
+    // 处理剩余的消息
     return DefWindowProc (hWnd, message, wParam, lParam);
 }
+
