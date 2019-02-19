@@ -7,7 +7,10 @@
 
 #include <d3d12.h>
 #include "d3dx12.h"
-#include <DXGI1_4.h>
+#include <DXGI1_4.h>		// DXGI (DirectX Graphics Infrastructure) is an API used along with Direct3D. The basic idea of 
+							// DXGI is that some graphics related tasks are common to multipile graphics APIs. Here are some
+							// common functionality, swap chain, display adapters, monitors and supported display modes(
+							// resolution, refresh rate), surface formats
 #include <D3DCompiler.h>
 #include <DirectXMath.h>
 #include <DirectXPackedVector.h>
@@ -218,9 +221,94 @@ HRESULT CreateGraphicsResources(HWND hWnd)
         }
 		#endif
 		
-		// 1. We need to know which function our device supported. So, we use DXGI library.
+		// 1. We need to know which function our device support. So, we use DXGI library.
+		
+		// IDXGIFactory4 is used for enumerating the wrap adapter.
+		ComPtr<IDXGIFactory4> factory;
+		ThrowIfFailed(CreateDXGIFactory1(IID_PPV_ARGS(&factory));
+		if (bUseWarpDevice) {
+			ComPtr<IDXGIAdapter> warpAdapter;
+			ThrowIfFailed(factory->EnumWarpAdapter(IID_PPV_ARGS(&warpAdapter)));
+			
+			ThrowIfFailed(D3D12CreateDevice( 
+				warpAdapter.Get(),
+				D3D_FEATURE_LEVEL_11_0,
+				IID_PPV_ARGS(&g_pDev)
+				));
+		}
+		else {
+			ComPtr<IDXGIAdapter1> hardwareAdapter;
+			GetHardwareAdapter(factory.Get(), &hardwareAdapter);
+			
+			ThrowIfFailed(D3D12CreateDevice(
+				hardwareAdapter.Get(),
+				D3D_FEATURE_LEVEL_11_0,
+				IID_PPV_ARGS(&g_pDev)
+				));
+		}
+		
+		// 2. Now, we need create resources. Note that the commands also need a place to put.
+		
+		// Describe and create the command queue.
+		D3D12_COMMAND_QUEUE_DESC queueDesc = {};
+		queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+		queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+		ThrowIfFailed(g_pDev->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&g_pCommandQueue)));
+		
+		// Describe and create swap chain.
+		DXGI_SWAP_CHAIN_DESC scd;
+		ZeroMemory(&scd, sizeof (DXGI_SWAP_CHAIN_DESC));
+		scd.BufferCount = nFrameCount;						// back buffer count
+		scd.BufferDesc.Width = nScreenWidth;
+		scd.BufferDesc.Height = nScreenHeight;
+		scd.BufferDesc.Format = DXGI_FORMAT_R8G8G8A8_UNORM;	// use 32-bit color
+		scd.BufferDesc.RefreshRate.Numerator = 60;
+		scd.BufferDesc.RefreshRate.Denominator = 1;
+		scd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;	// how swap chain is to be used
+		scd.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;		// DXGI_SWAP_EFFECT_FLIP_DISCARD only supported after Win10
+															// use DXGI_SWAP_EFFECT_DISCARD on platforms early than Win10
+		scd.OutputWindow = hWnd;							// the window to be used
+		scd.SampleDesc.Count = 1;							// multi-sample can not be used when in SwapEffect sets to 
+															// DXGI_SWAP_EFFECT_FLIP_DISCARD
+		scd.Windowed = TRUE;								// windowd / full-screen mode
+		scd.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;	// allow full-screen transition
+		ComPtr<IDXGISwapChain> swapChain;
+		ThrowIfFailed(factory->CreateSwapChain(
+				g_pCommandQueue.Get(),						// Swap chain needs the queue so that it can force a flush on it
+				&scd,
+				&swapChain
+				));
+				
+		ThrowIfFailed(swapChain.As(&g_pSwapChain));
+		
+		g_nFrameIndex = g_pSwapChain->GetCurrentBackBufferIndex();
+		CreateRenderTarget();
+		InitPipeline();
+		InitGraphics();
 	}
     return hr;
+}
+
+void GetHardwareAdapter(IDXGIFactory4* pFactory, IDXGIAdapter1** ppAdapter) {
+	IDXGIAdapter1 *pAdapter = nullptr;
+	*ppAdapter = nullptr;
+	
+	for (UINT adapterIndex = 0; DXGI_ERROR_NOT_FOUND != pFactory->EnumAdapters1(adapterIndex, &pAdapter); ++adapterIndex) {
+		DXGI_ADPATER_DESC1 desc;
+		pAdapter->GetDesc1(&desc);
+		
+		if (desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE) {
+			// Don't select the Basic Render Driver adapter.
+			continue;
+		}
+		
+		// Check to see if the adapter supports Direct3D 12, but don't create actual device yet.
+		if (SUCCEEDED(D3D12CreateDevice(pAdapter, D3D_FEATURE_LEVEL_11_0, _uuidof(ID3D12Device), nullptr)) {
+			break;
+		}
+	}
+	
+	*ppAdapter = pAdapter;
 }
 
 void DiscardGraphicsResources()
