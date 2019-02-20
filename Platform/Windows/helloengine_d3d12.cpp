@@ -117,21 +117,108 @@ void GetAssetsPath(WCHAR* path, UINT pathSize) {
 }
 
 void CreateRenderTarget() {
-    HRESULT hr;
-    ID3D11Texture2D *pBackBuffer;
-
-    // Get a pointer to the back buffer
-    g_pSwapchain->GetBuffer( 0, __uuidof( ID3D11Texture2D ),
-                                 ( LPVOID* )&pBackBuffer );
-
-    // Create a render-target view
-    g_pDev->CreateRenderTargetView( pBackBuffer, NULL,
-                                          &g_pRTView );
-    pBackBuffer->Release();
-
-    // Bind the view
-    g_pDevcon->OMSetRenderTargets( 1, &g_pRTView, NULL );
+    // Describe and create a render target view (RTV) descriptor heap.
+	D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
+	rtvHeapDesc.NumDescriptors = nFrameCount;
+	rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+	rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+	ThrowIfFailed(g_pDev->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&g_pRtvHeap)));
+	
+	g_nRtvDescriptorSize = g_pDev->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+	
+	// Our application references descriptors through handles. 
+	// Use GetCPUDescriptorHandleForHeapStart to get a handle to the frist descriptor in the heap.
+	CD3D12_CPU_DESCRIPTOR_HANDLE rtvHandle(g_pRtvHeap->GetCPUDescriptorHandleForHeapStart());
+	
+	// Create a RTV for each frame.
+	for (uint32_t i = 0; i < nFrameCount; ++i) {
+		// Create the ith buffer in the swap chain.
+		ThrowIfFailed(g_pSwapChain->GetBuffer(i, IID_PPV_ARGS(&g_pRenderTargets[i])));
+		
+		// Create an RTV to it.
+		g_pDev->CreateReanderTargetView(g_pRenderTargets[i].Get(), 
+				nullptr,	// create a view to the first mipmap level of this resource 
+							// with the format the resource was created with.
+				rtvHandle);
+				
+		// next entry in heap.
+		rtvHandle.Offset(1, g_nRtvDescriptorSize);
+	}
 }
+
+// this is the function that loads and prepares the shaders
+void InitPipeline() {
+	// create an empty root signature
+	CD3DX12_ROOT_SIGNATURE_DESC rsd;
+	rsd.Init(0, nullptr, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+	
+	ComPtr<ID3DBlob> signature;
+	ComPtr<ID3DBlob> error;
+	
+	ThrowIfFailed(D3D12SerializeRootSignature(&rsd, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error));
+	ThrowIfFailed(g_pDev->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&g_pRootSignature)));
+	
+	// load the shaders
+#if defined (_DEBUG)
+		// Enable better shader debugging with the graphics debugging tools.
+	UINT compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+#else
+	UINT compileFlags = 0;
+#endif
+	ComPtr<ID3DBlob> vertexShader;
+	ComPtr<ID3DBlob> piexelShader;
+	
+	D3DCompileFromFile(
+		GetAssetFullPath(L"copy.ps").c_str(),
+		nullptr,
+		D3D_COMPILE_STANDARD_FILE_INCLUDE,
+		"main",
+		"ps_5_0",
+		compileFlags,
+		0,
+		&pixelShader,
+		&error);
+	if (error) {
+		OutputDebugString((LPCTSTR)error->GetBufferPointer());
+		error->Release();
+		throw std::exception();
+	}
+	
+	// create the input layout object
+	D3D12_INPUT_ELEMENT_DESC ied[] = 
+	{
+		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
+		{"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
+	};
+	
+	// describe and create the graphics pipeline state object (PSO)
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC psod = {};
+	psod.InputLayout = {ied, _countof(ied)};
+	psod.pRootSignagure = g_pRootSignature.Get();
+	psod.VS = {reinterpret_cast<UINT8*>(vertexShader->GetBufferPointer()), vertexShader->GetBufferSize() };
+	psod.PS = { reinterpret_cast<UINT8*>(pixelShader->GetBufferPointer()), pixelShader->GetBufferSize() };
+	psod.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+	psod.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+	psod.DepthStencilState.DepthEnable = FALSE;
+	psod.DepthStencilState.StencilEnable = FALSE;
+	psod.SampleMask = UINT_MAX;
+	psod.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	psod.NumRenderTargets = 1;
+	psod.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+	psod.SampleDesc.Count = 1;
+	ThrowIfFailed(g_pDev->CreateGraphicsPipelineState (&psod, IID_PPV_ARGS(&g_pPipelineState)));
+	
+	// create command list
+	ThrowIfFailed(g_pDev->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&g_pCommandAllocator)));
+	ThrowIfFailed(g_pDev->CreateCommandList(0,
+					D3D12_COMMAND_LIST_TYPE_DIRECT,
+					g_pCommandAllocator.Get(),
+					g_pPipelineState.Get(),
+					IID_PPV_ARGS(&g_pCommandList)));
+					
+	ThrowIfFailed(g_pCommandList->Close());
+}
+
 
 void SetViewPort() {
     D3D11_VIEWPORT viewport;
@@ -145,35 +232,6 @@ void SetViewPort() {
     g_pDevcon->RSSetViewports(1, &viewport);
 }
 
-// this is the function that loads and prepares the shaders
-void InitPipeline() {
-    // load and compile the two shaders
-    ID3DBlob *VS, *PS;
-
-    D3DReadFileToBlob(L"copy.vso", &VS);
-    D3DReadFileToBlob(L"copy.pso", &PS);
-
-    // encapsulate both shaders into shader objects
-    g_pDev->CreateVertexShader(VS->GetBufferPointer(), VS->GetBufferSize(), NULL, &g_pVS);
-    g_pDev->CreatePixelShader(PS->GetBufferPointer(), PS->GetBufferSize(), NULL, &g_pPS);
-
-    // set the shader objects
-    g_pDevcon->VSSetShader(g_pVS, 0, 0);
-    g_pDevcon->PSSetShader(g_pPS, 0, 0);
-
-    // create the input layout object
-    D3D11_INPUT_ELEMENT_DESC ied[] =
-    {
-        {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-        {"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
-    };
-
-    g_pDev->CreateInputLayout(ied, 2, VS->GetBufferPointer(), VS->GetBufferSize(), &g_pLayout);
-    g_pDevcon->IASetInputLayout(g_pLayout);
-
-    VS->Release();
-    PS->Release();
-}
 
 // this is the function that creates the shape to render
 void InitGraphics() {
