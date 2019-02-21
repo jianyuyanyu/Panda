@@ -239,27 +239,51 @@ void InitGraphics() {
     VERTEX OurVertices[] =
     {
         {XMFLOAT3(0.0f, 0.5f, 0.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f)},
-        {XMFLOAT3(0.45f, -0.5f, 0.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f)},
+        {XMFLOAT3(0.45f, -0.5, 0.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f)},
         {XMFLOAT3(-0.45f, -0.5f, 0.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f)}
     };
+	
+	const UINT vertexBufferSize = sizeof(OurVertices);
 
-
-    // create the vertex buffer
-    D3D11_BUFFER_DESC bd;
-    ZeroMemory(&bd, sizeof(bd));
-
-    bd.Usage = D3D11_USAGE_DYNAMIC;                // write access access by CPU and GPU
-    bd.ByteWidth = sizeof(VERTEX) * 3;             // size is the VERTEX struct * 3
-    bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;       // use as a vertex buffer
-    bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;    // allow CPU to write in buffer
-
-    g_pDev->CreateBuffer(&bd, NULL, &g_pVBuffer);       // create the buffer
-
-    // copy the vertices into the buffer
-    D3D11_MAPPED_SUBRESOURCE ms;
-    g_pDevcon->Map(g_pVBuffer, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);    // map the buffer
-    memcpy(ms.pData, OurVertices, sizeof(VERTEX) * 3);                       // copy the data
-    g_pDevcon->Unmap(g_pVBuffer, NULL);                                      // unmap the buffer
+	// Note: using upload heaps to transfer static data like vert buffers is not
+	// recommanded. Every time the GPU needs it, the upload heap will be marshalled
+	// over. Please read up on Default Heap usage. An upload heap is used here for 
+	// code simplicity and becaurse there are very few verts to actually transfer.
+	ThrowIfFailed(g_pDev->CreateCommittedResource(
+		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
+		D3D12_HEAP_FLAG_NONE,
+		&CD3DX12_RESOURCE_DESC::Buffer(vertexBufferSize),
+		D3D12_RESOURCE_STATE_GENERIC_READ,
+		nullptr,
+		IID_PPV_ARGS(&g_pVertexBuffer)));
+		
+	// copy the vertices into the buffer
+	uint8_t* pVertexDataBegin;
+	CD3DX12_RANGE readRange(0, 0);	// we do not intend to read this buffer on CPU 
+	ThrowIfFailed(g_pVertexBuffer->Map(0, &readRange,
+					reinterpret_cast<void**>(&pVertexDataBegin)));	// map the buffer
+	memcpy(pVertexDataBegin, OurVertices, vertexBufferSize);	// copy the data
+	g_pVertexBuffer->Unmap(0, nullptr);
+	
+	// initialize the vertex buffer size
+	g_VertexBufferView.BufferLocation = g_pVertexBuffer->GetGPUVirtualAddress();
+	g_VertexBufferView.StrideInBytes = sizeof(VERTEX);
+	g_VertexBufferView.SizeInBytes = vertexBufferSize;
+	
+	// create synchronization objects and wait until assets have been unloaded to the GPU
+	ThrowIfFailed(g_pDev->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&g_pFence)));
+	g_nFenceValue = 1;
+	
+	// create an event handle to use for synchronization
+	g_hFenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+	if (g_hFenceEvent == nullptr) {
+		ThrowIfFailed(HRESULT_FROM_WIN32(GetLastError()));
+	}
+	
+	// wait for the command list to execute; we are reusing the same command
+	// list in our main loop but for now, we just wait for setup to 
+	// complete before continuing.
+	WaitForPreviousFrame();
 }
 
 // this function prepare graphic resources for use
@@ -371,39 +395,24 @@ void GetHardwareAdapter(IDXGIFactory4* pFactory, IDXGIAdapter1** ppAdapter) {
 
 void DiscardGraphicsResources()
 {
-    SafeRelease(&g_pLayout);
-    SafeRelease(&g_pVS);
-    SafeRelease(&g_pPS);
-    SafeRelease(&g_pVBuffer);
-    SafeRelease(&g_pSwapchain);
-    SafeRelease(&g_pRTView);
-    SafeRelease(&g_pDev);
-    SafeRelease(&g_pDevcon);
+	WaitForPreviousFrame();
+	CloseHandle(g_hFenceEvent);
 }
 
 // this is the function used to render a single frame
 void RenderFrame()
 {
-    // clear the back buffer to a deep blue
-    const FLOAT clearColor[] = {0.0f, 0.2f, 0.4f, 1.0f};
-    g_pDevcon->ClearRenderTargetView(g_pRTView, clearColor);
-
-    // do 3D rendering on the back buffer here
-    {
-        // select which vertex buffer to display
-        UINT stride = sizeof(VERTEX);
-        UINT offset = 0;
-        g_pDevcon->IASetVertexBuffers(0, 1, &g_pVBuffer, &stride, &offset);
-
-        // select which primtive type we are using
-        g_pDevcon->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-        // draw the vertex buffer to the back buffer
-        g_pDevcon->Draw(3, 0);
-    }
-
-    // swap the back buffer and the front buffer
-    g_pSwapchain->Present(0, 0);
+	// record all the commands we need to render the scene into the command list
+	PopulateCommandList();
+	
+	// execute the command list
+	ID3D12CommandList* ppCommandLists[] = {g_pCommandList.Get() };
+	g_pCommandQueue->ExecuteCommandLists (_countof(ppCommandLists), ppCommandLists);
+	
+	// swap the back buffer and the front buffer
+	ThrowIfFailed(g_pSwapChain->Present(1, 0));
+	
+	WaitForPreviousFrame();
 }
 
 // the WindowProc function prototype
