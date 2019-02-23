@@ -44,6 +44,7 @@ namespace Panda {
 		if (FAILED(hr)) {
 			throw com_exception(hr);
 		}
+	}
 };
 
 using namespace Panda;
@@ -52,8 +53,8 @@ using namespace DirectX::PackedVector;
 using namespace Microsoft::WRL;
 using namespace std;
 
-const uint32_t SCREEN_WIDTH  =  960;
-const uint32_t SCREEN_HEIGHT =  480;
+const uint32_t nScreenWidth  =  960;
+const uint32_t nScreenHeight =  480;
 
 const uint32_t nFrameCount = 2;
 
@@ -61,7 +62,7 @@ const bool bUseWarpDevice = true;
 
 // global declarations
 D3D12_VIEWPORT					g_ViewPort = {0.0f, 0.0f, 
-											  static_cast<float> (nScreenWidth), static_cast<float>(nScreenHeight)) };		// viewport structure
+											  static_cast<float> (nScreenWidth), static_cast<float>(nScreenHeight) };		// viewport structure
 D3D12_RECT						g_ScissorRect = {0, 0, nScreenWidth, nScreenHeight};	// scissor rect structure
 ComPtr<IDXGISwapChain3> 		g_pSwapChain = nullptr;			// the pointer to the swap chain interface 
 ComPtr<ID3D12Device>			g_pDev = nullptr;				// the pointer to out Direct3D device interface
@@ -73,7 +74,7 @@ ComPtr<ID3D12DescriptorHeap>	g_pRtvHeap;						// an array of descriptors of GPU 
 ComPtr<ID3D12PipelineState>		g_pPipelineState;				// an object maintains the state of all currently set shaders
 																// and certain fixed function state objects
 																// such as the input assembler, tesselator, rasteriazer and output manager
-ComPtr<ID3D12CommandList>		g_pCommandList;					// a list to store CPU commands, which will be submmited to GPU to execute
+ComPtr<ID3D12GraphicsCommandList>		g_pCommandList;					// a list to store CPU commands, which will be submmited to GPU to execute
 
 uint32_t g_nRtvDescriptorSize;
 
@@ -110,7 +111,7 @@ void GetAssetsPath(WCHAR* path, UINT pathSize) {
 		throw std::exception();
 	}
 	
-	WCHAR* lastSlash = wcsrcnr(path, L'\\');
+	WCHAR* lastSlash = wcsrchr(path, L'\\');
 	if (lastSlash) { 
 		*(lastSlash + 1) = L'\0';
 	}
@@ -128,7 +129,7 @@ void CreateRenderTarget() {
 	
 	// Our application references descriptors through handles. 
 	// Use GetCPUDescriptorHandleForHeapStart to get a handle to the frist descriptor in the heap.
-	CD3D12_CPU_DESCRIPTOR_HANDLE rtvHandle(g_pRtvHeap->GetCPUDescriptorHandleForHeapStart());
+	CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(g_pRtvHeap->GetCPUDescriptorHandleForHeapStart());
 	
 	// Create a RTV for each frame.
 	for (uint32_t i = 0; i < nFrameCount; ++i) {
@@ -136,7 +137,7 @@ void CreateRenderTarget() {
 		ThrowIfFailed(g_pSwapChain->GetBuffer(i, IID_PPV_ARGS(&g_pRenderTargets[i])));
 		
 		// Create an RTV to it.
-		g_pDev->CreateReanderTargetView(g_pRenderTargets[i].Get(), 
+		g_pDev->CreateRenderTargetView(g_pRenderTargets[i].Get(), 
 				nullptr,	// create a view to the first mipmap level of this resource 
 							// with the format the resource was created with.
 				rtvHandle);
@@ -145,6 +146,29 @@ void CreateRenderTarget() {
 		rtvHandle.Offset(1, g_nRtvDescriptorSize);
 	}
 }
+
+void GetHardwareAdapter(IDXGIFactory4* pFactory, IDXGIAdapter1** ppAdapter) {
+	IDXGIAdapter1 *pAdapter = nullptr;
+	*ppAdapter = nullptr;
+	
+	for (UINT adapterIndex = 0; DXGI_ERROR_NOT_FOUND != pFactory->EnumAdapters1(adapterIndex, &pAdapter); ++adapterIndex) {
+		DXGI_ADAPTER_DESC1 desc;
+		pAdapter->GetDesc1(&desc);
+		
+		if (desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE) {
+			// Don't select the Basic Render Driver adapter.
+			continue;
+		}
+		
+		// Check to see if the adapter supports Direct3D 12, but don't create actual device yet.
+		if (SUCCEEDED(D3D12CreateDevice(pAdapter, D3D_FEATURE_LEVEL_11_0, _uuidof(ID3D12Device), nullptr))) {
+			break;
+		}
+	}
+	
+	*ppAdapter = pAdapter;
+}
+
 
 // this is the function that loads and prepares the shaders
 void InitPipeline() {
@@ -166,7 +190,7 @@ void InitPipeline() {
 	UINT compileFlags = 0;
 #endif
 	ComPtr<ID3DBlob> vertexShader;
-	ComPtr<ID3DBlob> piexelShader;
+	ComPtr<ID3DBlob> pixelShader;
 	
 	D3DCompileFromFile(
 		GetAssetFullPath(L"copy.ps").c_str(),
@@ -194,7 +218,7 @@ void InitPipeline() {
 	// describe and create the graphics pipeline state object (PSO)
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psod = {};
 	psod.InputLayout = {ied, _countof(ied)};
-	psod.pRootSignagure = g_pRootSignature.Get();
+	psod.pRootSignature = g_pRootSignature.Get();
 	psod.VS = {reinterpret_cast<UINT8*>(vertexShader->GetBufferPointer()), vertexShader->GetBufferSize() };
 	psod.PS = { reinterpret_cast<UINT8*>(pixelShader->GetBufferPointer()), pixelShader->GetBufferSize() };
 	psod.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
@@ -219,19 +243,24 @@ void InitPipeline() {
 	ThrowIfFailed(g_pCommandList->Close());
 }
 
-
-void SetViewPort() {
-    D3D11_VIEWPORT viewport;
-    ZeroMemory(&viewport, sizeof(D3D11_VIEWPORT));
-
-    viewport.TopLeftX = 0;
-    viewport.TopLeftY = 0;
-    viewport.Width = SCREEN_WIDTH;
-    viewport.Height = SCREEN_HEIGHT;
-
-    g_pDevcon->RSSetViewports(1, &viewport);
+void WaitForPreviousFrame() {
+	// WAITING FOR THE FRAME TO COMPLET BEFORE CONTINUING IS NOT BEST PRACTICE.
+	// This is code implemented as such for simplicity. More advanced ssamples
+	// illustrate how to use fences for efficient resource usage.
+	
+	// Single and increment the fence value.
+	const uint64_t fence = g_nFenceValue;
+	ThrowIfFailed(g_pCommandQueue->Signal(g_pFence.Get(), fence));
+	g_nFenceValue++;
+	
+	// Wait untile the previous frame is finished.
+	if (g_pFence->GetCompletedValue() < fence) {
+		ThrowIfFailed(g_pFence->SetEventOnCompletion(fence, g_hFenceEvent));
+		WaitForSingleObject(g_hFenceEvent, INFINITE);
+	}
+	
+	g_nFrameIndex = g_pSwapChain->GetCurrentBackBufferIndex();
 }
-
 
 // this is the function that creates the shape to render
 void InitGraphics() {
@@ -290,7 +319,7 @@ void InitGraphics() {
 HRESULT CreateGraphicsResources(HWND hWnd)
 {
     HRESULT hr = S_OK;
-    if (g_pSwapchain == nullptr)
+    if (g_pSwapChain == nullptr)
     {
 		#if defined(_DEBUG)
         // Enable the D3D12 debug layer.
@@ -307,7 +336,7 @@ HRESULT CreateGraphicsResources(HWND hWnd)
 		
 		// IDXGIFactory4 is used for enumerating the wrap adapter.
 		ComPtr<IDXGIFactory4> factory;
-		ThrowIfFailed(CreateDXGIFactory1(IID_PPV_ARGS(&factory));
+		ThrowIfFailed(CreateDXGIFactory1(IID_PPV_ARGS(&factory)));
 		if (bUseWarpDevice) {
 			ComPtr<IDXGIAdapter> warpAdapter;
 			ThrowIfFailed(factory->EnumWarpAdapter(IID_PPV_ARGS(&warpAdapter)));
@@ -343,7 +372,7 @@ HRESULT CreateGraphicsResources(HWND hWnd)
 		scd.BufferCount = nFrameCount;						// back buffer count
 		scd.BufferDesc.Width = nScreenWidth;
 		scd.BufferDesc.Height = nScreenHeight;
-		scd.BufferDesc.Format = DXGI_FORMAT_R8G8G8A8_UNORM;	// use 32-bit color
+		scd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;	// use 32-bit color
 		scd.BufferDesc.RefreshRate.Numerator = 60;
 		scd.BufferDesc.RefreshRate.Denominator = 1;
 		scd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;	// how swap chain is to be used
@@ -371,32 +400,60 @@ HRESULT CreateGraphicsResources(HWND hWnd)
     return hr;
 }
 
-void GetHardwareAdapter(IDXGIFactory4* pFactory, IDXGIAdapter1** ppAdapter) {
-	IDXGIAdapter1 *pAdapter = nullptr;
-	*ppAdapter = nullptr;
-	
-	for (UINT adapterIndex = 0; DXGI_ERROR_NOT_FOUND != pFactory->EnumAdapters1(adapterIndex, &pAdapter); ++adapterIndex) {
-		DXGI_ADPATER_DESC1 desc;
-		pAdapter->GetDesc1(&desc);
-		
-		if (desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE) {
-			// Don't select the Basic Render Driver adapter.
-			continue;
-		}
-		
-		// Check to see if the adapter supports Direct3D 12, but don't create actual device yet.
-		if (SUCCEEDED(D3D12CreateDevice(pAdapter, D3D_FEATURE_LEVEL_11_0, _uuidof(ID3D12Device), nullptr)) {
-			break;
-		}
-	}
-	
-	*ppAdapter = pAdapter;
-}
 
 void DiscardGraphicsResources()
 {
 	WaitForPreviousFrame();
 	CloseHandle(g_hFenceEvent);
+}
+
+void PopulateCommandList() {
+	// command list allocators can only be reset when the associated
+	// command lists have finished execution on the GPU; apps should use
+	// fences to determine GPU execution progress.
+	ThrowIfFailed(g_pCommandAllocator->Reset());
+	
+	// however, when ExecuteCommandLists() is called on a particular command
+	// list, that command list can then be reset at any time and muset be before
+	// re-recording.
+	ThrowIfFailed(g_pCommandList->Reset(g_pCommandAllocator.Get(), g_pPipelineState.Get()));
+	
+	// set necessary state
+	g_pCommandList->SetGraphicsRootSignature(g_pRootSignature.Get());
+	g_pCommandList->RSSetViewports(1, &g_ViewPort);
+	g_pCommandList->RSSetScissorRects(1, &g_ScissorRect);
+	
+	// Indicate that the back buffer will be used as a render target.
+	g_pCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(
+			g_pRenderTargets[g_nFrameIndex].Get(),
+			D3D12_RESOURCE_STATE_PRESENT,
+			D3D12_RESOURCE_STATE_RENDER_TARGET));
+			
+	CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(g_pRtvHeap->GetCPUDescriptorHandleForHeapStart(), g_nFrameIndex, g_nRtvDescriptorSize);
+	
+	// clear the back buffer to a deep blue
+	const FLOAT clearColor[] = {0.0f, 0.2f, 0.4f, 1.0f};
+	g_pCommandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
+	
+	// do 3D rendering on the back buffer here
+	{
+		// select with vertex buffer to display
+		g_pCommandList->IASetVertexBuffers(0, 1, &g_VertexBufferView);
+		
+		// select which primtive type we are using
+		g_pCommandList->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		
+		// draw the vertex buffer to the back buffer
+		g_pCommandList->DrawInstanced(3, 1, 0, 0);
+	}
+	
+	// Indicate that the back buffer will now be used to present.
+	g_pCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(
+			g_pRenderTargets[g_nFrameIndex].Get(),
+			D3D12_RESOURCE_STATE_RENDER_TARGET,
+			D3D12_RESOURCE_STATE_PRESENT));
+			
+	ThrowIfFailed(g_pCommandList->Close());
 }
 
 // this is the function used to render a single frame
@@ -507,10 +564,10 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
         break;
 
 	case WM_SIZE:
-		if (g_pSwapchain != nullptr)
+		if (g_pSwapChain != nullptr)
 		{
 		    DiscardGraphicsResources();
-			g_pSwapchain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH);
+			g_pSwapChain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH);
 		}
 		wasHandled = true;
         break;
