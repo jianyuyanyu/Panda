@@ -192,6 +192,22 @@ void InitPipeline() {
 	ComPtr<ID3DBlob> vertexShader;
 	ComPtr<ID3DBlob> pixelShader;
 	
+	D3DCompileFromFile (
+		GetAssetFullPath(L"copy.vs").c_str(),
+		nullptr,
+		D3D_COMPILE_STANDARD_FILE_INCLUDE,
+		"main",
+		"vs_5_0",
+		compileFlags,
+		0,
+		&vertexShader,
+		&error);
+	if (error) { 
+		OutputDebugString ((LPCTSTR)error->GetBufferPointer()); 
+		error->Release(); 
+		throw std::exception(); 
+	}
+	
 	D3DCompileFromFile(
 		GetAssetFullPath(L"copy.ps").c_str(),
 		nullptr,
@@ -430,6 +446,7 @@ void PopulateCommandList() {
 			D3D12_RESOURCE_STATE_RENDER_TARGET));
 			
 	CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(g_pRtvHeap->GetCPUDescriptorHandleForHeapStart(), g_nFrameIndex, g_nRtvDescriptorSize);
+	g_pCommandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
 	
 	// clear the back buffer to a deep blue
 	const FLOAT clearColor[] = {0.0f, 0.2f, 0.4f, 1.0f};
@@ -558,7 +575,7 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
         break;	
 
 	case WM_PAINT:
-		result = CreateGraphicsResources(hWnd);
+		CreateGraphicsResources(hWnd);
         RenderFrame();
 		wasHandled = true;
         break;
