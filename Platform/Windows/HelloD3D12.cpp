@@ -492,7 +492,7 @@ void RenderFrame()
 // the WindowProc function prototype
 LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
-bool InitMainWindow(HINSTANCE hInstance);
+bool InitMainWindow(HINSTANCE hInstance, int nCmdShow);
 
 // Message loop
 int Run();
@@ -507,12 +507,12 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	GetAssetsPath(assetsPath, _countof(assetsPath));
 	g_AssetPath = assetsPath;
 
-	InitMainWindow(hInstance);
+	InitMainWindow(hInstance, nCmdShow);
 	
 	return Run();
 }
 
-bool InitMainWindow(HINSTANCE hInstance) {	
+bool InitMainWindow(HINSTANCE hInstance, int nCmdShow) {	
     WNDCLASSEX wc;
 
     // clear out the window class for use
@@ -568,6 +568,10 @@ int Run() {
     return msg.wParam;
 }
 
+void OnResize() {
+
+}
+
 // this is the main message handler for the program
 LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
     LRESULT result = 0;
@@ -587,11 +591,12 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
         break;
 
 	case WM_SIZE:
-		if (g_pSwapChain != nullptr)
-		{
-		    DiscardGraphicsResources();
-			g_pSwapChain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH);
-		}
+		OnResize();
+		// if (g_pSwapChain != nullptr)
+		// {
+		    // DiscardGraphicsResources();
+			// g_pSwapChain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH);
+		// }
 		wasHandled = true;
         break;
 
@@ -599,11 +604,6 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 		DiscardGraphicsResources();
 		PostQuitMessage(0);
 		wasHandled = true;
-        break;
-
-    case WM_DISPLAYCHANGE:
-        InvalidateRect(hWnd, nullptr, false);
-        wasHandled = true;
         break;
     }
 
