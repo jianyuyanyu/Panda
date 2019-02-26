@@ -65,7 +65,7 @@ D3D12_VIEWPORT					g_ViewPort = {0.0f, 0.0f,
 											  static_cast<float> (nScreenWidth), static_cast<float>(nScreenHeight) };		// viewport structure
 D3D12_RECT						g_ScissorRect = {0, 0, nScreenWidth, nScreenHeight};	// scissor rect structure
 ComPtr<IDXGISwapChain3> 		g_pSwapChain = nullptr;			// the pointer to the swap chain interface 
-ComPtr<ID3D12Device>			g_pDev = nullptr;				// the pointer to out Direct3D device interface
+ComPtr<ID3D12Device>			g_pDevice = nullptr;				// the pointer to out Direct3D device interface
 ComPtr<ID3D12Resource>			g_pRenderTargets[nFrameCount];	// the pointer to rendering buffer. [decriptor]
 ComPtr<ID3D12CommandAllocator>	g_pCommandAllocator;			// the pointer to command buffer allocator
 ComPtr<ID3D12CommandQueue>		g_pCommandQueue;				// the pointer to command queue
@@ -489,6 +489,30 @@ void RenderFrame()
 	WaitForPreviousFrame();
 }
 
+void InitDirect3D12() {
+	// create device
+	ComPtr<IDXGIFactory4>	dxgiFactory;
+	ThrowIfFailed(CreateDXGIFactory1(IID_PPV_ARGS(&dxgiFactory)));
+	
+	// Try to create hardware device.
+	HRESULT hardwareResult = D3D12CreateDevice(
+		nullptr,	// default adapter
+		D3D_FEATURE_LEVEL_11_0,
+		IID_PPV_ARGS(&g_pDevice));
+	
+	// Fallback to WARP(Windows Advanced Rasterization Platform) device
+	if (FAILED(hardwareResult)) {
+		ComPtr<IDXGIAdapter> pWarpAdapter;
+		ThrowIfFailed(dxgiFactory->EnumWarpAdapter(IID_PPV_ARGS(&pWarpAdapter)));
+		
+		ThrowIfFailed(D3D12CreateDevice(
+			pWarpAdapter.Get(),
+			D3D_FEATURE_LEVEL_11_0,
+			IID_PPV_ARGS(&g_pDevice)));
+	}
+	
+}
+
 // the WindowProc function prototype
 LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
@@ -507,7 +531,11 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	GetAssetsPath(assetsPath, _countof(assetsPath));
 	g_AssetPath = assetsPath;
 
+	// Create window
 	InitMainWindow(hInstance, nCmdShow);
+	
+	// Initialize DirectX 12
+	InitDirect3D12();
 	
 	return Run();
 }
@@ -569,7 +597,7 @@ int Run() {
 }
 
 void OnResize() {
-
+	
 }
 
 // this is the main message handler for the program
