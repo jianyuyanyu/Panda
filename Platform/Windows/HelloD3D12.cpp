@@ -65,7 +65,7 @@ D3D12_VIEWPORT					g_ViewPort = {0.0f, 0.0f,
 											  static_cast<float> (nScreenWidth), static_cast<float>(nScreenHeight) };		// viewport structure
 D3D12_RECT						g_ScissorRect = {0, 0, nScreenWidth, nScreenHeight};	// scissor rect structure
 ComPtr<IDXGISwapChain3> 		g_pSwapChain = nullptr;			// the pointer to the swap chain interface 
-ComPtr<ID3D12Device>			g_pDevice = nullptr;				// the pointer to out Direct3D device interface
+ComPtr<ID3D12Device>			g_pDevice = nullptr;			// the pointer to out Direct3D device interface
 ComPtr<ID3D12Resource>			g_pRenderTargets[nFrameCount];	// the pointer to rendering buffer. [decriptor]
 ComPtr<ID3D12CommandAllocator>	g_pCommandAllocator;			// the pointer to command buffer allocator
 ComPtr<ID3D12CommandQueue>		g_pCommandQueue;				// the pointer to command queue
@@ -86,6 +86,10 @@ uint32_t			g_nFrameIndex;
 HANDLE				g_hFenceEvent;
 ComPtr<ID3D12Fence>	g_pFence;
 uint32_t			g_nFenceValue;
+
+D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS	g_msQualityLevels;	// multi-sample support information
+HWND g_hWnd;	// window handle
+ComPtr<IDXGIFactory4> g_pDXGIFactory;	// dxgi factory
 
 // vertex buffer structure
 struct VERTEX {
@@ -115,58 +119,6 @@ void GetAssetsPath(WCHAR* path, UINT pathSize) {
 	if (lastSlash) { 
 		*(lastSlash + 1) = L'\0';
 	}
-}
-
-void CreateRenderTarget() {
-    // Describe and create a render target view (RTV) descriptor heap.
-	D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
-	rtvHeapDesc.NumDescriptors = nFrameCount;
-	rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-	rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-	ThrowIfFailed(g_pDev->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&g_pRtvHeap)));
-	
-	g_nRtvDescriptorSize = g_pDev->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-	
-	// Our application references descriptors through handles. 
-	// Use GetCPUDescriptorHandleForHeapStart to get a handle to the frist descriptor in the heap.
-	CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(g_pRtvHeap->GetCPUDescriptorHandleForHeapStart());
-	
-	// Create a RTV for each frame.
-	for (uint32_t i = 0; i < nFrameCount; ++i) {
-		// Create the ith buffer in the swap chain.
-		ThrowIfFailed(g_pSwapChain->GetBuffer(i, IID_PPV_ARGS(&g_pRenderTargets[i])));
-		
-		// Create an RTV to it.
-		g_pDev->CreateRenderTargetView(g_pRenderTargets[i].Get(), 
-				nullptr,	// create a view to the first mipmap level of this resource 
-							// with the format the resource was created with.
-				rtvHandle);
-				
-		// next entry in heap.
-		rtvHandle.Offset(1, g_nRtvDescriptorSize);
-	}
-}
-
-void GetHardwareAdapter(IDXGIFactory4* pFactory, IDXGIAdapter1** ppAdapter) {
-	IDXGIAdapter1 *pAdapter = nullptr;
-	*ppAdapter = nullptr;
-	
-	for (UINT adapterIndex = 0; DXGI_ERROR_NOT_FOUND != pFactory->EnumAdapters1(adapterIndex, &pAdapter); ++adapterIndex) {
-		DXGI_ADAPTER_DESC1 desc;
-		pAdapter->GetDesc1(&desc);
-		
-		if (desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE) {
-			// Don't select the Basic Render Driver adapter.
-			continue;
-		}
-		
-		// Check to see if the adapter supports Direct3D 12, but don't create actual device yet.
-		if (SUCCEEDED(D3D12CreateDevice(pAdapter, D3D_FEATURE_LEVEL_11_0, _uuidof(ID3D12Device), nullptr))) {
-			break;
-		}
-	}
-	
-	*ppAdapter = pAdapter;
 }
 
 
@@ -331,90 +283,6 @@ void InitGraphics() {
 	WaitForPreviousFrame();
 }
 
-// this function prepare graphic resources for use
-HRESULT CreateGraphicsResources(HWND hWnd)
-{
-    HRESULT hr = S_OK;
-    if (g_pSwapChain == nullptr)
-    {
-		#if defined(_DEBUG)
-        // Enable the D3D12 debug layer.
-        {
-            ComPtr<ID3D12Debug> debugController;
-            if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController))))
-            {
-                debugController->EnableDebugLayer();
-            }
-        }
-		#endif
-		
-		// 1. We need to know which function our device support. So, we use DXGI library.
-		
-		// IDXGIFactory4 is used for enumerating the wrap adapter.
-		ComPtr<IDXGIFactory4> factory;
-		ThrowIfFailed(CreateDXGIFactory1(IID_PPV_ARGS(&factory)));
-		if (bUseWarpDevice) {
-			ComPtr<IDXGIAdapter> warpAdapter;
-			ThrowIfFailed(factory->EnumWarpAdapter(IID_PPV_ARGS(&warpAdapter)));
-			
-			ThrowIfFailed(D3D12CreateDevice( 
-				warpAdapter.Get(),
-				D3D_FEATURE_LEVEL_11_0,
-				IID_PPV_ARGS(&g_pDev)
-				));
-		}
-		else {
-			ComPtr<IDXGIAdapter1> hardwareAdapter;
-			GetHardwareAdapter(factory.Get(), &hardwareAdapter);
-			
-			ThrowIfFailed(D3D12CreateDevice(
-				hardwareAdapter.Get(),
-				D3D_FEATURE_LEVEL_11_0,
-				IID_PPV_ARGS(&g_pDev)
-				));
-		}
-		
-		// 2. Now, we need create resources. Note that the commands also need a place to put.
-		
-		// Describe and create the command queue.
-		D3D12_COMMAND_QUEUE_DESC queueDesc = {};
-		queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-		queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
-		ThrowIfFailed(g_pDev->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&g_pCommandQueue)));
-		
-		// Describe and create swap chain.
-		DXGI_SWAP_CHAIN_DESC scd;
-		ZeroMemory(&scd, sizeof (DXGI_SWAP_CHAIN_DESC));
-		scd.BufferCount = nFrameCount;						// back buffer count
-		scd.BufferDesc.Width = nScreenWidth;
-		scd.BufferDesc.Height = nScreenHeight;
-		scd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;	// use 32-bit color
-		scd.BufferDesc.RefreshRate.Numerator = 60;
-		scd.BufferDesc.RefreshRate.Denominator = 1;
-		scd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;	// how swap chain is to be used
-		scd.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;		// DXGI_SWAP_EFFECT_FLIP_DISCARD only supported after Win10
-															// use DXGI_SWAP_EFFECT_DISCARD on platforms early than Win10
-		scd.OutputWindow = hWnd;							// the window to be used
-		scd.SampleDesc.Count = 1;							// multi-sample can not be used when in SwapEffect sets to 
-															// DXGI_SWAP_EFFECT_FLIP_DISCARD
-		scd.Windowed = TRUE;								// windowd / full-screen mode
-		scd.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;	// allow full-screen transition
-		ComPtr<IDXGISwapChain> swapChain;
-		ThrowIfFailed(factory->CreateSwapChain(
-				g_pCommandQueue.Get(),						// Swap chain needs the queue so that it can force a flush on it
-				&scd,
-				&swapChain
-				));
-				
-		ThrowIfFailed(swapChain.As(&g_pSwapChain));
-		
-		g_nFrameIndex = g_pSwapChain->GetCurrentBackBufferIndex();
-		CreateRenderTarget();
-		InitPipeline();
-		InitGraphics();
-	}
-    return hr;
-}
 
 
 void DiscardGraphicsResources()
@@ -489,10 +357,8 @@ void RenderFrame()
 	WaitForPreviousFrame();
 }
 
-void InitDirect3D12() {
-	// create device
-	ComPtr<IDXGIFactory4>	dxgiFactory;
-	ThrowIfFailed(CreateDXGIFactory1(IID_PPV_ARGS(&dxgiFactory)));
+void CreateDevice() {
+	ThrowIfFailed(CreateDXGIFactory1(IID_PPV_ARGS(&g_pDXGIFactory)));
 	
 	// Try to create hardware device.
 	HRESULT hardwareResult = D3D12CreateDevice(
@@ -503,7 +369,7 @@ void InitDirect3D12() {
 	// Fallback to WARP(Windows Advanced Rasterization Platform) device
 	if (FAILED(hardwareResult)) {
 		ComPtr<IDXGIAdapter> pWarpAdapter;
-		ThrowIfFailed(dxgiFactory->EnumWarpAdapter(IID_PPV_ARGS(&pWarpAdapter)));
+		ThrowIfFailed(g_pDXGIFactory->EnumWarpAdapter(IID_PPV_ARGS(&pWarpAdapter)));
 		
 		ThrowIfFailed(D3D12CreateDevice(
 			pWarpAdapter.Get(),
@@ -511,6 +377,90 @@ void InitDirect3D12() {
 			IID_PPV_ARGS(&g_pDevice)));
 	}
 	
+	// Check 4X MSAA quality support for our back buffer format.
+	// All Direct3D 11 capable devices support 4X MSAA for all render
+	// target formats, so we only need to check quality support.
+	g_msQualityLevels.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	g_msQualityLevels.SampleCount = 4;
+	g_msQualityLevels.Flags = D3D12_MULTISAMPLE_QUALITY_LEVELS_FLAG_NONE;
+	g_msQualityLevels.NumQualityLevels = 0;
+	ThrowIfFailed(g_pDevice->CheckFeatureSupport(
+				D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS,
+				&g_msQualityLevels,
+				sizeof (g_msQualityLevels)));
+}
+
+void CreateCommandObjects() {
+	// Command Queue
+	D3D12_COMMAND_QUEUE_DESC queueDesc = {};
+	queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+	queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+	ThrowIfFailed(g_pDevice-CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&g_pCommandQueue)));
+	
+	// Command Allocator and Command List
+	ThrowIfFailed(g_pDevice->CreateCommandAllocator(
+					D3D12_COMMAND_LIST_TYPE_DIRECT,
+					IID_PPV_ARGS(g_pCommandAllocator.GetAddressOf())));
+					
+	ThrowIfFailed(g_pDevice->CreateCommandList(
+					0,
+					D3D12_COMMAND_LIST_TYPE_DIRECT,
+					g_pCommandAllocator.Get(),	// Assocated command allocator
+					nullptr,	// Initial PipelineStateObject
+					IID_PPV_ARGS(g_pCommandList.GetAddressOf())));
+					
+	// Start off in a closed state. This is because the first time we reference
+	// to the command list we will Reset it, and it needs to be closed before
+	// calling Reset.
+	g_pCommandList->Close();
+}
+
+void CreateSwapChain() {
+	// Release the previous swapchain we will be recreating.
+	g_pSwapChain.Reset();
+	
+	DXGI_SWAP_CHAIN_DESC sd;
+	sd.BufferDesc.Width = nScreenWidth;
+	sd.BufferDesc.Height = nScreenHeight;
+	sd.BufferDesc.RefreshRate.Numerator = 60;
+	sd.BufferDesc.RefreshRate.Denominator = 1;
+	sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	sd.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+	sd.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
+	sd.SampleDesc.Count = 4;
+	sd.SampleDesc.Quality = g_msQualityLevels.NumQualityLevels - 1;
+	sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+	sd.OutputWindow = g_hWnd;
+	sd.Windowed = true;
+	sd.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+	sd.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+	
+	// Note: Swap chain uses queue to perform flush
+	ThrowIfFailed(g_pDXGIFactory->CreateSwapChain(
+					g_pCommandQueue.Get(),
+					&sd,
+					g_pSwapChain.GetAddressOf()));
+}
+
+voiud CreateDescriptors() {
+}
+
+
+
+void InitDirect3D12() {
+	CreateDevice();
+	
+	// We them here?
+	ThrowIfFailed(g_pDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&g_pFence)));
+	mRtvDescriptorSize = md3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+	mDsvDescriptorSize = md3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+	mCbvSrvUavDescriptorSize = md3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	
+	CreateCommandObjects();
+	
+	CreateSwapChain();
+	
+	CreateDescriptors();
 }
 
 // the WindowProc function prototype
@@ -559,7 +509,7 @@ bool InitMainWindow(HINSTANCE hInstance, int nCmdShow) {
     RegisterClassEx(&wc);
 	
     // create the window and use the result as the handle
-    HWND hWnd = CreateWindowEx(0,
+    g_hWnd = CreateWindowEx(0,
                           _T("HelloD3D12"),                   // name of the window class
                           _T("Hello Direct 12"),      			// title of the window
                           WS_OVERLAPPEDWINDOW,                  // window style
@@ -572,8 +522,14 @@ bool InitMainWindow(HINSTANCE hInstance, int nCmdShow) {
                           hInstance,                            // application handle
                           NULL);                                // used with multiple windows, NULL
 
+	if (!g_hWnd) {
+		MessageBox(0, L"Create window failed.", 0, 0);
+		return false;
+	}
+						  
     // display the window on the screen
-    ShowWindow(hWnd, nCmdShow);
+    ShowWindow(g_hWnd, nCmdShow);
+	UpdateWindow(g_hWnd);
 	
 	return true;
 }
