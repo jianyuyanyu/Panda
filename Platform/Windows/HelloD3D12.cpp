@@ -62,7 +62,7 @@ uint32_t g_nFrameIndex;
 const bool bUseWarpDevice = true;
 
 // global declarations		// viewport structure
-ComPtr<IDXGISwapChain3> 		g_pSwapChain = nullptr;			// the pointer to the swap chain interface 
+ComPtr<IDXGISwapChain> 			g_pSwapChain = nullptr;			// the pointer to the swap chain interface 
 ComPtr<ID3D12Device>			g_pDevice = nullptr;			// the pointer to out Direct3D device interface
 ComPtr<ID3D12Resource>			g_pRenderTargets[nFrameCount];	// the pointer to rendering buffer. [decriptor]
 ComPtr<ID3D12CommandAllocator>	g_pCommandAllocator;			// the pointer to command buffer allocator
@@ -128,7 +128,7 @@ void CreateCommandObjects() {
 	D3D12_COMMAND_QUEUE_DESC queueDesc = {};
 	queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
 	queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-	ThrowIfFailed(g_pDevice-CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&g_pCommandQueue)));
+	ThrowIfFailed(g_pDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&g_pCommandQueue)));
 	
 	// Command Allocator and Command List
 	ThrowIfFailed(g_pDevice->CreateCommandAllocator(
@@ -176,7 +176,7 @@ void CreateSwapChain() {
 					g_pSwapChain.GetAddressOf()));
 }
 
-voiud CreateDescriptors() {
+void CreateDescriptors() {
 	// fence
 	ThrowIfFailed(g_pDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&g_pFence)));
 	
@@ -251,6 +251,9 @@ bool InitMainWindow(HINSTANCE hInstance, int nCmdShow);
 
 // Message loop
 int Run();
+
+// Draw Frame
+void Draw();
 						 
 // the entry point for any Windows program
 int WINAPI WinMain(HINSTANCE hInstance,
@@ -300,7 +303,7 @@ bool InitMainWindow(HINSTANCE hInstance, int nCmdShow) {
                           NULL);                                // used with multiple windows, NULL
 
 	if (!g_hWnd) {
-		MessageBox(0, L"Create window failed.", 0, 0);
+		MessageBoxW(0, L"Create window failed.", 0, 0);
 		return false;
 	}
 						  
@@ -316,14 +319,19 @@ int Run() {
     MSG msg;
 
     // wait for the next message in the queue, store the result in 'msg'
-    while(GetMessage(&msg, nullptr, 0, 0))
-    {
-        // translate keystroke messages into the right format
-        TranslateMessage(&msg);
+	while(msg.message != WM_QUIT) {
+		// If there are window message then process them
+		if (PeekMessage(&msg, 0, 0, 0, PM_REMOVE)) {
+			// translate keystroke messages into the right format
+			TranslateMessage(&msg);
 
-        // send the message to the WindowProc function
-        DispatchMessage(&msg);
-    }
+			// send the message to the WindowProc function
+			DispatchMessage(&msg);
+		}
+		else {
+			Draw();
+		}
+	}
 
     // return this part of the WM_QUIT message to Windows
     return msg.wParam;
@@ -379,7 +387,7 @@ void OnResize() {
 	optClear.DepthStencil.Depth = 1.0f;
 	optClear.DepthStencil.Stencil = 0;
 	ThrowIfFailed(g_pDevice->CreateCommittedResource(
-		&CD3D12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
+		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
 		D3D12_HEAP_FLAG_NONE,
 		&depthStencilDesc,
 		D3D12_RESOURCE_STATE_COMMON,
@@ -395,7 +403,7 @@ void OnResize() {
 	g_pDevice->CreateDepthStencilView(g_pDepthSetencilBuffer.Get(), &dsvDesc, g_pDsvHeap->GetCPUDescriptorHandleForHeapStart());
 	
 	// Transtion the resource from its initial state to be used as a depth buffer.
-	g_pCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transtion(g_pDepthSetencilBuffer.Get(),
+	g_pCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(g_pDepthSetencilBuffer.Get(),
 									D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_DEPTH_WRITE));
 									
 	// Execute the resize commands.
@@ -414,7 +422,7 @@ void OnResize() {
 	g_ScreenViewport.MinDepth = 0.0f;
 	g_ScreenViewport.MaxDepth = 1.0f;
 	
-	g_ScissorRect = {0, 0, nScreenWidth, nScreenHeight};
+	g_ScissorRect = {0, 0, static_cast<LONG>(nScreenWidth), static_cast<LONG>(nScreenHeight)};
 }
 
 // this is the main message handler for the program
@@ -434,7 +442,8 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
         // break;
 
 	case WM_SIZE:
-		OnResize();
+		if (g_pDevice)
+			OnResize();
 		wasHandled = true;
         break;
 
@@ -448,4 +457,59 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
     // Handle any messages the switch statement didn't
     if (!wasHandled) { result = DefWindowProc (hWnd, message, wParam, lParam); }
     return result;
+}
+
+void Draw() {
+	// Reuse the memory assocatied with command recording
+	// We can only reset when the associated command lists have finished execution on the GPU
+	ThrowIfFailed(g_pCommandAllocator->Reset());
+	
+	// A command list can be reset after it has been added to the command queue via ExecuteCommandList.
+	// Reusing the command list reuses memory.
+	ThrowIfFailed (g_pCommandList->Reset(g_pCommandAllocator.Get(), nullptr));
+	
+	// Indicate a state transition on the resource usage.
+	g_pCommandList->ResourceBarrier(1, 
+									&CD3DX12_RESOURCE_BARRIER::Transition(
+										g_pRenderTargets[g_nFrameIndex].Get(),
+										D3D12_RESOURCE_STATE_PRESENT,
+										D3D12_RESOURCE_STATE_RENDER_TARGET));
+										
+	// Set the viewport and scissor rect. This needs to be reset whenever the command list is reset.
+	g_pCommandList->RSSetViewports(1, &g_ScreenViewport);
+	g_pCommandList->RSSetScissorRects(1, &g_ScissorRect);
+	
+	// Clear the back buffer and depth buffer
+	g_pCommandList->ClearRenderTargetView(
+		CD3DX12_CPU_DESCRIPTOR_HANDLE(
+			g_pRtvHeap->GetCPUDescriptorHandleForHeapStart(),
+			g_nFrameIndex,
+			g_rtvDescriptorSize),
+		Colors::LightSteelBlue,
+		0,
+		nullptr);
+	g_pCommandList->ClearDepthStencilView(
+		g_pDsvHeap->GetCPUDescriptorHandleForHeapStart(),
+		D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL,
+		1.0f, 0,
+		0,
+		nullptr);
+		
+	// Specify the buffers we are going to render to.
+	g_pCommandList->ResourceBarrier(1,
+		&CD3DX12_RESOURCE_BARRIER::Transition(
+			g_pRenderTargets[g_nFrameIndex].Get(),
+			D3D12_RESOURCE_STATE_RENDER_TARGET,
+			D3D12_RESOURCE_STATE_PRESENT));
+			
+	// Done recording commands.
+	ThrowIfFailed(g_pCommandList->Close());
+	
+	// Execute the resize commands.
+	ThrowIfFailed(g_pCommandList->Close());
+	ID3D12CommandList* cmdLists[] = {g_pCommandList.Get()};
+	g_pCommandQueue->ExecuteCommandLists(_countof(cmdLists), cmdLists);
+	
+	// Wait until resize is complete.
+	FlushCommandQueue();
 }
