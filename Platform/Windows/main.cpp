@@ -53,10 +53,16 @@ using namespace DirectX::PackedVector;
 using namespace Microsoft::WRL;
 using namespace std;
 
-ComPtr<IDXGIFactory4> 			g_pDXGIFactory = nullptr;			// dxgi factory
-ComPtr<ID3D12Device>			g_pDevice = nullptr;				// the pointer to out Direct3D device interface
-
+ComPtr<IDXGIFactory4> 							g_pDXGIFactory = nullptr;			// dxgi factory
+ComPtr<ID3D12Device>							g_pDevice = nullptr;				// the pointer to out Direct3D device interface
 D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS	g_msQualityLevels;	// multi-sample support information
+
+ComPtr<ID3D12CommandQueue>			g_pCommandQueue;				// the pointer to command queue
+ComPtr<ID3D12CommandAllocator>		g_pCommandAllocator;			// the pointer to command buffer allocator
+ComPtr<ID3D12GraphicsCommandList>	g_pCommandList;					// a list to store CPU commands, which will be submmited to GPU to execute
+
+const uint32_t 	g_FrameCount = 2;			// buffer count
+HWND 			g_hWnd;						// window handle
 
 bool InitMainWindow(HINSTANCE hInstance, int nCmdShow) {	
     WNDCLASSEX wc;
@@ -107,7 +113,7 @@ bool InitMainWindow(HINSTANCE hInstance, int nCmdShow) {
  * DirectX 12 
  */
  
- void CreateDevice() {
+void CreateDevice() {
 	// Try to create hardware device.
 	HRESULT hardwareResult = D3D12CreateDevice(
 		nullptr,	// default adapter
@@ -138,7 +144,57 @@ bool InitMainWindow(HINSTANCE hInstance, int nCmdShow) {
 				&g_msQualityLevels,
 				sizeof (g_msQualityLevels)));
 }
+
+void CreateCommandObjects() {
+	// Command Queue
+	D3D12_COMMAND_QUEUE_DESC queueDesc = {};
+	queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+	queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+	ThrowIfFailed(g_pDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&g_pCommandQueue)));
+	
+	// Command Allocator and Command List
+	ThrowIfFailed(g_pDevice->CreateCommandAllocator(
+		D3D12_COMMAND_LIST_TYPE_DIRECT,
+		IID_PPV_ARGS(g_pCommandAllocator.GetAddressOf())));
+		
+	ThrowIfFailed(g_pDevice->CreateCommandList(
+		0,
+		D3D12_COMMAND_LIST_TYPE_DIRECT,
+		g_pCommandAllocator.Get(),	// Assocated command allocator
+		nullptr, // Initial PipelineStateObject
+		IID_PPV_ARGS(g_pCommandList.GetAddressOf())));
+		
+	// Close command list. 
+	g_pCommandList->Close();
+}
  
+void CreateSwapChain() {
+	// Release the previous swapchain we will be recreating.
+	g_pSwapChain.Reset();
+	
+	DXGI_SWAP_CHAIN_DESC sd;
+	sd.BufferDesc.Width = nScreenWidth;
+	sd.BufferDesc.Height = nScreenHeight;
+	sd.BufferDesc.RefreshRate.Numerator = 60;
+	sd.BufferDesc.RefreshRate.Denominator = 1;
+	sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	sd.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+	sd.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
+	sd.SampleDesc.Count = 4;
+	sd.SampleDesc.Quality = g_msQualityLevels.NumQualityLevels - 1;
+	sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+	sd.BufferCount = g_FrameCount;
+	sd.OutputWindow = g_hWnd;
+	sd.Windowed = true;
+	sd.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+	sd.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+	
+	// Note: Swap chain uses queue to perform flush
+	ThrowIfFailed(g_pDXGIFactory->CreateSwapChain(
+					g_pCommandQueue.Get(),
+					&sd,
+					g_pSwapChain.GetAddressOf()));
+}
 void InitDirect3D12() {
 	CreateDevice();
 	
