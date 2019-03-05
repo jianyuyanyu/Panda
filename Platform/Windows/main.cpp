@@ -64,6 +64,10 @@ ComPtr<ID3D12GraphicsCommandList>	g_pCommandList;					// a list to store CPU com
 const uint32_t 	g_FrameCount = 2;			// buffer count
 HWND 			g_hWnd;						// window handle
 
+ComPtr<IDXGISwapChain> 				g_pSwapChain = nullptr;			// the pointer to the swap chain interface 
+uint32_t g_ScreenWidth  =  960;
+uint32_t g_ScreenHeight =  480;
+
 bool InitMainWindow(HINSTANCE hInstance, int nCmdShow) {	
     WNDCLASSEX wc;
 
@@ -173,8 +177,8 @@ void CreateSwapChain() {
 	g_pSwapChain.Reset();
 	
 	DXGI_SWAP_CHAIN_DESC sd;
-	sd.BufferDesc.Width = nScreenWidth;
-	sd.BufferDesc.Height = nScreenHeight;
+	sd.BufferDesc.Width = g_ScreenWidth;
+	sd.BufferDesc.Height = g_ScreenHeight;
 	sd.BufferDesc.RefreshRate.Numerator = 60;
 	sd.BufferDesc.RefreshRate.Denominator = 1;
 	sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -195,6 +199,11 @@ void CreateSwapChain() {
 					&sd,
 					g_pSwapChain.GetAddressOf()));
 }
+
+void CreateDescriptors() {
+
+}
+
 void InitDirect3D12() {
 	CreateDevice();
 	

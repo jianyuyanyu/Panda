@@ -206,21 +206,7 @@ void CreateDescriptors() {
 	g_cbvSrvUavDescriptorSize = g_pDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 }
 
-void InitDirect3D12() {
-	CreateDevice();
-	
-	// We need them here?
-	// ThrowIfFailed(g_pDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&g_pFence)));
-	// mRtvDescriptorSize = md3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-	// mDsvDescriptorSize = md3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
-	// mCbvSrvUavDescriptorSize = md3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-	
-	CreateCommandObjects();
-	
-	CreateSwapChain();
-	
-	CreateDescriptors();
-}
+
 
 void FlushCommandQueue() {
 	// Advance the fence value to mark commands up to this fence point
