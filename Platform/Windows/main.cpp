@@ -68,6 +68,10 @@ ComPtr<IDXGISwapChain> 				g_pSwapChain = nullptr;			// the pointer to the swap 
 uint32_t g_ScreenWidth  =  960;
 uint32_t g_ScreenHeight =  480;
 
+ComPtr<ID3D12Fence>	g_pFence;	// the pointer to the fence
+uint32_t g_rtvDescriptorSize = 0;
+uint32_t g_dsvDescriptorSize = 0;
+
 bool InitMainWindow(HINSTANCE hInstance, int nCmdShow) {	
     WNDCLASSEX wc;
 
@@ -201,7 +205,30 @@ void CreateSwapChain() {
 }
 
 void CreateDescriptors() {
-
+	// fence
+	ThrowIfFailed(g_pDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&g_pFence)));
+	
+	// RTVs
+	g_rtvDescriptorSize = g_pDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+	D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc;
+	rtvHeapDesc.NumDescriptors = nFrameCount;
+	rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+	rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+	rtvHeapDesc.NodeMask = 0;
+	ThrowIfFailed(g_pDevice->CreateDescriptorHeap(
+					&rtvHeapDesc,
+					IID_PPV_ARGS(g_pRtvHeap.GetAddressOf())));
+					
+	// DSVs
+	g_dsvDescriptorSize = g_pDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+	D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc;
+	dsvHeapDesc.NumDescriptors = 1;
+	dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+	dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+	dsvHeapDesc.NodeMask = 0;
+	ThrowIfFailed(g_pDevice->CreateDescriptorHeap(
+					&dsvHeapDesc,
+					IID_PPV_ARGS(g_pDsvHeap.GetAddressOf())));
 }
 
 void InitDirect3D12() {
