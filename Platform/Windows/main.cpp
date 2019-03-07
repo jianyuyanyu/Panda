@@ -70,7 +70,15 @@ uint32_t g_ScreenHeight =  480;
 
 ComPtr<ID3D12Fence>	g_pFence;	// the pointer to the fence
 uint32_t g_rtvDescriptorSize = 0;
-uint32_t g_dsvDescriptorSize = 0;
+ComPtr<ID3D12DescriptorHeap> g_pRtvHeap;
+ComPtr<ID3D12DescriptorHeap> g_pDsvHeap;
+
+uint32_t g_CurrentFence = 0; // current fence value
+
+uint32_t g_currentBackBuffer = 0;
+ComPtr<ID3D12Resource> g_SwapChainBuffer[g_FrameCount];
+ComPtr<ID3D12Resource> g_DepthStencilBuffer;
+
 
 bool InitMainWindow(HINSTANCE hInstance, int nCmdShow) {	
     WNDCLASSEX wc;
@@ -211,7 +219,7 @@ void CreateDescriptors() {
 	// RTVs
 	g_rtvDescriptorSize = g_pDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 	D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc;
-	rtvHeapDesc.NumDescriptors = nFrameCount;
+	rtvHeapDesc.NumDescriptors = g_FrameCount;
 	rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
 	rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 	rtvHeapDesc.NodeMask = 0;
@@ -231,6 +239,80 @@ void CreateDescriptors() {
 					IID_PPV_ARGS(g_pDsvHeap.GetAddressOf())));
 }
 
+void CreateBuffers() {
+	// Release the previous resources we will be recreating.
+	for (int i = 0; i < g_FrameCount; ++i)
+		g_SwapChainBuffer[i].Reset();
+	g_DepthStencilBuffer.Reset();
+	
+	// Resize the swap chain
+	ThrowIfFailed(g_pSwapChain->ResizeBuffers(
+		g_FrameCount,
+		g_ScreenWidth, g_ScreenHeight,
+		DXGI_FORMAT_R8G8B8A8_UNORM,
+		DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH));
+	
+	g_currentBackBuffer = 0;
+	
+	// Create render target views.
+	CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHeapHandle(g_pRtvHeap->GetCPUDescriptorHandleForHeapStart());
+	for (int i = 0; i < g_FrameCount; ++i) {
+		ThrowIfFailed(g_pSwapChain->GetBuffer(i, IID_PPV_ARGS(&g_SwapChainBuffer[i])));
+		g_pDevice->CreateRenderTargetView(g_SwapChainBuffer[i].Get(), nullptr, rtvHeapHandle);
+		rtvHeapHandle.Offset(1, g_rtvDescriptorSize);	
+	}
+	
+	// Create the depth/stencil buffer and view.
+	D3D12_RESOURCE_DESC depthStencilDesc;
+	depthStencilDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	depthStencilDesc.Alignment = 0;
+	depthStencilDesc.Width = g_ScreenWidth;
+	depthStencilDesc.Height = g_ScreenHeight;
+	depthStencilDesc.DepthOrArraySize = 1;
+	depthStencilDesc.MipLevels = 1;
+	depthStencilDesc.Format = DXGI_FORMAT_R24G8_TYPELESS;
+	depthStencilDesc.SampleDesc.Count = g_msQualityLevels.SampleCount;
+	depthStencilDesc.SampleDesc.Quality = g_msQualityLevels.NumQualityLevels - 1;
+	depthStencilDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+	depthStencilDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+	
+	
+}
+
+void FlushCommandQueue() {
+	// Advance the fence value to mark commands up to this fence point.
+	g_CurrentFence++;
+	
+	// Add an instruction to the command queue to set a new fence point. Because we
+	// are on the GPU timeline, the new fence point won't be set until the GPU finishes
+	// processing all the commands prior to this Signal().
+	ThrowIfFailed(g_pCommandQueue->Signal(g_pFence.Get(), g_CurrentFence));
+	
+	// Wait until the GPU has completed commands up to this fence point.
+	if (g_pFence->GetCompletedValue() < g_CurrentFence) {
+		HANDLE eventHandle = CreateEventEx(nullptr, false, false, EVENT_ALL_ACCESS);
+		
+		// Set fire event when GPU hits current fence.
+		ThrowIfFailed(g_pFence->SetEventOnCompletion(g_CurrentFence, eventHandle));
+		
+		// Wait until the GPU hits current fence event is fired.
+		WaitForSingleObject(eventHandle, INFINITE);
+		CloseHandle(eventHandle);
+	}
+}
+
+void OnResize() {
+	// We won't resize it until the device,swap chain, command allocator are created.
+	if (g_pDevice == nullptr || g_pSwapChain == nullptr || g_pCommandAllocator == nullptr) {
+		return;
+	}
+	
+	// Fluse before changing any resources.
+	FlushCommandQueue();
+	
+	
+}
+
 void InitDirect3D12() {
 	CreateDevice();
 	
@@ -243,6 +325,8 @@ void InitDirect3D12() {
 	CreateCommandObjects();
 	
 	CreateSwapChain();
+	
+	CreateBuffers();
 	
 	CreateDescriptors();
 }
