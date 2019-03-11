@@ -79,6 +79,8 @@ uint32_t g_currentBackBuffer = 0;
 ComPtr<ID3D12Resource> g_SwapChainBuffer[g_FrameCount];
 ComPtr<ID3D12Resource> g_DepthStencilBuffer;
 
+D3D12_VIEWPORT g_ScreenViewport; 
+D3D12_RECT g_ScissorRect;
 
 bool InitMainWindow(HINSTANCE hInstance, int nCmdShow) {	
     WNDCLASSEX wc;
@@ -212,6 +214,8 @@ void CreateSwapChain() {
 					g_pSwapChain.GetAddressOf()));
 }
 
+void CreateBuffers();
+
 void CreateDescriptors() {
 	// fence
 	ThrowIfFailed(g_pDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&g_pFence)));
@@ -237,6 +241,9 @@ void CreateDescriptors() {
 	ThrowIfFailed(g_pDevice->CreateDescriptorHeap(
 					&dsvHeapDesc,
 					IID_PPV_ARGS(g_pDsvHeap.GetAddressOf())));
+					
+	// Create buffers
+	CreateBuffers();
 }
 
 void CreateBuffers() {
@@ -276,7 +283,35 @@ void CreateBuffers() {
 	depthStencilDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 	depthStencilDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 	
+	// Create clear value.
+	D3D12_CLEAR_VALUE optClear;
+	optClear.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	optClear.DepthStencil.Depth = 1.0f;
+	optClear.DepthStencil.Stencil = 0;
+	ThrowIfFailed(g_pDevice->CreateCommittedResource(
+		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
+		D3D12_HEAP_FLAG_NONE,
+		&depthStencilDesc,
+		D3D12_RESOURCE_STATE_COMMON,
+		&optClear,
+		IID_PPV_ARGS(g_pDepthStencilBuffer.GetAddressOf())));
+		
+	// Create descriptor to mip level 0 of entire resource using the format of the resource.
+	D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc;
+	dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
+	dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+	dsvDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	dsvDesc.Texture2D.MipSlice = 0;
+	g_pDevice->CreateDepthStencilView(g_pDepthStencilBuffer.Get(), &dsvDesc, g_pDsvHeap->GetCPUDescriptorHandleForHeapStart());
 	
+	// Transtion the resource from its initial
+	g_pCommandList->ResourceBarrier(
+		1, 
+		&CD3DX12_RESOURCE_BARRIER::Transtion(
+			g_pDepthStencilBuffer.Get(),
+			D3D12_RESOURCE_STATE_COMMON,
+			D3D12_RESOURCE_STATE_DEPTH_WRITE));
+
 }
 
 void FlushCommandQueue() {
@@ -310,7 +345,25 @@ void OnResize() {
 	// Fluse before changing any resources.
 	FlushCommandQueue();
 	
+	CreateBuffers();
 	
+	// Execute the resize commands.
+	ThrowIfFailed(g_pCommandList->Close());
+	ID3D12CommandList* cmdLists[] = {g_pCommandList.Get()};
+	g_pCommandQueue->ExecuteCommandLists(_countof(cmdLists), cmdLists);
+	
+	// Wait until resize is complete.
+	FlushCommandQueue();
+	
+	// Update the viewport transform to cover the client area.
+	g_ScreenViewport.TopLeftX = 0;
+	g_ScreenViewport.TopLeftY = 0;
+	g_ScreenViewport.Width = static_cast<float>(g_ScreenWidth);
+	g_ScreenViewport.Height = static_cast<float>(g_ScreenHeight);
+	g_ScreenViewport.MinDepth = 0.0f;
+	g_ScreenViewport.MaxDepth = 1.0f;
+	
+	g_ScissorRect = {0, 0, static_cast<LONG>(g_ScreenWidth), static_cast<LONG>(g_ScreenHeight)};
 }
 
 void InitDirect3D12() {
