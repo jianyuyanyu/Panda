@@ -69,11 +69,10 @@ uint32_t g_ScreenWidth  =  960;
 uint32_t g_ScreenHeight =  480;
 
 ComPtr<ID3D12Fence>	g_pFence;	// the pointer to the fence
+uint32_t g_CurrentFence = 0; 	// current fence value
 uint32_t g_rtvDescriptorSize = 0;
 ComPtr<ID3D12DescriptorHeap> g_pRtvHeap;
 ComPtr<ID3D12DescriptorHeap> g_pDsvHeap;
-
-uint32_t g_CurrentFence = 0; // current fence value
 
 uint32_t g_currentBackBuffer = 0;
 ComPtr<ID3D12Resource> g_SwapChainBuffer[g_FrameCount];
@@ -216,7 +215,7 @@ void CreateSwapChain() {
 
 void CreateBuffers();
 
-void CreateDescriptors() {
+void CreateDescriptorHeaps() {
 	// fence
 	ThrowIfFailed(g_pDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&g_pFence)));
 	
@@ -241,9 +240,6 @@ void CreateDescriptors() {
 	ThrowIfFailed(g_pDevice->CreateDescriptorHeap(
 					&dsvHeapDesc,
 					IID_PPV_ARGS(g_pDsvHeap.GetAddressOf())));
-					
-	// Create buffers
-	CreateBuffers();
 }
 
 void CreateBuffers() {
@@ -381,10 +377,19 @@ void InitDirect3D12() {
 	
 	CreateBuffers();
 	
-	CreateDescriptors();
+	CreateDescriptorHeaps();
 }
 
 void Draw() {
+	FlushCommandQueue();
+	
+	// Reuse the memory associated with command recording.
+	// We can only reset when the associated command lists have finished execution on the GPU.
+	ThrowIfFailed(g_pCommandAllocator->Reset());
+	
+	// A command list can be reset after it has been added to the command queue via ExecuteCommandList.
+	// Reusing the command list reuses memory.
+	ThrowIfFailed
 }
 
 /***************************************************************************************/
