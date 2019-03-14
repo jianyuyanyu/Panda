@@ -71,6 +71,7 @@ uint32_t g_ScreenHeight =  480;
 ComPtr<ID3D12Fence>	g_pFence;	// the pointer to the fence
 uint32_t g_CurrentFence = 0; 	// current fence value
 uint32_t g_rtvDescriptorSize = 0;
+uint32_t g_dsvDescriptorSize = 0;
 ComPtr<ID3D12DescriptorHeap> g_pRtvHeap;
 ComPtr<ID3D12DescriptorHeap> g_pDsvHeap;
 
@@ -80,6 +81,11 @@ ComPtr<ID3D12Resource> g_DepthStencilBuffer;
 
 D3D12_VIEWPORT g_ScreenViewport; 
 D3D12_RECT g_ScissorRect;
+
+
+LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+void OnResize();
+void FlushCommandQueue();
 
 bool InitMainWindow(HINSTANCE hInstance, int nCmdShow) {	
     WNDCLASSEX wc;
@@ -106,8 +112,8 @@ bool InitMainWindow(HINSTANCE hInstance, int nCmdShow) {
                           WS_OVERLAPPEDWINDOW,                  // window style
                           100,                                  // x-position of the window
                           100,                                  // y-position of the window
-                          nScreenWidth,                         // width of the window
-                          nScreenHeight,                        // height of the window
+                          g_ScreenWidth,                         // width of the window
+                          g_ScreenHeight,                        // height of the window
                           NULL,                                 // we have no parent window, NULL
                           NULL,                                 // we aren't using menus, NULL
                           hInstance,                            // application handle
@@ -123,6 +129,40 @@ bool InitMainWindow(HINSTANCE hInstance, int nCmdShow) {
 	UpdateWindow(g_hWnd);
 	
 	return true;
+}
+
+// this is the main message handler for the program
+LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
+	LRESULT result = 0;
+    bool wasHandled = false;
+
+    // sort through and find what code to run for the message given
+    switch(message)
+    {
+	case WM_CREATE:
+		wasHandled = true;
+        break;	
+
+	// case WM_PAINT:
+		// wasHandled = true;
+        // break;
+
+	case WM_SIZE:
+		if (g_pDevice)
+			OnResize();
+		wasHandled = true;
+        break;
+
+	case WM_DESTROY:
+		FlushCommandQueue();
+		PostQuitMessage(0);
+		wasHandled = true;
+        break;
+    }
+
+    // Handle any messages the switch statement didn't
+    if (!wasHandled) { result = DefWindowProc (hWnd, message, wParam, lParam); }
+    return result;
 }
 
 /***************************************************************************************/
@@ -169,25 +209,26 @@ void CreateCommandObjects() {
 	queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
 	ThrowIfFailed(g_pDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&g_pCommandQueue)));
 	
-	// Command Allocator and Command List
-	ThrowIfFailed(g_pDevice->CreateCommandAllocator(
-		D3D12_COMMAND_LIST_TYPE_DIRECT,
-		IID_PPV_ARGS(g_pCommandAllocator.GetAddressOf())));
+	// command allocator and command list
+	throwiffailed(g_pdevice->createcommandallocator(
+		d3d12_command_list_type_direct,
+		iid_ppv_args(g_pcommandallocator.getaddressof())));
 		
-	ThrowIfFailed(g_pDevice->CreateCommandList(
+	throwiffailed(g_pdevice->createcommandlist(
 		0,
-		D3D12_COMMAND_LIST_TYPE_DIRECT,
-		g_pCommandAllocator.Get(),	// Assocated command allocator
-		nullptr, // Initial PipelineStateObject
-		IID_PPV_ARGS(g_pCommandList.GetAddressOf())));
+		d3d12_command_list_type_direct,
+		g_pcommandallocator.get(),	// assocated command allocator
+		nullptr, // initial pipelinestateobject
+		iid_ppv_args(g_pcommandlist.getaddressof())));
 		
-	// Close command list. 
-	g_pCommandList->Close();
+	// close command list. 
+	g_pcommandlist->close();
 }
  
 void CreateSwapChain() {
 	// Release the previous swapchain we will be recreating.
-	g_pSwapChain.Reset();
+	if (g_pSwapChain.Get() != nullptr)
+		g_pSwapChain.Reset();
 	
 	DXGI_SWAP_CHAIN_DESC sd;
 	sd.BufferDesc.Width = g_ScreenWidth;
@@ -197,13 +238,14 @@ void CreateSwapChain() {
 	sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	sd.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
 	sd.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
-	sd.SampleDesc.Count = 4;
-	sd.SampleDesc.Quality = g_msQualityLevels.NumQualityLevels - 1;
+	// sd.SampleDesc.Count = 4;
+	// sd.SampleDesc.Quality = g_msQualityLevels.NumQualityLevels - 1;
+	sd.SampleDesc.Count = 1; // Matches DXGI_SWAP_EFFECT_FLIP_DISCARD
 	sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	sd.BufferCount = g_FrameCount;
 	sd.OutputWindow = g_hWnd;
 	sd.Windowed = true;
-	sd.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+	sd.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD; // This flag cannot be used with multisampling and partial presentation
 	sd.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 	
 	// Note: Swap chain uses queue to perform flush
@@ -212,8 +254,6 @@ void CreateSwapChain() {
 					&sd,
 					g_pSwapChain.GetAddressOf()));
 }
-
-void CreateBuffers();
 
 void CreateDescriptorHeaps() {
 	// fence
@@ -290,7 +330,7 @@ void CreateBuffers() {
 		&depthStencilDesc,
 		D3D12_RESOURCE_STATE_COMMON,
 		&optClear,
-		IID_PPV_ARGS(g_pDepthStencilBuffer.GetAddressOf())));
+		IID_PPV_ARGS(g_DepthStencilBuffer.GetAddressOf())));
 		
 	// Create descriptor to mip level 0 of entire resource using the format of the resource.
 	D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc;
@@ -298,13 +338,13 @@ void CreateBuffers() {
 	dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
 	dsvDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
 	dsvDesc.Texture2D.MipSlice = 0;
-	g_pDevice->CreateDepthStencilView(g_pDepthStencilBuffer.Get(), &dsvDesc, g_pDsvHeap->GetCPUDescriptorHandleForHeapStart());
+	g_pDevice->CreateDepthStencilView(g_DepthStencilBuffer.Get(), &dsvDesc, g_pDsvHeap->GetCPUDescriptorHandleForHeapStart());
 	
 	// Transtion the resource from its initial
 	g_pCommandList->ResourceBarrier(
 		1, 
-		&CD3DX12_RESOURCE_BARRIER::Transtion(
-			g_pDepthStencilBuffer.Get(),
+		&CD3DX12_RESOURCE_BARRIER::Transition(
+			g_DepthStencilBuffer.Get(),
 			D3D12_RESOURCE_STATE_COMMON,
 			D3D12_RESOURCE_STATE_DEPTH_WRITE));
 
@@ -389,14 +429,14 @@ void Draw() {
 	
 	// A command list can be reset after it has been added to the command queue via ExecuteCommandList.
 	// Reusing the command list reuses memory.
-	ThrowIfFailed
+	//ThrowIfFailed
 }
 
 /***************************************************************************************/
 
 int Run() {
     // this struct holds Windows event messages
-    MSG msg;
+    MSG msg = {};
 
     // wait for the next message in the queue, store the result in 'msg'
 	while(msg.message != WM_QUIT) {
