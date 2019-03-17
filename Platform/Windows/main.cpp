@@ -131,40 +131,6 @@ bool InitMainWindow(HINSTANCE hInstance, int nCmdShow) {
 	return true;
 }
 
-// this is the main message handler for the program
-LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
-	LRESULT result = 0;
-    bool wasHandled = false;
-
-    // sort through and find what code to run for the message given
-    switch(message)
-    {
-	case WM_CREATE:
-		wasHandled = true;
-        break;	
-
-	// case WM_PAINT:
-		// wasHandled = true;
-        // break;
-
-	case WM_SIZE:
-		if (g_pDevice)
-			OnResize();
-		wasHandled = true;
-        break;
-
-	case WM_DESTROY:
-		FlushCommandQueue();
-		PostQuitMessage(0);
-		wasHandled = true;
-        break;
-    }
-
-    // Handle any messages the switch statement didn't
-    if (!wasHandled) { result = DefWindowProc (hWnd, message, wParam, lParam); }
-    return result;
-}
-
 /***************************************************************************************/
 /*
  * DirectX 12 
@@ -210,24 +176,24 @@ void CreateCommandObjects() {
 	ThrowIfFailed(g_pDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&g_pCommandQueue)));
 	
 	// command allocator and command list
-	throwiffailed(g_pdevice->createcommandallocator(
-		d3d12_command_list_type_direct,
-		iid_ppv_args(g_pcommandallocator.getaddressof())));
+	ThrowIfFailed(g_pDevice->CreateCommandAllocator(
+		D3D12_COMMAND_LIST_TYPE_DIRECT,
+		IID_PPV_ARGS(g_pCommandAllocator.GetAddressOf())));
 		
-	throwiffailed(g_pdevice->createcommandlist(
+	ThrowIfFailed(g_pDevice->CreateCommandList(
 		0,
-		d3d12_command_list_type_direct,
-		g_pcommandallocator.get(),	// assocated command allocator
+		D3D12_COMMAND_LIST_TYPE_DIRECT,
+		g_pCommandAllocator.Get(),	// assocated command allocator
 		nullptr, // initial pipelinestateobject
-		iid_ppv_args(g_pcommandlist.getaddressof())));
+		IID_PPV_ARGS(g_pCommandList.GetAddressOf())));
 		
 	// close command list. 
-	g_pcommandlist->close();
+	g_pCommandList->Close();
 }
  
 void CreateSwapChain() {
 	// Release the previous swapchain we will be recreating.
-	if (g_pSwapChain.Get() != nullptr)
+	//if (g_pSwapChain.Get() != nullptr)
 		g_pSwapChain.Reset();
 	
 	DXGI_SWAP_CHAIN_DESC sd;
@@ -238,9 +204,9 @@ void CreateSwapChain() {
 	sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	sd.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
 	sd.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
-	// sd.SampleDesc.Count = 4;
-	// sd.SampleDesc.Quality = g_msQualityLevels.NumQualityLevels - 1;
-	sd.SampleDesc.Count = 1; // Matches DXGI_SWAP_EFFECT_FLIP_DISCARD
+	sd.SampleDesc.Count = 4;
+	sd.SampleDesc.Quality = g_msQualityLevels.NumQualityLevels - 1;
+	//sd.SampleDesc.Count = 1; // Matches DXGI_SWAP_EFFECT_FLIP_DISCARD
 	sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	sd.BufferCount = g_FrameCount;
 	sd.OutputWindow = g_hWnd;
@@ -457,6 +423,46 @@ int Run() {
     return msg.wParam;
 }
 
+// this is the main message handler for the program
+LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
+	LRESULT result = 0;
+    bool wasHandled = false;
+
+    // sort through and find what code to run for the message given
+    switch(message)
+    {
+	case WM_CREATE:
+		wasHandled = true;
+        break;	
+
+	// case WM_PAINT:
+		// wasHandled = true;
+        // break;
+
+	case WM_SIZE:
+		// Save the new client area dimensions.
+		g_ScreenWidth = LOWORD(lParam);
+		g_ScreenHeight = HIWORD(lParam);
+		if (g_pDevice) {
+			if (wParam == SIZE_MAXIMIZED || wParam == SIZE_RESTORED){
+				OnResize();
+			}
+		}
+		wasHandled = true;
+        break;
+
+	case WM_DESTROY:
+		FlushCommandQueue();
+		PostQuitMessage(0);
+		wasHandled = true;
+        break;
+    }
+
+    // Handle any messages the switch statement didn't
+    if (!wasHandled) { result = DefWindowProc (hWnd, message, wParam, lParam); }
+    return result;
+}
+
 // the entry point for any Windows program
 int WINAPI WinMain(HINSTANCE hInstance,
                    HINSTANCE hPrevInstance,
@@ -468,6 +474,8 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	
 	// Initialize DirectX 12
 	InitDirect3D12();
+	
+	OnResize();
 	
 	return Run();
 }
