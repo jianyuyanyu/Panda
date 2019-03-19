@@ -204,9 +204,8 @@ void CreateSwapChain() {
 	sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	sd.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
 	sd.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
-	sd.SampleDesc.Count = 4;
-	sd.SampleDesc.Quality = g_msQualityLevels.NumQualityLevels - 1;
-	//sd.SampleDesc.Count = 1; // Matches DXGI_SWAP_EFFECT_FLIP_DISCARD
+	sd.SampleDesc.Count = 1;
+	sd.SampleDesc.Quality = 0;
 	sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	sd.BufferCount = g_FrameCount;
 	sd.OutputWindow = g_hWnd;
@@ -280,8 +279,8 @@ void CreateBuffers() {
 	depthStencilDesc.DepthOrArraySize = 1;
 	depthStencilDesc.MipLevels = 1;
 	depthStencilDesc.Format = DXGI_FORMAT_R24G8_TYPELESS;
-	depthStencilDesc.SampleDesc.Count = g_msQualityLevels.SampleCount;
-	depthStencilDesc.SampleDesc.Quality = g_msQualityLevels.NumQualityLevels - 1;
+	depthStencilDesc.SampleDesc.Count = 1;
+	depthStencilDesc.SampleDesc.Quality = 0;
 	depthStencilDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 	depthStencilDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 	
@@ -347,6 +346,8 @@ void OnResize() {
 	// Fluse before changing any resources.
 	FlushCommandQueue();
 	
+	ThrowIfFailed(g_pCommandList->Reset(g_pCommandAllocator.Get(), nullptr));
+	
 	CreateBuffers();
 	
 	// Execute the resize commands.
@@ -371,17 +372,9 @@ void OnResize() {
 void InitDirect3D12() {
 	CreateDevice();
 	
-	// We need them here?
-	// ThrowIfFailed(g_pDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&g_pFence)));
-	// mRtvDescriptorSize = md3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-	// mDsvDescriptorSize = md3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
-	// mCbvSrvUavDescriptorSize = md3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-	
 	CreateCommandObjects();
 	
 	CreateSwapChain();
-	
-	CreateBuffers();
 	
 	CreateDescriptorHeaps();
 }
