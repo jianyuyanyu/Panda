@@ -380,15 +380,72 @@ void InitDirect3D12() {
 }
 
 void Draw() {
-	FlushCommandQueue();
-	
 	// Reuse the memory associated with command recording.
 	// We can only reset when the associated command lists have finished execution on the GPU.
 	ThrowIfFailed(g_pCommandAllocator->Reset());
 	
 	// A command list can be reset after it has been added to the command queue via ExecuteCommandList.
 	// Reusing the command list reuses memory.
-	//ThrowIfFailed
+	ThrowIfFailed(g_pCommandList->Reset(g_pCommandAllocator.Get(), nullptr));
+
+	// Indicate a state transition on the resource usage.
+	g_pCommandList->ResourceBarrier(1,
+		&CD3DX12_RESOURCE_BARRIER::Transition(g_SwapChainBuffer[g_currentBackBuffer].Get(),
+			D3D12_RESOURCE_STATE_PRESENT,
+			D3D12_RESOURCE_STATE_RENDER_TARGET));
+			
+	// Set the viewport and scissor rect. This needs to be reset whenever the command list is reset.
+	g_pCommandList->RSSetViewports(1, &g_ScreenViewport);
+	g_pCommandList->RSSetScissorRects(1, &g_ScissorRect);
+	
+	// Clear the back buffer and depth buffer.
+	g_pCommandList->ClearRenderTargetView(
+		CD3DX12_CPU_DESCRIPTOR_HANDLE(
+			g_pRtvHeap->GetCPUDescriptorHandleForHeapStart(),
+			g_currentBackBuffer,
+			g_rtvDescriptorSize), 
+		Colors::LightSteelBlue,
+		0,
+		nullptr);
+	g_pCommandList->ClearDepthStencilView(
+		g_pDsvHeap->GetCPUDescriptorHandleForHeapStart(),
+		D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL,
+		1.0f,
+		0,
+		0,
+		nullptr);
+		
+	// Specify the buffers we are going to render to.
+	g_pCommandList->OMSetRenderTargets(1, 
+		&CD3DX12_CPU_DESCRIPTOR_HANDLE(
+			g_pRtvHeap->GetCPUDescriptorHandleForHeapStart(),
+			g_currentBackBuffer,
+			g_rtvDescriptorSize),
+		true,
+		&g_pDsvHeap->GetCPUDescriptorHandleForHeapStart());
+		
+	// Indicate a state transition on the resource usage.
+	g_pCommandList->ResourceBarrier(
+		1,
+		&CD3DX12_RESOURCE_BARRIER::Transition(
+			g_SwapChainBuffer[g_currentBackBuffer].Get(),
+			D3D12_RESOURCE_STATE_RENDER_TARGET,
+			D3D12_RESOURCE_STATE_PRESENT));
+			
+	// Done recording commands.
+	ThrowIfFailed(g_pCommandList->Close());
+	
+	// Add the command list to the queue for execution.
+	ID3D12CommandList* cmdsLists[] = { g_pCommandList.Get()};
+	g_pCommandQueue->ExecuteCommandLists(_countof (cmdsLists), cmdsLists);
+	
+	// swap the back and fornt buffers.
+	ThrowIfFailed(g_pSwapChain->Present(0, 0));
+	g_currentBackBuffer = (g_currentBackBuffer + 1) % g_FrameCount;
+	
+	// Wait until frame commands are complete. This waiting is inefficient and is 
+	// done for simplicity. But it's enough for a show case.
+	FlushCommandQueue();
 }
 
 /***************************************************************************************/
