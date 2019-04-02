@@ -31,7 +31,7 @@ namespace Panda {
 		void  Free(void* p, size_t size);
 		
 	private:
-		static size_t*		m_pBlickSizeLookup;
+		static size_t*		m_pBlockSizeLookup;
 		static Allocator*	m_pAllocators;
 		
 	private:
