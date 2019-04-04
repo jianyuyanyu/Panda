@@ -3,86 +3,71 @@
 
 using namespace Panda;
 
-namespace Panda {
-	static const uint32_t kBlockSizes[] = {
-		// 4-increments
-		4,	8,	12,	16,	20,	24,	28,	32,	36,	40,	44,	48,
-		52,	56,	60,	64,	68,	72,	76,	80,	84,	88,	92,	96,
-		
-		// 32-increments
-		128, 160, 192, 224, 256, 288, 320, 352, 384,
-		416, 448, 480, 512, 576, 608, 640,
-		
-		// 64-increments
-		704, 768, 832, 896, 960, 1024
-	};
-	
-	static const uint32_t kPageSize = 8192;
-	static const uint32_t kAlignment = 4;
-	
-	// number of elements in the block size array
-	static const uint32_t kNumBlockSizes = 
-		sizeof(kBlockSizes) / sizeof (kBlockSizes[0]);
-		
-	// largest valid block size
-	static const uint32_t kMaxBlockSize = kBlockSizes[kNumBlockSizes - 1];
-};
-
-int Panda::MemoryManager::Initialize() {
-	// one-time initialization
+bool MemoryManager::Initialize() {
 	static bool s_bInitialized = false;
-	if (!s_bInitialized) {
-		// initialize block size lookup table
-		m_pBlockSizeLookup = new size_t[kMaxBlockSize + 1];
+	
+	if (!s_bInitialized) 
+	{
+		// 初始化分配器
+		m_pAllocators = new Allocator[k_BlockSizeCount];
+		for (size_t i = 0; i < k_BlockSizeCount; ++i) 
+		{
+			m_pAllocators[i].Reset(k_BlockSizes[i], k_PageSize, k_Alignment);
+		}
+
+		// 初始化查询表
+		m_pLookUpTable = new uint32_t[k_MaxBlockSize + 1];
 		size_t j = 0;
-		for (size_t i = 0; i <= kMaxBlockSize; ++i) {
-			if (i > kBlockSizes[j]) ++j;
-			m_pBlockSizeLookup[i] = j;
+		for (size_t i = 0; i <= k_MaxBlockSize; ++i) 
+		{
+			if (i > k_BlockSizes[j]) 
+			{
+				++j;
+			}
+			
+			m_pLookUpTable[i] = j;
 		}
-		
-		// initialize the allocators
-		m_pAllocators = new Allocator[kNumBlockSizes];
-		for (size_t i = 0; i < kNumBlockSizes; ++i) {
-			m_pAllocators[i].Reset(kBlockSizes[i], kPageSize, kAlignment);
-		}
-		
+	
 		s_bInitialized = true;
 	}
-	
-	return 0;
+
+	return true;
 }
 
-void Panda::MemoryManager::Finalize()
+void MemoryManager::Finalize()
 {
 	delete[] m_pAllocators;
-	delete[] m_pBlockSizeLookup;
+	delete[] m_pLookUpTable;
 }
 
-void Panda::MemoryManager::Tick()
+void MemoryManager::Tick()
 {
 }
 
-Allocator* Panda::MemoryManager::LookUpAllocator(size_t size) 
+void* MemoryManager::Allocate(size_t inSize)
 {
-	// check eligibility for lookup
-	if (size <= kMaxBlockSize)
-		return m_pAllocators + m_pBlockSizeLookup[size];
-	else
-		return nullptr;
-}
-
-void* Panda::MemoryManager::Allocate(size_t size) {
-	Allocator* pAlloc = LookUpAllocator(size);
+	Allocator* pAlloc = LookUpAllocator(inSize);
+	
 	if (pAlloc)
 		return pAlloc->Allocate();
 	else
-		return malloc(size);
+		return malloc(inSize);
 }
 
-void Panda::MemoryManager::Free(void* p, size_t size) {
-	Allocator* pAlloc = LookUpAllocator(size);
+void MemoryManager::Free(void* p, size_t inSize) 
+{
+	Allocator* pAlloc = LookUpAllocator(inSize);
+	
 	if (pAlloc)
 		pAlloc->Free(p);
 	else
 		free(p);
+}
+
+Allocator* MemoryManager::LookUpAllocator(size_t inSize)
+{
+	if (inSize <= k_MaxBlockSize)
+		return m_pAllocator + m_pLookUpTable[inSize];
+	else
+		return nullptr;
 }
