@@ -5,7 +5,7 @@
 namespace Panda {
   Interface IRuntimeModule {
     public:
-      virtual ~IRuntimeModule() {};
+      virtual ~IRuntimeModule() {}
 
       virtual int Initialize () = 0;
       virtual void Finalize() = 0;
