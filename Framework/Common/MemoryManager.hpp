@@ -43,9 +43,9 @@ namespace Panda {
 		~MemoryManager() {}
 		// virtual ~MemoryManager() {}
 		
-		/* virtual */bool Initialize();
-		/* virtual */void Finalize();
-		/* virtual */void Tick();
+		virtual int Initialize();
+		virtual void Finalize();
+		virtual void Tick();
 		
 		void* Allocate(size_t inSize);
 		void Free(void* p, size_t inSize);
@@ -56,5 +56,5 @@ namespace Panda {
 	private:
 		static Allocator* m_pAllocators;
 		static uint32_t* m_pLookUpTable;
-	}		
+	};
 }

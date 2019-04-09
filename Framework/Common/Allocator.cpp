@@ -6,8 +6,13 @@
 #define ALIGN(n, a) (((n) + (a - 1)) & ~((a) - 1))		// 获取对齐的最小值
 #endif
 
+Panda::Allocator::Allocator()
+	:m_pFreeBlockList(nullptr), m_pPageList(nullptr)
+{
+}
+
 Panda::Allocator::Allocator(uint32_t inPageSize, uint32_t inBlockSize, uint32_t inAlignment) 
-	:m_pFreeBlockList(nullptr), m_pPageList(nullptr);
+	:m_pFreeBlockList(nullptr), m_pPageList(nullptr)
 {
 	Reset(inPageSize, inBlockSize, inAlignment);
 }
@@ -20,7 +25,7 @@ Panda::Allocator::~Allocator()
 void* Panda::Allocator::Allocate() {
 	FreeAll();
 	
-	if (m_pFreeList == nullptr) {
+	if (m_pFreeBlockList == nullptr) {
 		// 分配一页内存
 		PageHeader* pNewPage = reinterpret_cast<PageHeader*>(new uint8_t[m_PageSize]);
 		m_FreeBlockCount += m_BlockCountPerPage;
@@ -33,7 +38,7 @@ void* Panda::Allocator::Allocate() {
 		// 将所有内存块串联起来
 		BlockHeader* pBlockStart = m_pPageList->BlockStart();
 		m_pFreeBlockList = pBlockStart;
-		for (size_t i = 0; i < m_nBlockCountPerPage; ++i) {
+		for (size_t i = 0; i < m_BlockCountPerPage; ++i) {
 			pBlockStart->pNext = NextBlock(pBlockStart);
 			pBlockStart = pBlockStart->pNext;
 		}
@@ -49,7 +54,7 @@ void* Panda::Allocator::Allocate() {
 }
 
 Panda::BlockHeader* Panda::Allocator::NextBlock(BlockHeader* pCurrentBlock) {
-	return reinterpret_cast<BlockHeader*>( reinterpret_cast<uint8_t*> (pCurrentBlock) + m_nBlockSize);
+	return reinterpret_cast<BlockHeader*>( reinterpret_cast<uint8_t*> (pCurrentBlock) + m_BlockSize);
 }
 
 // 重置分配器

@@ -1,1 +1,1 @@
-#include "GraphicsManger.hpp"
+#include "GraphicsManager.hpp"

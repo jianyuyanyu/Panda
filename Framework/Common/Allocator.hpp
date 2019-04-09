@@ -17,6 +17,7 @@ namespace Panda{
 	
 	class Allocator{
 	public:
+		Allocator();
 		Allocator(uint32_t inPageSize, uint32_t inBlockSize, uint32_t inAlignment);
 		~Allocator();
 	

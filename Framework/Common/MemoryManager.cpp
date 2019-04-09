@@ -3,7 +3,7 @@
 
 using namespace Panda;
 
-bool MemoryManager::Initialize() {
+int MemoryManager::Initialize() {
 	static bool s_bInitialized = false;
 	
 	if (!s_bInitialized) 
@@ -12,7 +12,7 @@ bool MemoryManager::Initialize() {
 		m_pAllocators = new Allocator[k_BlockSizeCount];
 		for (size_t i = 0; i < k_BlockSizeCount; ++i) 
 		{
-			m_pAllocators[i].Reset(k_BlockSizes[i], k_PageSize, k_Alignment);
+			m_pAllocators[i].Reset(k_PageSize, k_BlockSizes[i], k_Alignment);
 		}
 
 		// 初始化查询表
@@ -31,7 +31,7 @@ bool MemoryManager::Initialize() {
 		s_bInitialized = true;
 	}
 
-	return true;
+	return 0;
 }
 
 void MemoryManager::Finalize()
@@ -67,7 +67,7 @@ void MemoryManager::Free(void* p, size_t inSize)
 Allocator* MemoryManager::LookUpAllocator(size_t inSize)
 {
 	if (inSize <= k_MaxBlockSize)
-		return m_pAllocator + m_pLookUpTable[inSize];
+		return m_pAllocators + m_pLookUpTable[inSize];
 	else
 		return nullptr;
 }
