@@ -2,6 +2,8 @@
 #include <cstdint>
 #include <iostream>
 #include <cwchar>
+#include <stdio.h>
+#include <string>
 
 namespace Panda
 {
@@ -20,10 +22,15 @@ namespace Panda
 		GfxConfiguration(uint32_t r = 8, uint32_t g = 8,
 			uint32_t b = 8, uint32_t a = 8,
 			uint32_t d = 24, uint32_t s = 0, 
-			uint32_t mass = 0,
+			uint32_t msaa = 0,
 			uint32_t width = 1920, uint32_t height = 1080,
-			const wchar_t* appName = L"Panda"):
-			{}
+			const wchar_t* inAppName = L"Panda")
+			: redBits(r), greenBits(g), blueBits(b),
+			  alphaBits(a), depthBits(d), stencilBits(s),
+			  msaaSamples(msaa), screenWidth(width), screenHeight(height),
+			  appName(inAppName)
+			{
+			}
 			
 		uint32_t redBits;		// 红色通道
 		uint32_t greenBits;		// 绿色通道
@@ -34,7 +41,7 @@ namespace Panda
 		uint32_t msaaSamples;	// msaa采样数
 		uint32_t screenWidth;	// 屏幕宽度（以像素为单位）
 		uint32_t screenHeight;	// 屏幕高度（以像素为单位）
-		const wchar_t* appName;	// 应用名
+		const wchar_t *appName;	// 应用名
 		
 		friend std::ostream& operator<< (std::ostream& out, const GfxConfiguration& conf)
 		{

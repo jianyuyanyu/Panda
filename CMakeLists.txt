@@ -32,3 +32,4 @@ include_directories("${PROJECT_SOURCE_DIR}/Framework/Interface")	# 包含目录I
 
 add_subdirectory(Framework)		# 子目录，有一种引用库的感觉，因为子目录中也必须要有CMakeLists.txt文件
 add_subdirectory(Empty)
+add_subdirectory(Platform)
