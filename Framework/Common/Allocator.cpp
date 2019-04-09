@@ -7,7 +7,9 @@
 #endif
 
 Panda::Allocator::Allocator()
-	:m_pFreeBlockList(nullptr), m_pPageList(nullptr)
+	:m_BlockSize(0), m_PageSize(0), m_BlockCountPerPage(0), m_AlignmentSize(0), 
+	m_pFreeBlockList(nullptr),m_FreeBlockCount(0),m_BlockCount(0),
+	 m_pPageList(nullptr), m_PageCount(0)
 {
 }
 
