@@ -1,6 +1,6 @@
 #include <objbase.h>
 #include <d3dcompiler.h>
-#include "D3d12GraphicsManager.hpp"
+#include "D3D12GraphicsManager.hpp"
 #include "WindowsApplication.hpp"
 
 using namespace Panda;
@@ -48,7 +48,7 @@ namespace Panda {
     }
 }
 
-HRESULT Panda::D3d12GraphicsManager::CreateRenderTarget() 
+HRESULT Panda::D3D12GraphicsManager::CreateRenderTarget() 
 {
     HRESULT hr;
 
@@ -78,7 +78,7 @@ HRESULT Panda::D3d12GraphicsManager::CreateRenderTarget()
     return hr;
 }
 
-HRESULT Panda::D3d12GraphicsManager::CreateGraphicsResources()
+HRESULT Panda::D3D12GraphicsManager::CreateGraphicsResources()
 {
     HRESULT hr;
 
@@ -146,7 +146,7 @@ HRESULT Panda::D3d12GraphicsManager::CreateGraphicsResources()
                                                             // DXGI_SWAP_EFFECT_FLOP_DISCARD
     scd.SampleDesc.Quality = 0;                             // multi-samples can not be used when in SwapEffect sets to
     scd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;      // how swap chain is to be used
-    scd.BufferCount = kFrameCount;                          // back buffer count
+    scd.BufferCount = k_FrameCount;                          // back buffer count
     scd.Scaling     = DXGI_SCALING_STRETCH;
     scd.SwapEffect  = DXGI_SWAP_EFFECT_FLIP_DISCARD;        // DXGI_SWAP_EFFECT_FLIP_DISCARD only supported after Win10
                                                             // use DXGI_SWAP_EFFECT_DISCARD on platforms early than Win10
@@ -175,7 +175,7 @@ HRESULT Panda::D3d12GraphicsManager::CreateGraphicsResources()
     return hr;
 }
 
-int  Panda::D3d12GraphicsManager::Initialize()
+int  Panda::D3D12GraphicsManager::Initialize()
 {
     int result = 0;
 
@@ -184,11 +184,11 @@ int  Panda::D3d12GraphicsManager::Initialize()
     return result;
 }
 
-void Panda::D3d12GraphicsManager::Tick()
+void Panda::D3D12GraphicsManager::Tick()
 {
 }
 
-void Panda::D3d12GraphicsManager::Finalize()
+void Panda::D3D12GraphicsManager::Finalize()
 {
     SafeRelease(&m_pFence);
     SafeRelease(&m_pVertexBuffer);
@@ -198,8 +198,8 @@ void Panda::D3d12GraphicsManager::Finalize()
     SafeRelease(&m_pRootSignature);
     SafeRelease(&m_pCommandQueue);
     SafeRelease(&m_pCommandAllocator);
-    for (uint32_t i = 0; i < kFrameCount; i++) {
-	    SafeRelease(&m_pRenderTargets[kFrameCount]);
+    for (uint32_t i = 0; i < k_FrameCount; i++) {
+	    SafeRelease(&m_pRenderTargets[k_FrameCount]);
     }
 	SafeRelease(&m_pSwapChain);
 	SafeRelease(&m_pDev);

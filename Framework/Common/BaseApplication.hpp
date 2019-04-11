@@ -1,6 +1,6 @@
 #pragma once
-#include "IApplication.hpp"
 #include "GfxConfiguration.hpp"
+#include "IApplication.hpp"
 
 namespace Panda {
   class BaseApplication : implements IApplication {
@@ -13,6 +13,8 @@ namespace Panda {
 		virtual void Tick();
 
 		virtual bool IsQuit();
+		
+		inline GfxConfiguration& GetConfiguration() {return m_Config;}
 
     protected:
 		// 是否需要离开主循环的标志

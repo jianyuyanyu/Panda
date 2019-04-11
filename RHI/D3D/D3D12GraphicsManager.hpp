@@ -5,7 +5,7 @@
 #include "GraphicsManager.hpp"
 
 namespace Panda {
-    class D3d12GraphicsManager : public GraphicsManager
+    class D3D12GraphicsManager : public GraphicsManager
     {
     public:
        	virtual int Initialize();
@@ -23,7 +23,7 @@ namespace Panda {
         D3D12_VIEWPORT                  m_ViewPort;                         // viewport structure
         D3D12_RECT                      m_ScissorRect;                      // scissor rect structure
         IDXGISwapChain3*                m_pSwapChain = nullptr;             // the pointer to the swap chain interface
-        ID3D12Resource*                 m_pRenderTargets[kFrameCount];      // the pointer to rendering buffer. [descriptor]
+        ID3D12Resource*                 m_pRenderTargets[k_FrameCount];      // the pointer to rendering buffer. [descriptor]
         ID3D12CommandAllocator*         m_pCommandAllocator = nullptr;      // the pointer to command buffer allocator
         ID3D12CommandQueue*             m_pCommandQueue = nullptr;          // the pointer to command queue
         ID3D12RootSignature*            m_pRootSignature = nullptr;         // a graphics root signature defines what resources are bound to the pipeline
