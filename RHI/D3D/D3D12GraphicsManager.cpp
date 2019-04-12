@@ -19,7 +19,7 @@ namespace Panda {
 			(*ppInterfaceToRelease) = nullptr;
 		}
 	}
-
+	
     static void GetHardwareAdapter(IDXGIFactory4* pFactory, IDXGIAdapter1** ppAdapter)
     {
         IDXGIAdapter1* pAdapter = nullptr;
