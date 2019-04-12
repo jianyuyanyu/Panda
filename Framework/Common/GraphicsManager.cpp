@@ -1,6 +1,17 @@
 #include "GraphicsManager.hpp"
 
-namespace Panda
-{
+using namespace Panda;
 
+int Panda::GraphicsManager::Initialize()
+{
+	int result = 0;
+	return result;
+}
+
+void Panda::GraphicsManager::Finalize()
+{
+}
+
+void Panda::GraphicsManager::Tick()
+{
 }
