@@ -2,17 +2,17 @@
 #include <tchar.h>
 #include "OpenGLApplication.hpp"
 #include "OpenGL/OpenGLGraphicsManager.hpp"
-#inlcude "MemoryMemory.hpp"
+#include "MemoryManager.hpp"
 #include "glad/glad_wgl.h"
 
 using namespace Panda;
 
 namespace Panda
 {
-	GfxConfiguration config(8, 8, 8, 32, 0, 0, 1280, 720, _T("Panda (Windows OpenGL)"));
+	GfxConfiguration config(8, 8, 8, 8, 24, 0, 0, 1280, 720, L"Panda (Windows OpenGL)");
 	IApplication* g_pApp = static_cast<IApplication*>(new OpenGLApplication(config));
 	GraphicsManager* g_pGraphicsManager = static_cast<GraphicsManager*>(new OpenGLGraphicsManager);
-	MemoryMemory* g_pMemoryManager = static_cast<MemoryMemory*> (new MemoryMemory);
+	MemoryManager* g_pMemoryManager = static_cast<MemoryManager*> (new MemoryManager);
 }
 
 int Panda::OpenGLApplication::Initialize()
@@ -21,13 +21,13 @@ int Panda::OpenGLApplication::Initialize()
 	result = WindowsApplication::Initialize();
 	if (result)
 	{
-		printf("Windows Application initialize fialed!");
+		printf("Windows Application initialize fialed!\n");
 	}
 	else
 	{
 		PIXELFORMATDESCRIPTOR pfd;
 		memset(&pfd, 0, sizeof(PIXELFORMATDESCRIPTOR));
-		pfd.size = sizeof(PIXELFORMATDESCRIPTOR);
+		pfd.nSize = sizeof(PIXELFORMATDESCRIPTOR);
 		pfd.nVersion = 1;
 		pfd.dwFlags = PFD_DOUBLEBUFFER | PFD_SUPPORT_OPENGL | PFD_DRAW_TO_WINDOW;
 		pfd.iPixelType = PFD_TYPE_RGBA;
@@ -41,19 +41,25 @@ int Panda::OpenGLApplication::Initialize()
 		int pixelFormat = ChoosePixelFormat(hDC, &pfd);
 		if (pixelFormat == 0)
 		{
+			int error = GetLastError();
+			printf("Windows could not support the pixel format. ErrorCode = %d\n", error);
 			return -1;
 		}
 		
 		result = SetPixelFormat(hDC, pixelFormat, &pfd);
 		if (result != 1)
 		{
+			int error = GetLastError();
+			printf("Windows could not set the pixel format. ErrorCode = %d\n", error);
 			return -1;
 		}
 		
 		// Crete a temporary rendering context.
 		m_RenderContext = wglCreateContext(hDC);
-		if (!m_RenderContext）
+		if (!m_RenderContext)
 		{
+			int error = GetLastError();
+			printf("Windows could not create the context. ErrorCode = %d\n", error);
 			return -1;
 		}
 		
@@ -61,6 +67,8 @@ int Panda::OpenGLApplication::Initialize()
 		result = wglMakeCurrent(hDC, m_RenderContext);
 		if (result != 1)
 		{
+			int error = GetLastError();
+			printf("Windows could not make current context. ErrorCode = %d\n", error);
 			return -1;
 		}
 		
@@ -91,7 +99,7 @@ void Panda::OpenGLApplication::Finalize()
 	WindowsApplication::Finalize();
 }
 
-void Panda::OpenGLApplicatin::Tick()
+void Panda::OpenGLApplication::Tick()
 {
 	WindowsApplication::Tick();
 }

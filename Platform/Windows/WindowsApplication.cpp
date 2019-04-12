@@ -3,13 +3,6 @@
 
 using namespace Panda;
 
-namespace Panda
-{
-	GfxConfiguration config(8, 8, 8, 8, 32, 0, 0, 1280, 720, L"Panda(Windows)");
-	WindowsApplication	g_App(config);
-	IApplication* 		g_pApp = &g_App;
-}
-
 int Panda::WindowsApplication::Initialize()
 {
     int result;
@@ -58,6 +51,8 @@ int Panda::WindowsApplication::Initialize()
 
     // 显示窗口
     ShowWindow(hWnd, SW_SHOW);
+	
+	m_hWnd = hWnd;
 
     return result;
 }

@@ -9,7 +9,7 @@ namespace Panda
 			OpenGLApplication(GfxConfiguration& config)
 				:WindowsApplication(config) {}
 				
-			virtual int Initailize();
+			virtual int Initialize();
 			virtual void Finalize();
 			virtual void Tick();
 			

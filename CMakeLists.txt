@@ -52,6 +52,10 @@ MESSAGE(STATUS "PROJECT_SOURCE_DIR:			" ${PROJECT_SOURCE_DIR})
 
 # set this variable to specify a common place where CMake should put all executable files
 # (instead of CMAKE_CURRENT_BINARY_DIR)
+MESSAGE(STATUS "EXECUTABLE_OUTPUT_PATH: 	" ${EXECUTABLE_OUTPUT_PATH} )
+
+# set this variable to specify a common place where CMake should put all executable files
+# (instead of CMAKE_CURRENT_BINARY_DIR)
 MESSAGE(STATUS "LIBRARY_OUTPUT_PATH:		" ${LIBRARY_OUTPUT_PATH})
 
 # tell CMake to search first in directories listed in CMAKE_MODULE_PATH
@@ -86,7 +90,7 @@ MESSAGE(STATUS "CMAKE_SYSTEM_NAME:			" ${CMAKE_SYSTEM_NAME})
 MESSAGE(STATUS "CMAKE_SYSTEM_VERSION:		" ${CMAKE_SYSTEM_VERSION})
 
 # the processor name (e.g. "Intel(R) Pentium(R) M processor 2.00GHz") 
-MESSAGE(STATUS "CMAKE_SYSTEM_PROECESSOR:	" ${CMAKE_SYSTEM_PROECESSOR})
+MESSAGE(STATUS "CMAKE_SYSTEM_PROCESSOR:		" ${CMAKE_SYSTEM_PROCESSOR})
 
 # is TRUE on all UNIX-like OS's, including Apple OS X and CygWin
 MESSAGE(STATUS "UNIX:						" ${UNIX})
@@ -119,12 +123,20 @@ MESSAGE(STATUS "CMAKE_COMPILER_2005:		" ${CMAKE_COMPILER_2005})
 # but not the actual source files or headers (e.g. if you changed the some compiler switches) 
 MESSAGE(STATUS "CMAKE_SKIP_RULE_DEPENDENCY:	" ${CMAKE_SKIP_RULE_DEPENDENCY})
 
+# since CMake 2.1 the install rule depends on all, i.e. everything will be built before installing. 
+# If you don't like this, set this one to true.
+MESSAGE( STATUS "CMAKE_SKIP_INSTALL_ALL_DEPENDENCY: " ${CMAKE_SKIP_INSTALL_ALL_DEPENDENCY} )
+
 # If set, runtime paths are not added when using shared libraries. Default it is set to OFF
 MESSAGE(STATUS "CMAKE_SKIP_RPATH:			" ${CMAKE_SKIP_RPATH})
 
 # set this to true if you are using makefiles and want to see the full compile and link 
 # commands instead of only the shortened ones
 MESSAGE(STATUS "CMAKE_VERBOSE_MAKEFILE:		" ${CMAKE_VERBOSE_MAKEFILE})
+
+# this will cause CMake to not put in the rules that re-run CMake. This might be useful if 
+# you want to use the generated build files on another machine. 
+MESSAGE( STATUS "CMAKE_SUPPRESS_REGENERATION: " ${CMAKE_SUPPRESS_REGENERATION} )
 
 # A simple way to get switches to the compiler is to use ADD_DEFINITIONS(). 
 # But there are also two variables exactly for this purpose: 

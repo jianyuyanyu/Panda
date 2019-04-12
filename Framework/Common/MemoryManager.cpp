@@ -3,7 +3,13 @@
 
 using namespace Panda;
 
-int MemoryManager::Initialize() {
+namespace Panda
+{
+	Allocator* MemoryManager::m_pAllocators = nullptr;
+	uint32_t* MemoryManager::m_pLookUpTable = nullptr;
+}
+
+int Panda::MemoryManager::Initialize() {
 	static bool s_bInitialized = false;
 	
 	if (!s_bInitialized) 
@@ -34,17 +40,17 @@ int MemoryManager::Initialize() {
 	return 0;
 }
 
-void MemoryManager::Finalize()
+void Panda::MemoryManager::Finalize()
 {
 	delete[] m_pAllocators;
 	delete[] m_pLookUpTable;
 }
 
-void MemoryManager::Tick()
+void Panda::MemoryManager::Tick()
 {
 }
 
-void* MemoryManager::Allocate(size_t inSize)
+void* Panda::MemoryManager::Allocate(size_t inSize)
 {
 	Allocator* pAlloc = LookUpAllocator(inSize);
 	
@@ -54,7 +60,7 @@ void* MemoryManager::Allocate(size_t inSize)
 		return malloc(inSize);
 }
 
-void MemoryManager::Free(void* p, size_t inSize) 
+void Panda::MemoryManager::Free(void* p, size_t inSize) 
 {
 	Allocator* pAlloc = LookUpAllocator(inSize);
 	
@@ -64,7 +70,7 @@ void MemoryManager::Free(void* p, size_t inSize)
 		free(p);
 }
 
-Allocator* MemoryManager::LookUpAllocator(size_t inSize)
+Panda::Allocator* Panda::MemoryManager::LookUpAllocator(size_t inSize)
 {
 	if (inSize <= k_MaxBlockSize)
 		return m_pAllocators + m_pLookUpTable[inSize];
