@@ -3,30 +3,30 @@
 cmake_minimum_required (VERSION 3.1)	# Minimum limited version, 3.1
 
 IF (${UNIX})	# Unix platform compile configuration.
-	set (CMAKE_C_COMPILER				"clang")
+	set (CMAKE_C_COMPILER				"gcc")
 	set (CMAKE_C_FLAGS_DEBUG			"-g")
 	set (CMAKE_C_FLAGS_RELWITHDEBINFO	"-O2 -g")
-	set (CMAKE_CXX_COMPILER				"clang++")
-	set (CMAKE_CXX_FLAGS				"-Wall")
+	set (CMAKE_CXX_COMPILER				"g++")
+	set (CMAKE_CXX_FLAGS				"-Wall -std=gnu++14")
 	set (CMAKE_CXX_FLAGS_DEBUG			"-g")
 	set (CMAKE_CXX_FLAGS_RELWITHDEBINFO	"-O2 -g")
 	set (CMAKE_CXX_STANDARD				11)
 ELSEIF (${WIN32})
 	# windows specific code
-	set (CMAKE_C_COMPILER				"clang-cl")
+	set (CMAKE_C_COMPILER				"cl")
 	set (CMAKE_C_FLAGS_DEBUG			"/Debug /Zi")
 	set (CMAKE_C_FLAGS_RELWITHDEBINFO	"-O2 /Debug")
-	set (CMAKE_CXX_COMPILER				"clang-cl")
+	set (CMAKE_CXX_COMPILER				"cl")
 	set (CMAKE_CXX_FLAGS_DEBUG			"/Debug /Zi")
 	set (CMAKE_CXX_FLAGS				"-Wall -Xclang -std=gnu++14")
 	set (CMAKE_CXX_FLAGS_RELWITHDEBINFO	"-O2 /Debug")
 ENDIF (${UNIX})
 set (CMAKE_C_FLAGS				"-Wall")
 set (CMAKE_C_FLAGS_MINSIZEREL	"-Os -DNDEBUG")
-set (CMAKE_C_FLAGS_RELEASE		"-O4 -DNDEBUG")
+set (CMAKE_C_FLAGS_RELEASE		"-O3 -DNDEBUG")
 set (CMAKE_C_STANDARD			11)
 set (CMAKE_CXX_FLAGS_MINSIZEREL	"-Os -DNDEBUG")
-set (CMAKE_CXX_FLAGS_RELEASE	"-O4 -DNDEBUG")
+set (CMAKE_CXX_FLAGS_RELEASE	"-O3 -DNDEBUG")
 
 # ------------------------- Begin Generic CMake Variable Logging ------------------
 # if you are building in-source, this is the same as CMAKE_SOURCE_DIR, otherwise
