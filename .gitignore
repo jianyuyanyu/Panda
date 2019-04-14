@@ -37,3 +37,6 @@ build/*
 # vso, pso
 *.vso
 *.pso
+
+# vscode
+.vscode
