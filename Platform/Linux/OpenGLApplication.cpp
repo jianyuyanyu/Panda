@@ -174,8 +174,63 @@ int Panda::OpenGLApplication::Initailize()
     if (!isExtensionSupported(glxExts, "GLX_ARB_create_context") ||
         !glXCreateContextAttribsARB)
     {
-        print
+        printf("glXreateContextAttribsARB() not found"
+                "...using old-style GLX context\n");
+        m_Context = glXCreateNewContext(
+            m_pDisplay,
+            fbConfig,
+            GLX_RGBA_TYPE,
+            0,
+            True
+        );
+        if (!m_Context)
+        {
+            fprintf(stderr, "glXCreateNewContext failed\n");
+            return -1;
+        }
     }
+    else
+    {
+        int contextAttribs[] =
+        {
+            GLX_CONTEXT_MAJOR_VERSION_ARB, 3,
+            GLX_CONTEXT_MINOR_VERSION_ARB, 0,
+            None
+        };
+
+        printf("Creating context\n");
+        m_Context = glXCreateContextAttribsARB(
+            m_pDisplay,
+            fbConfig,
+            0,
+            True,
+            contextAttribs
+        );
+        XSync(m_pDisplay, False);
+        if (!ctxErrorOccurred && m_Context)
+            printf("Crate GL 3.0 context\n");
+        else
+        {
+            // GLX_CONTEXT_MAJOR_VERSION_ARB = 1
+            contextAttribs[1] = 1;
+            // GLX_CONTEXT_MINOR_VERSION_ARB = 0
+            contextAttribs[3] = 0;
+
+            ctxErrorOccurred = false;
+
+            printf("Failed to create GL 3.0 context"
+                    " ... using old-style GLX context\n");
+            m_Context = glXCreateContextAttribsARB(
+                m_pDisplay, 
+                fbConfig,
+                0,
+                True,
+                contextAttribs
+            );
+        }
+        
+    }
+    
 }
 
 void Panda::OpenGLApplication::Finalize()
