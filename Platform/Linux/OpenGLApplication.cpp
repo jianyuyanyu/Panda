@@ -228,9 +228,58 @@ int Panda::OpenGLApplication::Initailize()
                 contextAttribs
             );
         }
-        
     }
-    
+    XSync(m_pDisplay, False);
+
+	XSetErrorHandler(oldHandler);
+
+	if (ctxErrorOccurred || !m_Context)
+	{
+		printf("Failed to create an OpenGL context\n");
+		return -1;
+	}
+
+	// Verifying that context is a direct context
+	if (!glXIsDirect(m_pDisplay, m_Context))
+	{
+		printf("Idirect GLX rendering context obtained\n");
+	}
+	else
+	{
+		printf("Direct GLX rendering context obtained\n");
+	}
+	
+	// Create GLX Window
+	glxWindow = glXCreateWindow (
+		m_pDisplay,
+		fbConfig,
+		m_Window,
+		0
+	);
+
+	if (!glxWindow)
+	{
+		xcb_destroy_window(m_pConn, m_Window);
+		glXDestoryContext(m_pDisplay, m_Context);
+
+		fpritnf(stderr, "glxCreateWindow failed\n");
+		return -1;
+	}
+
+	m_Drawable = glxWindow;
+
+	// make OpenGL context current
+	if (!glXMakeContextCurrent(m_pDisplay, m_Drawable, m_Drawable, m_Context))
+	{
+		xcb_destory_window(m_pConn, m_Window);
+		glXDestoryContext(m_pDisplay, m_Context);
+
+		fprintf(stderr, "glXMakeContextCurrent failed\n");
+		return -1;
+	}
+
+	XFree(vi);
+	return result;
 }
 
 void Panda::OpenGLApplication::Finalize()
