@@ -185,7 +185,7 @@ int main (int argc, char* argv[])
 	{
 		printf("glXCreateContextAttribsARB() not found"
 				" ... using old-style GLX context\n");
-		ctx = glXCreateNewContext(display, bestFbc, GLX_RGBA_TYPE, 0, True);
+		exit(1);
 	}
 	else	// If it does, try to get a GL 3.0 context!
 	{
@@ -201,24 +201,10 @@ int main (int argc, char* argv[])
 
 		// Sync to ensure any errors generated are processed.
 		XSync(display, False);
-		if (!ctxErrorOccurred && ctx)
+		if (ctxErrorOccurred || !ctx)
 		{
-			printf("Created GL 3.0 context.\n");
-		}
-		else
-		{
-			// Couldn't create GL 3.0 context. Fall back to old-style 2.0 context.
-			// When a context version below 3.0 is request,implementations will 
-			// return newest context version compatible with OpenGL versions less
-			// than version 3.0
-			context_attribs[1] = 1;	// GLX_CONTEXT_MAJOR_VERSION_ARB
-			context_attribs[3] = 0; // GLX_CONTEXT_MINOR_VERSION_ARB
-
-			ctxErrorOccurred = false;
-
-			printf("Failed to create GL 3.0 context"
-					"... using old-style GLX context\n");
-			ctx = glXCreateContextAttribsARB(display, bestFbc, 0, True, context_attribs);
+			printf("Can't create GLc 3.0 context.\n");
+			exit(1);
 		}
 	}
 
@@ -227,22 +213,6 @@ int main (int argc, char* argv[])
 
 	// Restore the original error handler.
 	XSetErrorHandler(oldHandler);
-
-	if (ctxErrorOccurred || !ctx)
-	{
-		printf("Failed to create an OpenGL context\n");
-		exit(1);
-	}
-
-	// Verifying that context is a drect context.
-	if (!glXIsDirect(display, ctx))
-	{
-		printf("Indirect GLX redering context obtained.\n");
-	}
-	else
-	{
-		printf("Direct GLX rendering context obtained.\n");
-	}
 
 	printf("Making context current\n");
 	glXMakeCurrent(display, win, ctx);
