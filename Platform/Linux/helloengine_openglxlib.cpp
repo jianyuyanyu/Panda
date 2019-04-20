@@ -125,10 +125,7 @@ int main (int argc, char* argv[])
 		printf("Can't create GL 3.0 context.\n");
 		exit(1);
 	}
-
-	// Sync to ensure any errors generated are processed.
-	XSync(display, False);
-
+	
 	printf("Draw with context\n");
 	glXMakeCurrent(display, win, ctx);
 
