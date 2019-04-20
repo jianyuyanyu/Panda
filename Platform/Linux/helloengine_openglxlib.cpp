@@ -164,7 +164,7 @@ int main (int argc, char* argv[])
 	XMapWindow(display, win);
 
 	// Get the default screen's GLX extension list
-	const char* glxExts = glXQueryExtensionString(display, DefaultScreen(display));
+	const char* glxExts = glXQueryExtensionsString(display, DefaultScreen(display));
 
 	// NOTE:It is note necessary to create or make current to a context before
 	// calling glXGetProcAddressARB
@@ -176,7 +176,7 @@ int main (int argc, char* argv[])
 	// Install an X error handler so the application won't exit if GL 3.0
 	// context allocation fails.
 	ctxErrorOccurred = false;
-	int (*oldHandler)(Display*, XErrorEvent*) = XSetErrorHandler(&cxtErrorHandler);
+	int (*oldHandler)(Display*, XErrorEvent*) = XSetErrorHandler(&ctxErrorHandler);
 
 	// Check for the GLX_ARB_crate_context extension string and the function.
 	// Iff either is not present, use GLX 1.3 context creationg failed.
@@ -203,7 +203,7 @@ int main (int argc, char* argv[])
 		XSync(display, False);
 		if (!ctxErrorOccurred && ctx)
 		{
-			pritnf("Created GL 3.0 context.\n");
+			printf("Created GL 3.0 context.\n");
 		}
 		else
 		{
@@ -218,7 +218,7 @@ int main (int argc, char* argv[])
 
 			printf("Failed to create GL 3.0 context"
 					"... using old-style GLX context\n");
-			cxt = glXCreateContextAttribsARB(display, bestFbc, 0, Ture, context_attribs);
+			ctx = glXCreateContextAttribsARB(display, bestFbc, 0, True, context_attribs);
 		}
 	}
 
@@ -247,7 +247,7 @@ int main (int argc, char* argv[])
 	printf("Making context current\n");
 	glXMakeCurrent(display, win, ctx);
 
-	glClearColor(0. 0.5, 1, 1);
+	glClearColor(0, 0.5, 1, 1);
 	glClear(GL_COLOR_BUFFER_BIT);
 	glXSwapBuffers(display, win);
 
