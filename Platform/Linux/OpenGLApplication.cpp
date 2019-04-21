@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include <climits>
 #include <cstring>
+
 #include <X11/Xlib-xcb.h>
+
 #include "OpenGLApplication.hpp"
 #include "OpenGL/OpenGLGraphicsManager.hpp"
 #include "MemoryManager.hpp"
@@ -40,7 +42,7 @@ static bool IsExtensionSupported(const char* extList, const char* extension)
 
         terminator = where + strlen(extension);
 
-        if (where == start | * (where - 1) == ' ')
+        if (where == start || * (where - 1) == ' ')
             if (*terminator == ' ' || *terminator == '\0')
                 return true;
 
@@ -57,12 +59,12 @@ static int cxtErrorHandler (Display* dpy, XErrorEvent* ev)
     return 0;
 }
 
-int Panda::OpenGLApplication::Initailize()
+int Panda::OpenGLApplication::Initialize()
 {
     int result;
 
     int defaultScreen;
-    GLXFBConfig* fbConfigs;
+    
     GLXFBConfig fbConfig;
     int numFbConfigs = 0;
     XVisualInfo* pVI;
@@ -96,10 +98,15 @@ int Panda::OpenGLApplication::Initailize()
 
     defaultScreen = DefaultScreen(m_pDisplay);
 
-    gladLoadGLX(m_pDisplay, defaultScreen);
+    result = gladLoadGLX(m_pDisplay, defaultScreen);
+    if (result == 0)
+    {
+        std::cout << "gladLoadGLX failed!" << std::endl;
+        exit(1);
+    }
 
     // Query framebuffer configurations
-    fbConfigs = glXChooseFBConfig(m_pDisplay, defaultScreen, virsualAttribs, &numFbConfigs);
+    GLXFBConfig* fbConfigs = glXChooseFBConfig(m_pDisplay, defaultScreen, virsualAttribs, &numFbConfigs);
     if (!fbConfigs || numFbConfigs == 0)
     {
         fprintf(stderr, "glXGetFBConfigs failed\n");
