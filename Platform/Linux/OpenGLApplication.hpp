@@ -11,7 +11,7 @@ namespace Panda
                 : XcbApplication(config) 
             {}
 
-            virtual int Initailize();
+            virtual int Initialize();
             virtual void Finalize();
             virtual void Tick();
 
