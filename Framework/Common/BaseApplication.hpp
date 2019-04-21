@@ -16,6 +16,9 @@ namespace Panda {
 		
 		inline GfxConfiguration& GetConfiguration() {return m_Config;}
 
+	protected:
+		virtual void OnDraw() {}
+
     protected:
 		// 是否需要离开主循环的标志
 		static bool m_Quit;

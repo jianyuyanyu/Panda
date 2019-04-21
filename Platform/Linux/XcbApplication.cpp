@@ -91,3 +91,8 @@ void Panda::XcbApplication::Finalize()
     free(pEvent);
 }
 
+void Panda::XcbApplication::Tick()
+{
+    
+}
+

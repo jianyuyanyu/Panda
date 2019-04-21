@@ -32,7 +32,7 @@
 *.app
 
 # directories
-build/*
+Build/*
 
 # vso, pso
 *.vso

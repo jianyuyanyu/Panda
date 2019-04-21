@@ -135,8 +135,8 @@ int Panda::OpenGLApplication::Initailize()
     }
 
     // Get a visual
-    vi = glXGetVisualFromFBConfig(m_pDisplay, fbConfig);
-    printf("Chosen visual ID = 0x%lx\n", vi->visualid);
+    pVI = glXGetVisualFromFBConfig(m_pDisplay, fbConfig);
+    printf("Chosen visual ID = 0x%lx\n", pVI->visualid);
 
     // establish connection to X server
     m_pConn = XGetXCBConnection(m_pDisplay);
@@ -152,10 +152,10 @@ int Panda::OpenGLApplication::Initailize()
 
     // Find XCB screen
     xcb_screen_iterator_t screenIter = xcb_setup_roots_iterator(xcb_get_setup(m_pConn));
-    for (int screenNum = vi->screen; screenIter.rem && screenNum > 0;
+    for (int screenNum = pVI->screen; screenIter.rem && screenNum > 0;
         --screenNum, xcb_screen_next(&screenIter));
     m_pScreen = screenIter.data;
-    m_Vi = vi->visualid;
+    m_Vi = pVI->visualid;
 
     result = XcbApplication::Initialize();
     if (result)
@@ -171,7 +171,7 @@ int Panda::OpenGLApplication::Initailize()
     ctxErrorOccurred = false;
     int (*oldHandler)(Display*, XErrorEvent*) = XSetErrorHandler(&cxtErrorHandler);
 
-    if (!isExtensionSupported(glxExts, "GLX_ARB_create_context") ||
+    if (!IsExtensionSupported(glxExts, "GLX_ARB_create_context") ||
         !glXCreateContextAttribsARB)
     {
         printf("glXreateContextAttribsARB() not found"
@@ -260,9 +260,9 @@ int Panda::OpenGLApplication::Initailize()
 	if (!glxWindow)
 	{
 		xcb_destroy_window(m_pConn, m_Window);
-		glXDestoryContext(m_pDisplay, m_Context);
+		glXDestroyContext(m_pDisplay, m_Context);
 
-		fpritnf(stderr, "glxCreateWindow failed\n");
+		fprintf(stderr, "glxCreateWindow failed\n");
 		return -1;
 	}
 
@@ -271,14 +271,14 @@ int Panda::OpenGLApplication::Initailize()
 	// make OpenGL context current
 	if (!glXMakeContextCurrent(m_pDisplay, m_Drawable, m_Drawable, m_Context))
 	{
-		xcb_destory_window(m_pConn, m_Window);
-		glXDestoryContext(m_pDisplay, m_Context);
+		xcb_destroy_window(m_pConn, m_Window);
+		glXDestroyContext(m_pDisplay, m_Context);
 
 		fprintf(stderr, "glXMakeContextCurrent failed\n");
 		return -1;
 	}
 
-	XFree(vi);
+	XFree(pVI);
 	return result;
 }
 
