@@ -33,7 +33,8 @@ public:
         m[2][0] = in3.x; m[2][1] = in3.y; m[2][2] = in3.z;
     }
 
-    void SetIdentity() {
+    void SetIdentity() 
+    {
         m[0][0] = 1; m[0][1] = 0; m[0][2] = 0;
         m[1][0] = 0; m[1][1] = 1; m[1][2] = 0;
         m[2][0] = 0; m[2][1] = 0; m[2][2] = 1;
@@ -148,3 +149,4 @@ public:
         return true;
     }
 };
+

@@ -93,3 +93,4 @@ public:
         return x * x + y * y + z * z + w * w;
     }
 };
+
