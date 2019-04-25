@@ -91,4 +91,52 @@ namespace Panda
 
         return;
     }
+
+    void MatrixRotationYawPitchRoll(Matrix4& outMat, const float yaw, const float pitch, const float roll)
+    {
+        outMat.SetIdentity();
+
+        float cYaw, cPitch, cRoll, sYaw, sPitch, sRoll;
+
+        cYaw = cosf(yaw);
+        cPitch = cosf(pitch);
+        cRoll = cosf(roll);
+
+        sYaw = sinf(yaw);
+        sPitch = sinf(pitch);
+        sRoll = sinf(roll);
+
+        outMat.m[0][0] = (cRoll * cYaw) + (sRoll * sPitch * sYaw);
+        outMat.m[0][1] = (-sRoll * cYaw) + (cRoll * sPitch * sYaw);
+        outMat.m[0][2] = (sYaw * cPitch);
+
+        outMat.m[1][0] = (cPitch * sRoll);
+        outMat.m[1][1] = (cPitch * cRoll);
+        outMat.m[1][2] = -sPitch;
+
+        outMat.m[2][0] = (-sYaw * cRoll) + (cYaw * sPitch * sRoll);
+        outMat.m[2][1] = (sYaw * sRoll) + (cYaw * sPitch * cRoll);
+        outMat.m[2][2] = (cYaw * cPitch);
+
+        return;
+    }
+
+    void MatrixRotation(Matrix4& outMat, const Vector3D& inVec, const float angle)
+    {
+        outMat.SetIdentity();
+
+        float c = cosf(angle);
+        float s = sinf(angle);
+        outMat.m[0][0] = c + inVec.x * inVec.x * (1 - c);
+        outMat.m[0][1] = inVec.x * inVec.y * (1 - c) - inVec.z * s;
+        outMat.m[0][2] = inVec.x * inVec.z * (1 - c) + inVec.y * s;
+        outMat.m[1][0] = inVec.z * s + inVec.x * inVec.y * (1 - c);
+        outMat.m[1][1] = c + inVec.y * inVec.y * (1 - c);
+        outMat.m[1][2] = inVec.y * inVec.z * (1 - c) - inVec.x * s;
+        outMat.m[2][0] = inVec.x * inVec.z * (1 - c) - inVec.y * s;
+        outMat.m[2][1] = inVec.x * s + inVec.y * inVec.z * (1 - c);
+        outMat.m[2][2] = c + inVec.z * inVec.z * (1 - c);
+
+        return;
+    }
 }
