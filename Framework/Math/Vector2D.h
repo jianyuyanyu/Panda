@@ -6,83 +6,86 @@
  * A vector in 2D with components X, Y  
  */
 
-struct Vector2D
+namespace Panda
 {
-public:
-    float x;
-    float y;
-
-    __forceinline Vector2D() {};
-    __forceinline Vector2D(const Vector2D& inV) : x(inV.x), y(inV.y) {}
-    __forceinline Vector2D(float _v): x(_v), y(_v) {}
-    __forceinline Vector2D(float _x, float _y) : x(_x), y(_y) {}
-
-    __forceinline Vector2D& operator= (const Vector2D& inV) 
+    struct Vector2D
     {
-        x = inV.x;
-        y = inV.y;
-        return *this;
-    }
+    public:
+        float x;
+        float y;
 
-    __forceinline Vector2D& operator+= (const Vector2D& inV)
-    {
-        x += inV.x;
-        y += inV.y;
-        return *this;
-    }
+        __forceinline Vector2D() {};
+        __forceinline Vector2D(const Vector2D& inV) : x(inV.x), y(inV.y) {}
+        __forceinline Vector2D(float _v): x(_v), y(_v) {}
+        __forceinline Vector2D(float _x, float _y) : x(_x), y(_y) {}
 
-    __forceinline Vector2D& operator-= (const Vector2D& inV)
-    {
-        x -= inV.x;
-        y -= inV.y;
-        return *this;
-    }
+        __forceinline Vector2D& operator= (const Vector2D& inV) 
+        {
+            x = inV.x;
+            y = inV.y;
+            return *this;
+        }
 
-    __forceinline Vector2D operator+(const Vector2D& inV)
-    {
-        return Vector2D(x + inV.x, y + inV.y);
-    }
+        __forceinline Vector2D& operator+= (const Vector2D& inV)
+        {
+            x += inV.x;
+            y += inV.y;
+            return *this;
+        }
 
-    __forceinline Vector2D operator- (const Vector2D& inV)
-    {
-        return Vector2D(x - inV.x, y - inV.y);
-    }
+        __forceinline Vector2D& operator-= (const Vector2D& inV)
+        {
+            x -= inV.x;
+            y -= inV.y;
+            return *this;
+        }
 
-    __forceinline Vector2D operator+(float bias)
-    {
-        return Vector2D(x + bias, y + bias);
-    }
+        __forceinline Vector2D operator+(const Vector2D& inV)
+        {
+            return Vector2D(x + inV.x, y + inV.y);
+        }
 
-    __forceinline Vector2D operator-(float bias)
-    {
-        return Vector2D(x - bias, y - bias);
-    }
+        __forceinline Vector2D operator- (const Vector2D& inV)
+        {
+            return Vector2D(x - inV.x, y - inV.y);
+        }
 
-    __forceinline Vector2D operator*(float scale)
-    {
-        return Vector2D(x * scale, y * scale);
-    }
+        __forceinline Vector2D operator+(float bias)
+        {
+            return Vector2D(x + bias, y + bias);
+        }
 
-    __forceinline Vector2D operator/(float scale)
-    {
-        const float rScale = 1.f / scale;
-        //return (*this) * rScale;
-        return Vector2D(x * rScale, y * rScale);
-    }
+        __forceinline Vector2D operator-(float bias)
+        {
+            return Vector2D(x - bias, y - bias);
+        }
 
-    __forceinline float DotProduct(const Vector2D& inV)
-    {
-        return x * inV.x + y * inV.y;
-    }
+        __forceinline Vector2D operator*(float scale)
+        {
+            return Vector2D(x * scale, y * scale);
+        }
 
-    __forceinline float Length()
-    {
-        return sqrtf(x * x + y * y);
-    }
+        __forceinline Vector2D operator/(float scale)
+        {
+            const float rScale = 1.f / scale;
+            //return (*this) * rScale;
+            return Vector2D(x * rScale, y * rScale);
+        }
 
-    __forceinline float SquareLength()
-    {
-        return x * x + y * y;
-    }
-};
+        __forceinline float DotProduct(const Vector2D& inV)
+        {
+            return x * inV.x + y * inV.y;
+        }
+
+        __forceinline float Length()
+        {
+            return sqrtf(x * x + y * y);
+        }
+
+        __forceinline float SquareLength()
+        {
+            return x * x + y * y;
+        }
+    };
+}
 
