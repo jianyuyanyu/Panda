@@ -55,6 +55,12 @@ namespace Panda
             return Vector3D(x - inV.x, y - inV.y, z - inV.z);
         }
 
+        // negative
+        __forceinline Vector3D operator-()
+        {
+            return Vector3D(-x, -y, -z);
+        }
+
         __forceinline Vector3D operator+(float bias)
         {
             return Vector3D(x + bias, y + bias, z + bias);
@@ -99,6 +105,14 @@ namespace Panda
         __forceinline float SquareLength()
         {
             return x * x + y * y + z * z;
+        }
+
+        __forceinline void Normalize()
+        {
+            float len = Length();
+            x /= len;
+            y /= len;
+            z /= len;
         }
     };
 }

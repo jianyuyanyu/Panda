@@ -50,6 +50,12 @@ namespace Panda
             return Vector2D(x - inV.x, y - inV.y);
         }
 
+        // negative
+        __forceinline Vector2D operator-()
+        {
+            return Vector2D(-x, -y);
+        }
+
         __forceinline Vector2D operator+(float bias)
         {
             return Vector2D(x + bias, y + bias);
@@ -85,6 +91,13 @@ namespace Panda
         __forceinline float SquareLength()
         {
             return x * x + y * y;
+        }
+
+        __forceinline void Normalize()
+        {
+            float len = Length();
+            x /= len;
+            y /= len;
         }
     };
 }

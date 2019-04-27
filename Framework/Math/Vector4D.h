@@ -94,6 +94,15 @@ namespace Panda
         {
             return x * x + y * y + z * z + w * w;
         }
+
+        __forceinline void Normalize()
+        {
+            float len = Length();
+            x /= len;
+            y /= len;
+            z /= len;
+            w /= len;
+        }
     };
 }
 

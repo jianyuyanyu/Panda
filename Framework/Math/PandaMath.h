@@ -49,6 +49,16 @@ namespace Panda
         return;
     }
 
+    void MatrixTranslation(Matrix4& outMat, const Vector3D& inVec)
+    {
+        outMat.SetIdentity();
+        outMat.m[0][3] = inVec.x;
+        outMat.m[1][3] = inVec.y;
+        outMat.m[2][3] = inVec.z;
+
+        return;
+    }
+
     void MatrixRotationZ(Matrix4& outMat, const float angle)
     {
         outMat.SetIdentity();
@@ -139,4 +149,13 @@ namespace Panda
 
         return;
     }
+
+    void BuildViewMatrixImpl(const Vector3D& pos, const Vector3D& eye, const Vector3D& up, Matrix4& result);
+
+    void BuildViewMatrixLH(const Vector3D& pos, const Vector3D& target, const Vector3D& up, Matrix4& result);
+
+    void BuildViewMatrixRH(const Vector3D& pos, const Vector3D& target, const Vector3D& up, Matrix4& result);
+
+    void BuildViewMatrix(const Vector3D& pos, const Vector3D& target, const Vector3D& up, Matrix4& result);
+
 }
