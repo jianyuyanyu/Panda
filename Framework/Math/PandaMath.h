@@ -9,35 +9,35 @@
 
 namespace Panda
 {
-    void TranslateVector3D(Vector3D& inVec, const Matrix3& inMat)
-    {
-        float x, y, z;
+    // void TranslateVector3D(Vector3D& inVec, const Matrix3& inMat)
+    // {
+    //     float x, y, z;
 
-        x = inMat.m[0][0] * inVec.x + inMat.m[0][1] * inVec.y + inMat.m[0][2] * inVec.z;
-        y = inMat.m[1][0] * inVec.x + inMat.m[1][1] * inVec.y + inMat.m[1][2] * inVec.z;
-        z = inMat.m[2][0] * inVec.x + inMat.m[2][1] * inVec.y + inMat.m[2][2] * inVec.z;
+    //     x = inMat.m[0][0] * inVec.x + inMat.m[0][1] * inVec.y + inMat.m[0][2] * inVec.z;
+    //     y = inMat.m[1][0] * inVec.x + inMat.m[1][1] * inVec.y + inMat.m[1][2] * inVec.z;
+    //     z = inMat.m[2][0] * inVec.x + inMat.m[2][1] * inVec.y + inMat.m[2][2] * inVec.z;
 
-        inVec.x = x;
-        inVec.y = y;
-        inVec.z = z;
+    //     inVec.x = x;
+    //     inVec.y = y;
+    //     inVec.z = z;
 
-        return;
-    }
+    //     return;
+    // }
 
-    void TranslateVector3D(Vector3D& inVec, const Matrix4& inMat)
-    {
-        float x, y, z;
+    // void TranslateVector3D(Vector3D& inVec, const Matrix4& inMat)
+    // {
+    //     float x, y, z;
 
-        x = inMat.m[0][0] * inVec.x + inMat.m[0][1] * inVec.y + inMat.m[0][2] * inVec.z;
-        y = inMat.m[1][0] * inVec.x + inMat.m[1][1] * inVec.y + inMat.m[1][2] * inVec.z;
-        z = inMat.m[2][0] * inVec.x + inMat.m[2][1] * inVec.y + inMat.m[2][2] * inVec.z;
+    //     x = inMat.m[0][0] * inVec.x + inMat.m[0][1] * inVec.y + inMat.m[0][2] * inVec.z;
+    //     y = inMat.m[1][0] * inVec.x + inMat.m[1][1] * inVec.y + inMat.m[1][2] * inVec.z;
+    //     z = inMat.m[2][0] * inVec.x + inMat.m[2][1] * inVec.y + inMat.m[2][2] * inVec.z;
 
-        inVec.x = x;
-        inVec.y = y;
-        inVec.z = z;
+    //     inVec.x = x;
+    //     inVec.y = y;
+    //     inVec.z = z;
 
-        return;
-    }
+    //     return;
+    // }
 
     void MatrixTranslation(Matrix4& outMat, float x, float y, float z)
     {
@@ -156,6 +156,7 @@ namespace Panda
 
     void BuildViewMatrixRH(const Vector3D& pos, const Vector3D& target, const Vector3D& up, Matrix4& result);
 
+    // default call LH function
     void BuildViewMatrix(const Vector3D& pos, const Vector3D& target, const Vector3D& up, Matrix4& result);
 
 }
