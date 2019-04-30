@@ -36,8 +36,8 @@ int Panda::WindowsApplication::Initialize()
     RegisterClassEx(&wc);
 
     // 创建窗口
-    hWnd = CreateWindowExW(0,
-                          L"Panda",      					// 窗口类名
+    hWnd = CreateWindowEx(0,
+                          "Panda",      					// 窗口类名
                           m_Config.appName,             	// 窗口名
                           WS_OVERLAPPEDWINDOW,              // 窗口风格
                           CW_USEDEFAULT,                    // 窗口的x坐标

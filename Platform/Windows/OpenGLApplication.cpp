@@ -9,7 +9,7 @@ using namespace Panda;
 
 namespace Panda
 {
-	GfxConfiguration config(8, 8, 8, 8, 24, 0, 0, 1280, 720, L"Panda (Windows OpenGL)");
+	GfxConfiguration config(8, 8, 8, 8, 24, 0, 0, 1280, 720, "Panda (Windows OpenGL)");
 	IApplication* g_pApp = static_cast<IApplication*>(new OpenGLApplication(config));
 	GraphicsManager* g_pGraphicsManager = static_cast<GraphicsManager*>(new OpenGLGraphicsManager);
 	MemoryManager* g_pMemoryManager = static_cast<MemoryManager*> (new MemoryManager);

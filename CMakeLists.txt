@@ -179,6 +179,7 @@ project (Panda) # prject name
 
 include_directories("${PROJECT_SOURCE_DIR}/Framework/Common")		# include directory:Common
 include_directories("${PROJECT_SOURCE_DIR}/Framework/Interface")	# include directory:Interface
+#inlude_directories("${PROJECT_SOURCE_DIR}/Framework/Math")			# include directory: Math
 include_directories("${PROJECT_SOURCE_DIR}/RHI")
 IF(${UNIX})
 	include_directories("${PROJECT_SOURCE_DIR}/Platform/Linux")
