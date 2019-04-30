@@ -150,13 +150,7 @@ namespace Panda
         return;
     }
 
-    void BuildViewMatrixImpl(const Vector3D& pos, const Vector3D& eye, const Vector3D& up, Matrix4& result);
-
-    void BuildViewMatrixLH(const Vector3D& pos, const Vector3D& target, const Vector3D& up, Matrix4& result);
-
-    void BuildViewMatrixRH(const Vector3D& pos, const Vector3D& target, const Vector3D& up, Matrix4& result);
-
-    // default call LH function
+    // build unv camera system
     void BuildViewMatrix(const Vector3D& pos, const Vector3D& target, const Vector3D& up, Matrix4& result);
 
 }

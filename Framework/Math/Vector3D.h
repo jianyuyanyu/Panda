@@ -50,13 +50,13 @@ namespace Panda
             return Vector3D(x + inV.x, y + inV.y, z + inV.z);
         }
 
-        __forceinline Vector3D operator- (const Vector3D& inV)
+        __forceinline Vector3D operator- (const Vector3D& inV) const 
         {
             return Vector3D(x - inV.x, y - inV.y, z - inV.z);
         }
 
         // negative
-        __forceinline Vector3D operator-()
+        __forceinline Vector3D operator-() const
         {
             return Vector3D(-x, -y, -z);
         }
@@ -83,12 +83,12 @@ namespace Panda
             return Vector3D(x * rScale, y * rScale, z * rScale);
         }
 
-        __forceinline float DotProduct(const Vector3D& inV)
+        __forceinline float DotProduct(const Vector3D& inV) const
         {
             return x * inV.x + y * inV.y + z * inV.z;
         }
 
-        __forceinline Vector3D CrossProduct(const Vector3D& inV)
+        __forceinline Vector3D CrossProduct(const Vector3D& inV) const
         {
             return Vector3D(
                 y * inV.z - z * inV.y, 
