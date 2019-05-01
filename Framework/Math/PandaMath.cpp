@@ -1,4 +1,4 @@
-#include "PandaMath.h"
+#include "PandaMath.hpp"
 
 namespace Panda
 {

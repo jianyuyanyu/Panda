@@ -2,7 +2,7 @@
 
 #include <math.h>
 #include <iostream>
-#include "Vector4D.h"
+#include "Vector4D.hpp"
 
 /**
  * 4x4 matrix of floating point values.

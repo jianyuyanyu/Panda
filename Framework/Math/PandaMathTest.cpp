@@ -1,7 +1,7 @@
 #include <iostream>
 #include <assert.h>
 
-#include "PandaMath.h"
+#include "PandaMath.hpp"
 
 using namespace Panda;
 
