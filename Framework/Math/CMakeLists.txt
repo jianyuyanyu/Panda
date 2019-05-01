@@ -5,9 +5,8 @@ add_library(PandaMath
 # add executable for test
 add_executable(PandaMathTest
     PandaMathTest.cpp
-    PandaMath.cpp
 )
 
-#target_link_libraries(PandaMathTest
-#    PandaMath
-#)
+target_link_libraries(PandaMathTest
+    PandaMath
+)

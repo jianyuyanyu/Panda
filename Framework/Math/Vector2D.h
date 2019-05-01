@@ -1,6 +1,7 @@
 #pragma once
 
 #include <math.h>
+#include <iostream>
 
 /**
  * A vector in 2D with components X, Y  
@@ -98,6 +99,15 @@ namespace Panda
             float len = Length();
             x /= len;
             y /= len;
+        }
+
+        friend std::ostream& operator<< (std::ostream& out, const Vector2D& vec)
+        {
+            out << "("
+
+            out << x << "," << y;
+
+            out << ")";
         }
     };
 }

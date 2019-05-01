@@ -1,6 +1,7 @@
 #pragma once
 
 #include <math.h>
+#include <iostream>
 
 /**
  * A vector in 3D with components X, Y, Z   
@@ -113,6 +114,15 @@ namespace Panda
             x /= len;
             y /= len;
             z /= len;
+        }
+
+        friend std::ostream& operator<< (std::ostream& out, const Vector3D& vec)
+        {
+            out << "("
+
+            out << x << "," << y << "," << z;
+
+            out << ")";
         }
     };
 }

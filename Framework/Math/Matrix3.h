@@ -1,6 +1,7 @@
 #pragma once
 
 #include <math.h>
+#include <iostream>
 #include "Vector3D.h"
 
 /**
@@ -149,6 +150,22 @@ namespace Panda
                     if (m[i][j] != inMat.m[i][j])
                         return false;
             return true;
+        }
+
+        friend std::ostream& operator<< (std::ostream& out, const Matrix3& mat)
+        {
+            out << std::endl;
+
+            out << "Matrix3:" << std::endl;
+            for (int i = 0; i < 3; ++i)
+            {
+                for (int j = 0; j < 3; ++j)
+                {
+                    out << mat.m[i][j] << (j == 2? '\n' : ',');
+                }                
+            }
+
+            out << std::endl;
         }
     };
 }
