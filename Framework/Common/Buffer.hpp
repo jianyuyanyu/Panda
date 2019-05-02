@@ -1,3 +1,5 @@
+#pragma once
+#include <memory.h>
 #include <stddef.h>
 #include "MemoryManager.hpp"
 
@@ -13,6 +15,55 @@ namespace Panda
             {
                 m_pData = reinterpret_cast<uint8_t*> (g_pMemoryManager->Allocate(size, alignment));
             }
+
+            Buffer(const Buffer& rhs)
+            {
+                m_pData = reinterpret_cast<uint8_t*>(g_pMemoryManager->Allocate(rhs.m_Size, rhs.m_Alignment));
+                memcpy(m_pData, rhs.m_pData, rhs.m_Size);
+                m_Size = rhs.m_Size;
+                m_Alignment = rhs.m_Alignment;
+            }
+
+            Buffer(Buffer&& rhs) noexcept
+            {
+                m_pData = rhs.m_pData;
+                m_Size = rhs.m_Size;
+                m_Alignment = rhs.m_Alignment;
+                rhs.m_pData = nullptr;
+                rhs.m_Size = 0;
+                rhs.m_Alignment = 4;
+            }
+
+            Buffer& operator= (const Buffer& rhs) 
+            {
+                if (m_Size >= rhs.m_Size && m_Alignment == rhs.m_Alignment)
+                {
+                    memcpy(m_pData, rhs.m_pData, rhs.m_Size);
+                }
+                else
+                {
+                    if (m_pData) g_pMemoryManager->Free(m_pData, m_Size);
+                    m_pData = reinterpret_cast<uint8_t*> (g_pMemoryManager->Allocate(rhs.m_Size, m_Alignment));
+                    memcpy(m_pData, rhs.m_pData, rhs.m_Size);
+                    m_Size = rhs.m_Size;
+                    m_Alignment = rhs.m_Alignment;
+                }
+                
+                return *this;
+            }
+
+            Buffer& operator=(Buffer&& rhs) noexcept
+            {
+                if (m_pData) g_pMemoryManager->Free(m_pData, m_Size);
+                m_pData = rhs.m_pData;
+                m_Size = rhs.m_Size;
+                m_Alignment = rhs.m_Alignment;
+                rhs.m_pData = nullptr;
+                rhs.m_Size = 0;
+                rhs.m_Alignment = 4;
+                return *this;
+            }
+
             ~Buffer() 
             {
                 if (m_pData)

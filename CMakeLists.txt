@@ -18,6 +18,7 @@ else()
     set(ARCH_BIT 32)
 endif()
 
+include_directories("${PROJECT_SOURCE_DIR}/Framework/Codec")       # include directory:Codec
 include_directories("${PROJECT_SOURCE_DIR}/Framework/Common")		# include directory:Common
 include_directories("${PROJECT_SOURCE_DIR}/Framework/Interface")	# include directory:Interface
 include_directories("${PROJECT_SOURCE_DIR}/Framework/Math")			# include directory: Math

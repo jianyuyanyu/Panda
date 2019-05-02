@@ -16,7 +16,7 @@ namespace Panda
         float z;
         float w;
 
-        __forceinline Vector4D() {};
+        __forceinline Vector4D() {}
         __forceinline Vector4D(const Vector4D& inV) : x(inV.x), y(inV.y), z(inV.z), w(inV.w) {}
         __forceinline Vector4D(float _v): x(_v), y(_v), z(_v), w(_v) {}
         __forceinline Vector4D(float _x, float _y, float _z, float _w) : x(_x), y(_y), z(_z), w(_w) {}

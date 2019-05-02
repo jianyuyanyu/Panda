@@ -5,6 +5,7 @@
 #include "Vector4D.hpp"
 #include "Matrix3.hpp"
 #include "Matrix4.hpp"
+#include "Color.hpp"
 #include <math.h>
 
 namespace Panda

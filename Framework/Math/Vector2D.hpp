@@ -15,7 +15,7 @@ namespace Panda
         float x;
         float y;
 
-        __forceinline Vector2D() {};
+        __forceinline Vector2D() {}
         __forceinline Vector2D(const Vector2D& inV) : x(inV.x), y(inV.y) {}
         __forceinline Vector2D(float _v): x(_v), y(_v) {}
         __forceinline Vector2D(float _x, float _y) : x(_x), y(_y) {}

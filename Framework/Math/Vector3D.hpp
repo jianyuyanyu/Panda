@@ -16,7 +16,7 @@ namespace Panda
         float y;
         float z;
 
-        __forceinline Vector3D() {};
+        __forceinline Vector3D() {}
         __forceinline Vector3D(const Vector3D& inV) : x(inV.x), y(inV.y), z(inV.z) {}
         __forceinline Vector3D(float _v): x(_v), y(_v), z(_v) {}
         __forceinline Vector3D(float _x, float _y, float _z) : x(_x), y(_y), z(_z) {}
