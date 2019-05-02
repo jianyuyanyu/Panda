@@ -1,6 +1,8 @@
+#include <assert.h>
+#include <string.h>
+#include <stdlib.h>
 #include "Allocator.hpp"
-#include <cassert>
-#include <cstring>
+
 
 #ifndef ALIGN
 #define ALIGN(n, a) (((n) + (a - 1)) & ~((a) - 1))		// 获取对齐的最小值
@@ -98,3 +100,35 @@ void Panda::Allocator::FreeAll()
 	m_pPageList = nullptr;
 	m_pFreeBlockList = nullptr;
 }
+
+#if defined(_DEBUG)
+void Panda::Allocator::FillFreePage(PageHeader* pPage)
+{
+	pPage->pNext = nullptr;
+
+	BlockHeader* pBlock = pPage->BlockStart();
+	for (uint32_t i = 0; i < m_BlockCountPerPage; ++i)
+	{
+		FillFreeBlock(pBlock);
+		pBlock = NextBlock(pBlock);
+	}
+}
+
+void Panda::Allocator::FillFreeBlock(BlockHeader* pBlock)
+{
+	// block header + data
+	memset(pBlock, PATTERN_FREE, m_BlockSize - m_AlignmentSize);
+
+	// alignment
+	memset(reinterpret_cast<uint8_t*>(pBlock) + m_BlockSize - m_AlignmentSize, PATTERN_ALIGN, m_AlignmentSize);
+}
+
+void Panda::Allocator::FillAllocatedBlock(BlockHeader* pBlock)
+{
+	// block header + data
+	memset(pBlock, PATTERN_FREE, m_BlockSize - m_AlignmentSize);
+
+	// alignment
+	memset(reinterpret_cast<uint8_t*>(pBlock) + m_BlockSize - m_AlignmentSize, PATTERN_ALIGN, m_AlignmentSize);
+}
+#endif

@@ -48,6 +48,7 @@ namespace Panda {
 		virtual void Tick();
 		
 		void* Allocate(size_t inSize);
+		void* Allocate(size_t inSize, size_t alignment);
 		void Free(void* p, size_t inSize);
 		
 	private:

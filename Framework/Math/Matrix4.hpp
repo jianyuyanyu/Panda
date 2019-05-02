@@ -169,6 +169,8 @@ namespace Panda
             }
 
             out << std::endl;
+
+            return out;
         }
     };
 }

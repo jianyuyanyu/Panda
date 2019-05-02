@@ -1,5 +1,11 @@
 #include "MemoryManager.hpp"
-#include <malloc.h>
+
+extern "C" void* malloc(size_t size);
+extern "C" void free(void* p);
+
+#ifndef ALIGN
+#define ALIGN(x,a)	(((x) + ((a) - 1)) & ~((a) - 1))
+#endif
 
 using namespace Panda;
 
@@ -58,6 +64,29 @@ void* Panda::MemoryManager::Allocate(size_t inSize)
 		return pAlloc->Allocate();
 	else
 		return malloc(inSize);
+}
+
+void* Panda::MemoryManager::Allocate(size_t inSize, size_t alignment)
+{
+	/* Here are "From 0 Series" codes */
+	// uint8_t* p;
+	// inSize += alignment;
+	// Allocator* pAlloc = LookUpAllocator(inSize);
+	// if (pAlloc)
+	// 	p = reinterpret_cast<uint8_t*> (pAlloc->Allocate());
+	// else
+	// {
+	// 	p = reinterpret_cast<uint8_t*> (malloc(inSize));
+	// }
+
+	// p = reinterpret_cast<uint8_t*>(ALIGN(reinterpret_cast<size_t>(p), alignment));
+
+	// return static_cast<void*>(p);
+	
+	/* Here are my codes */
+	uint8_t* p;
+	size_t size = ALIGN(inSize, alignment);
+	return Allocate(size);
 }
 
 void Panda::MemoryManager::Free(void* p, size_t inSize) 

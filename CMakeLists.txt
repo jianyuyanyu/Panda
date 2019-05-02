@@ -2,31 +2,60 @@
 # The latest docs website is :https://cmake.org/cmake/help/latest/index.html
 cmake_minimum_required (VERSION 3.1)	# Minimum limited version, 3.1
 
-IF (${UNIX})	# Unix platform compile configuration.
-	set (CMAKE_C_COMPILER				"gcc")
-	set (CMAKE_C_FLAGS_DEBUG			"-g")
-	set (CMAKE_C_FLAGS_RELWITHDEBINFO	"-O2 -g")
-	set (CMAKE_CXX_COMPILER				"g++")
-	set (CMAKE_CXX_FLAGS				"-Wall -std=gnu++14")
-	set (CMAKE_CXX_FLAGS_DEBUG			"-g")
-	set (CMAKE_CXX_FLAGS_RELWITHDEBINFO	"-O2 -g")
-	set (CMAKE_CXX_STANDARD				11)
-ELSEIF (${WIN32})
-	# windows specific code
-	set (CMAKE_C_COMPILER				"cl")
-	set (CMAKE_C_FLAGS_DEBUG			"/Debug /Zi")
-	set (CMAKE_C_FLAGS_RELWITHDEBINFO	"-O2 /Debug")
-	set (CMAKE_CXX_COMPILER				"cl")
-	set (CMAKE_CXX_FLAGS_DEBUG			"/Debug /Zi")
-	set (CMAKE_CXX_FLAGS				"-Wall -Xclang -std=gnu++14")
-	set (CMAKE_CXX_FLAGS_RELWITHDEBINFO	"-O2 /Debug")
-ENDIF (${UNIX})
-set (CMAKE_C_FLAGS				"-Wall")
-set (CMAKE_C_FLAGS_MINSIZEREL	"-Os -DNDEBUG")
-set (CMAKE_C_FLAGS_RELEASE		"-O3 -DNDEBUG")
-set (CMAKE_C_STANDARD			11)
-set (CMAKE_CXX_FLAGS_MINSIZEREL	"-Os -DNDEBUG")
-set (CMAKE_CXX_FLAGS_RELEASE	"-O3 -DNDEBUG")
+project(Panda) # project name
+
+set (CMAKE_C_STNDARD 99)
+set (CMAKE_CXX_STANDARD 11)
+
+list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
+include (TargetArchDetect)
+
+target_architecture(TARGET_ARCH)
+
+if((TARGET_ARCH MATCHES "x86_64" OR TARGET_ARCH MATCHES "ia64") AND NOT OF_32BIT)
+    set(ARCH_BIT 64)
+else()
+    set(ARCH_BIT 32)
+endif()
+
+include_directories("${PROJECT_SOURCE_DIR}/Framework/Common")		# include directory:Common
+include_directories("${PROJECT_SOURCE_DIR}/Framework/Interface")	# include directory:Interface
+include_directories("${PROJECT_SOURCE_DIR}/Framework/Math")			# include directory: Math
+include_directories("${PROJECT_SOURCE_DIR}/RHI")
+IF(${UNIX})
+	include_directories("${PROJECT_SOURCE_DIR}/Platform/Linux")
+ELSEIF(${WIN32})
+	include_directories("${PROJECT_SOURCE_DIR}/Platform/Windows")
+ENDIF(${UNIX})
+add_subdirectory(Framework)		# sub directory, must have CMakeLists.txt in it
+add_subdirectory(Platform)
+add_subdirectory(RHI)
+
+#IF (${UNIX})	# Unix platform compile configuration.
+#	set (CMAKE_C_COMPILER				"gcc")
+#	set (CMAKE_C_FLAGS_DEBUG			"-g")
+#	set (CMAKE_C_FLAGS_RELWITHDEBINFO	"-O2 -g")
+#	set (CMAKE_CXX_COMPILER				"g++")
+#	set (CMAKE_CXX_FLAGS				"-Wall -std=gnu++14")
+#	set (CMAKE_CXX_FLAGS_DEBUG			"-g")
+#	set (CMAKE_CXX_FLAGS_RELWITHDEBINFO	"-O2 -g")
+#	set (CMAKE_CXX_STANDARD				11)
+#ELSEIF (${WIN32})
+#	# windows specific code
+#	set (CMAKE_C_COMPILER				"cl")
+#	set (CMAKE_C_FLAGS_DEBUG			"/Debug /Zi")
+#	set (CMAKE_C_FLAGS_RELWITHDEBINFO	"-O2 /Debug")
+#	set (CMAKE_CXX_COMPILER				"cl")
+#	set (CMAKE_CXX_FLAGS_DEBUG			"/Debug /Zi")
+#	set (CMAKE_CXX_FLAGS				"-Wall -Xclang -std=gnu++14")
+#	set (CMAKE_CXX_FLAGS_RELWITHDEBINFO	"-O2 /Debug")
+#ENDIF (${UNIX})
+#set (CMAKE_C_FLAGS				"-Wall")
+#set (CMAKE_C_FLAGS_MINSIZEREL	"-Os -DNDEBUG")
+#set (CMAKE_C_FLAGS_RELEASE		"-O3 -DNDEBUG")
+#set (CMAKE_C_STANDARD			11)
+#set (CMAKE_CXX_FLAGS_MINSIZEREL	"-Os -DNDEBUG")
+#set (CMAKE_CXX_FLAGS_RELEASE	"-O3 -DNDEBUG")
 
 # ------------------------- Begin Generic CMake Variable Logging ------------------
 # if you are building in-source, this is the same as CMAKE_SOURCE_DIR, otherwise
@@ -80,6 +109,20 @@ MESSAGE(STATUS "CMAKE_INCLUDE_PATH:			" ${CMAKE_INCLUDE_PATH})
 # this is used when searching for libraries e.g. using the FIND_LIBRARY() command.
 MESSAGE(STATUS "CMAKE_LIBRARY_PATH:			" ${CMAKE_LIBRARY_PATH})
 
+## HOST
+# the complete system name, e.g. "Linux-2.4.22", "FreeBSD-5.4-RELEASE" or "Window 5.1"
+MESSAGE(STATUS "CMAKE_HOST_SYSTEM:			" ${CMAKE_HOST_SYSTEM})
+
+# the short system name, e.g. "Linux", "FreeBSD" or "Windows"
+MESSAGE(STATUS "CMAKE_HOST_SYSTEM_NAME:		" ${CMAKE_HOST_SYSTEM_NAME})
+
+# only the version part of CMAKE_SYSTEM
+MESSAGE(STATUS "CMAKE_HOST_SYSTEM_VERSION:	" ${CMAKE_HOST_SYSTEM_VERSION})
+
+# the process name (e.g. "Intel(R) Pentium(R) M processor 2.00 GHz")
+MESSAGE(STATUS "CMAKE_HOST_SYSTEM_PROCESSOR: " ${CMAKE_HOST_SYSTEM_PROCESSOR})
+
+## TARGET
 # the complete system name, e.g. "Linux-2.4.22", "FreeBSD-5.4-RELEASE" or "Windows 5.1" 
 MESSAGE(STATUS "CMAKE_SYSTEM:				" ${CMAKE_SYSTEM})
 
@@ -143,9 +186,17 @@ MESSAGE( STATUS "CMAKE_SUPPRESS_REGENERATION: " ${CMAKE_SUPPRESS_REGENERATION} )
 
 # the compiler flags for compiling C sources 
 MESSAGE(STATUS "CMAKE_C_FLAGS:				" ${CMAKE_C_FLAGS})
+MESSAGE(STATUS "CMAKE_C_FLAGS_DEBUG:		" ${CMAKE_C_FLAGS_DEBUG})
+MESSAGE(STATUS "CMAKE_C_FLAGS_RELEASE:		" ${CMAKE_C_FLAGS_RELEASE})
+MESSAGE(STATUS "CMAKE_C_FLAGS_RELWITHEBINFO: " ${CMAKE_C_FLAGS_RELWITHDEBINFO})
+MESSAGE(STATUS "CMAKE_C_FLAGS_MINSIZEREL:	" ${CMAKE_C_FLAGS_MINSIZEREL})
 
 # the compiler flags for compiling C++ sources 
 MESSAGE(STATUS "CMAKE_CXX_FLAGS:			" ${CMAKE_CXX_FLAGS})
+MESSAGE(STATUS "CMAKE_CXX_FLAGS_DEBUG:		" ${CMAKE_CXX_FLAGS_DEBUG})
+MESSAGE(STATUS "CMAKE_CXX_FLAGS_RELEASE:	" ${CMAKE_CXX_FLAGS_RELEASE})
+MESSAGE(STATUS "CMAKE_CXX_FLAGS_RELWITHDEBINFO: " ${CMAKE_CXX_FLAGS_RELWITHDEBINFO})
+MESSAGE(STATUS "CMAKE_CXX_FLAGS_MINSIZEREL: " ${CMAKE_CXX_FLAGS_MINSIZEREL})
 
 # Choose the type of build.  Example: SET(CMAKE_BUILD_TYPE Debug) 
 MESSAGE(STATUS "CMAKE_BUILD_TYPE:			" ${CMAKE_BUILD_TYPE})
@@ -169,24 +220,11 @@ MESSAGE(STATUS "CMAKE_COMPILER_IS_GNUCXX:	" ${CMAKE_COMPILER_IS_GNUCXX})
 MESSAGE(STATUS "CMAKE_AR:					" ${CMAKE_AR})
 MESSAGE(STATUS "CMAKE_RANLIB:				" ${CMAKE_RANLIB})
 
+MESSAGE(STATUS "CMAKE_CROSSCOMPILING:		" ${CMAKE_CROSSCOMPILING})
+
+MESSAGE(STATUS "TARGET_ARCH:				" ${TARGET_ARCH})
 #
 #MESSAGE( STATUS ": " ${} )
 
 # ------------------------- End of Generic CMake Variable Logging ------------------
 
-
-project (Panda) # prject name
-
-include_directories("${PROJECT_SOURCE_DIR}/Framework/Common")		# include directory:Common
-include_directories("${PROJECT_SOURCE_DIR}/Framework/Interface")	# include directory:Interface
-#inlude_directories("${PROJECT_SOURCE_DIR}/Framework/Math")			# include directory: Math
-include_directories("${PROJECT_SOURCE_DIR}/RHI")
-IF(${UNIX})
-	include_directories("${PROJECT_SOURCE_DIR}/Platform/Linux")
-ELSEIF(${WIN32})
-	include_directories("${PROJECT_SOURCE_DIR}/Platform/Windows")
-ENDIF(${UNIX})
-
-add_subdirectory(Framework)		# sub directory, must have CMakeLists.txt in it
-add_subdirectory(Platform)
-add_subdirectory(RHI)

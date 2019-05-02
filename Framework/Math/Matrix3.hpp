@@ -2,7 +2,7 @@
 
 #include <math.h>
 #include <iostream>
-#include "Vector3D.h"
+#include "Vector3D.hpp"
 
 /**
  * 3x3 matrix of floating point values.
@@ -166,6 +166,8 @@ namespace Panda
             }
 
             out << std::endl;
+
+            return out;
         }
     };
 }

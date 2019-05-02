@@ -1,7 +1,7 @@
 #pragma once
 
-#include <cstddef>
-#include <cstdint>
+#include <stddef.h>
+#include <stdint.h>
 
 namespace Panda{
 	struct BlockHeader {
@@ -17,6 +17,11 @@ namespace Panda{
 	
 	class Allocator{
 	public:
+		// debug patterns
+		static const uint8_t PATTERN_ALIGN = 0xFC;
+		static const uint8_t PATTERN_ALLOC = 0xFD;
+		static const uint8_t PATTERN_FREE = 0xFE;
+
 		Allocator();
 		Allocator(uint32_t inPageSize, uint32_t inBlockSize, uint32_t inAlignment);
 		~Allocator();
@@ -27,6 +32,17 @@ namespace Panda{
 		void FreeAll();
 		
 	private:
+#if defined(_DEBUG)
+		// fill a free page with debug patterns
+		void FillFreePage(PageHeader* pPage);
+
+		// fill a block with debug patterns
+		void FillFreeBlock(BlockHeader* pBlock);
+
+		// fill on allocated block with debug patterns
+		void FillAllocatedBlock(BlockHeader* pBlock);
+#endif
+
 		BlockHeader* NextBlock(BlockHeader* pCurrentBlock);
 		// 禁用拷贝构造函数和赋值操作符
 		Allocator(const Allocator& clone);

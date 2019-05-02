@@ -118,11 +118,13 @@ namespace Panda
 
         friend std::ostream& operator<< (std::ostream& out, const Vector3D& vec)
         {
-            out << "("
+			out << "(";
 
-            out << x << "," << y << "," << z;
+            out << vec.x << "," << vec.y << "," << vec.z;
 
             out << ")";
+
+			return out;
         }
     };
 }
