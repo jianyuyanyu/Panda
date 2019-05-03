@@ -26,3 +26,16 @@
 # Denote all files that are truly binary and should not be modified.
 *.png binary
 *.jpg binary
+*.exe filter=lfs diff=lfs merge=lfs -text
+*.lib filter=lfs diff=lfs merge=lfs -text
+*.png filter=lfs diff=lfs merge=lfs -text
+*.jpg filter=lfs diff=lfs merge=lfs -text
+*.bmp filter=lfs diff=lfs merge=lfs -text
+*.dds filter=lfs diff=lfs merge=lfs -text
+*.gxt filter=lfs diff=lfs merge=lfs -text
+*.gnf filter=lfs diff=lfs merge=lfs -text
+*.ppm filter=lfs diff=lfs merge=lfs -text
+*.tga filter=lfs diff=lfs merge=lfs -text
+*.raw filter=lfs diff=lfs merge=lfs -text
+*.eap filter=lfs diff=lfs merge=lfs -text
+*.ldb filter=lfs diff=lfs merge=lfs -text

@@ -19,3 +19,10 @@ add_executable(TextureLoadTest TextureLoadTest.cpp)
 target_link_libraries(TextureLoadTest WindowsApplication Common D2DRHI d2d1)
 
 add_test(NAME TEST_TextureLoad COMMAND TextureLoadTest)
+
+# scene object test
+include(PlatformDependencies) # load and run CMake code from a file or module
+add_executable(SceneObjectTest SceneObjectTest.cpp)
+target_link_libraries(SceneObjectTest Common)
+__add_xg_platform_dependencies(SceneObjectTest)
+add_test(NAME TEST_SceneObject COMMAND SceneObjectTest)

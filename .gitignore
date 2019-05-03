@@ -40,3 +40,16 @@ Build/*
 
 # vscode
 .vscode
+
+build*/
+*.*~
+*.pdb
+*.ilk
+*.vso
+*.pso
+**/.vs
+*.swp
+**/Debug
+**/Release
+**/lib
+**/lib64
