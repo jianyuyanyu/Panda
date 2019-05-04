@@ -41,7 +41,7 @@ Build/*
 # vscode
 .vscode
 
-build*/
+Build*/
 *.*~
 *.pdb
 *.ilk
