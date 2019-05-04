@@ -1,7 +1,7 @@
 add_executable(PandaOpenGL
     XcbApplication.cpp
     OpenGLApplication.cpp
-    ${PROJECT_SOURCE_DIR}/External/GL/src/glad_glx.c
+    ${PROJECT_SOURCE_DIR}/External/src/glad/src/glad_glx.c
 )
 
 target_link_libraries(PandaOpenGL 
@@ -15,5 +15,5 @@ target_link_libraries(PandaOpenGL
 
 target_include_directories(PandaOpenGL
     PRIVATE
-    "${PROJECT_SOURCE_DIR}/External/GL/include"
+    "${PROJECT_SOURCE_DIR}/External/src/glad/include"
 )

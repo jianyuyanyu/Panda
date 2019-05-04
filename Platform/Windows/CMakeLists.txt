@@ -17,7 +17,7 @@ find_package(OpenGL REQUIRED)
 
 add_executable(PandaOpenGL
 	OpenGLApplication.cpp
-	${PROJECT_SOURCE_DIR}/External/GL/src/glad_wgl.c
+	${PROJECT_SOURCE_DIR}/External/src/glad/src/glad_wgl.c
 	)
 target_link_libraries(PandaOpenGL
 	WindowsApplication
@@ -26,5 +26,5 @@ target_link_libraries(PandaOpenGL
 	${OPENGL_LIBRARIES}
 	)
 target_include_directories(PandaOpenGL
-	PRIVATE "${PROJECT_SOURCE_DIR}/External/GL/include")
+	PRIVATE "${PROJECT_SOURCE_DIR}/External/src/glad/include")
 	
