@@ -9,7 +9,7 @@ namespace Panda
     {
         std::string name;
         std::vector <BaseSceneNode> children;
-    }
+	};
 
     template <typename T>
     struct SceneNode : public BaseSceneNode

@@ -7,7 +7,9 @@ project(Panda) # project name
 set (CMAKE_C_STNDARD 99)
 set (CMAKE_CXX_STANDARD 11)
 
-list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
+list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMake")
+list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMake/Platform")
+list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/External/src/crossguid/cmake")
 include (TargetArchDetect)
 
 target_architecture(TARGET_ARCH)
@@ -24,10 +26,14 @@ include_directories("${PROJECT_SOURCE_DIR}/Framework/Interface")	# include direc
 include_directories("${PROJECT_SOURCE_DIR}/Framework/Math")			# include directory: Math
 include_directories("${PROJECT_SOURCE_DIR}/RHI")
 IF(${UNIX})
-	include_directories("${PROJECT_SOURCE_DIR}/Platform/Linux")
+	set(PANDA_TARGET_PLATFORM "Linux")
 ELSEIF(${WIN32})
-	include_directories("${PROJECT_SOURCE_DIR}/Platform/Windows")
+	set(PANDA_TARGET_PLATFORM "Windows")
 ENDIF(${UNIX})
+include_directories("${PROJECT_SOURCE_DIR}/Platform/${PANDA_TARGET_PLATFORM}")
+set(PANDA_EXTERNAL_ROOT ${PROJECT_SOURCE_DIR}/External/${PANDA_TARGET_PLATFORM}/)
+include_directories("${PANDA_EXTERNAL_ROOT}include")
+set(PANDA_EXTERNAL_LIBRARY_PATH ${PANDA_EXTERNAL_ROOT}lib/)
 add_subdirectory(Framework)		# sub directory, must have CMakeLists.txt in it
 add_subdirectory(Platform)
 add_subdirectory(RHI)

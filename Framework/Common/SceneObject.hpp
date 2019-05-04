@@ -23,13 +23,13 @@ namespace Panda
 
     ENUM(SceneObjectType)
     {
-        kSceneObjectTypeMesh    = "MESH"_i32;
-        kSceneObjectTypeMaterial= "MATL"_i32;
-        kSceneObjectTypeTexture = "TXTU"_i32;
-        kSceneObjectTypeLight   = "LGHT"_i32;
-        kSceneObjectTypeCamera  = "CAMR"_i32;
-        kSceneObjectTypeAnimator= "ANIM"_i32;
-        kSceneObjectTypeClip    = "CLIP"_i32;
+        kSceneObjectTypeMesh    = "MESH"_i32,
+        kSceneObjectTypeMaterial= "MATL"_i32,
+        kSceneObjectTypeTexture = "TXTU"_i32,
+        kSceneObjectTypeLight   = "LGHT"_i32,
+        kSceneObjectTypeCamera  = "CAMR"_i32,
+        kSceneObjectTypeAnimator= "ANIM"_i32,
+        kSceneObjectTypeClip    = "CLIP"_i32,
     };
 
     std::ostream& operator<<(std::ostream& out, SceneObjectType type)
@@ -139,7 +139,7 @@ namespace Panda
     };
 
     template <typename T>
-    struct ParamterMap
+    struct ParameterMap
     {
         bool IsUsingSingleValue = true;
 

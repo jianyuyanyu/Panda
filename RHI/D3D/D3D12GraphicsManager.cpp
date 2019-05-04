@@ -239,8 +239,8 @@ HRESULT Panda::D3D12GraphicsManager::CreateIndexBuffer(const Buffer& buffer)
     D3D12_RESOURCE_DESC resourceDesc = {};
     resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
     resourceDesc.Alignment = 0;
-    resourceDesc.width = buffer.m_Size;
-    resourceDesc.height = 1;
+    resourceDesc.Width = buffer.m_Size;
+    resourceDesc.Height = 1;
     resourceDesc.DepthOrArraySize = 1;
     resourceDesc.MipLevels = 1;
     resourceDesc.Format = DXGI_FORMAT_UNKNOWN;
@@ -276,7 +276,7 @@ HRESULT Panda::D3D12GraphicsManager::CreateTextureBuffer(const Image& image)
     textureDesc.MipLevels = 1;
     textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
     textureDesc.Width = image.width;
-    textureDesc.Height = image.Height;
+    textureDesc.Height = image.height;
     textureDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
     textureDesc.DepthOrArraySize = 1;
     textureDesc.SampleDesc.Count = 1;
@@ -311,6 +311,8 @@ HRESULT Panda::D3D12GraphicsManager::CreateSamplerBuffer()
     samplerDesc.MaxAnisotropy = 1;
     samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_ALWAYS;
     m_pDev->CreateSampler(&samplerDesc, m_pSamplerHeap->GetCPUDescriptorHandleForHeapStart());
+
+	return hr;
 }
 
 HRESULT Panda::D3D12GraphicsManager::CreateConstantBuffer(const Buffer& buffer)
