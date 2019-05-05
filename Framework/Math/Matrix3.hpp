@@ -3,6 +3,7 @@
 #include <math.h>
 #include <iostream>
 #include "Vector3D.hpp"
+#include "Utility.hpp"
 
 /**
  * 3x3 matrix of floating point values.

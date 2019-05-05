@@ -2,6 +2,7 @@
 
 #include <math.h>
 #include <iostream>
+#include "Utility.hpp"
 
 /**
  * A vector in 3D with components X, Y, Z   
@@ -16,12 +17,12 @@ namespace Panda
         float y;
         float z;
 
-        __forceinline Vector3D() {}
-        __forceinline Vector3D(const Vector3D& inV) : x(inV.x), y(inV.y), z(inV.z) {}
-        __forceinline Vector3D(float _v): x(_v), y(_v), z(_v) {}
-        __forceinline Vector3D(float _x, float _y, float _z) : x(_x), y(_y), z(_z) {}
+        FORCEINLINE Vector3D() {}
+        FORCEINLINE Vector3D(const Vector3D& inV) : x(inV.x), y(inV.y), z(inV.z) {}
+        FORCEINLINE Vector3D(float _v): x(_v), y(_v), z(_v) {}
+        FORCEINLINE Vector3D(float _x, float _y, float _z) : x(_x), y(_y), z(_z) {}
 
-        __forceinline Vector3D& operator= (const Vector3D& inV) 
+        FORCEINLINE Vector3D& operator= (const Vector3D& inV) 
         {
             x = inV.x;
             y = inV.y;
@@ -29,7 +30,7 @@ namespace Panda
             return *this;
         }
 
-        __forceinline Vector3D& operator+= (const Vector3D& inV)
+        FORCEINLINE Vector3D& operator+= (const Vector3D& inV)
         {
             x += inV.x;
             y += inV.y;
@@ -38,7 +39,7 @@ namespace Panda
             return *this;
         }
 
-        __forceinline Vector3D& operator-= (const Vector3D& inV)
+        FORCEINLINE Vector3D& operator-= (const Vector3D& inV)
         {
             x -= inV.x;
             y -= inV.y;
@@ -46,50 +47,50 @@ namespace Panda
             return *this;
         }
 
-        __forceinline Vector3D operator+(const Vector3D& inV)
+        FORCEINLINE Vector3D operator+(const Vector3D& inV)
         {
             return Vector3D(x + inV.x, y + inV.y, z + inV.z);
         }
 
-        __forceinline Vector3D operator- (const Vector3D& inV) const 
+        FORCEINLINE Vector3D operator- (const Vector3D& inV) const 
         {
             return Vector3D(x - inV.x, y - inV.y, z - inV.z);
         }
 
         // negative
-        __forceinline Vector3D operator-() const
+        FORCEINLINE Vector3D operator-() const
         {
             return Vector3D(-x, -y, -z);
         }
 
-        __forceinline Vector3D operator+(float bias)
+        FORCEINLINE Vector3D operator+(float bias)
         {
             return Vector3D(x + bias, y + bias, z + bias);
         }
 
-        __forceinline Vector3D operator-(float bias)
+        FORCEINLINE Vector3D operator-(float bias)
         {
             return Vector3D(x - bias, y - bias, z - bias);
         }
 
-        __forceinline Vector3D operator*(float scale)
+        FORCEINLINE Vector3D operator*(float scale)
         {
             return Vector3D(x * scale, y * scale, z * scale);
         }
 
-        __forceinline Vector3D operator/(float scale)
+        FORCEINLINE Vector3D operator/(float scale)
         {
             const float rScale = 1.f / scale;
             //return (*this) * rScale;
             return Vector3D(x * rScale, y * rScale, z * rScale);
         }
 
-        __forceinline float DotProduct(const Vector3D& inV) const
+        FORCEINLINE float DotProduct(const Vector3D& inV) const
         {
             return x * inV.x + y * inV.y + z * inV.z;
         }
 
-        __forceinline Vector3D CrossProduct(const Vector3D& inV) const
+        FORCEINLINE Vector3D CrossProduct(const Vector3D& inV) const
         {
             return Vector3D(
                 y * inV.z - z * inV.y, 
@@ -98,17 +99,17 @@ namespace Panda
                 );
         }
 
-        __forceinline float Length()
+        FORCEINLINE float Length()
         {
             return sqrtf(x * x + y * y + z * z);
         }
 
-        __forceinline float SquareLength()
+        FORCEINLINE float SquareLength()
         {
             return x * x + y * y + z * z;
         }
 
-        __forceinline void Normalize()
+        FORCEINLINE void Normalize()
         {
             float len = Length();
             x /= len;

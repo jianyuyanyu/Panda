@@ -9,16 +9,16 @@ using namespace Panda;
 namespace Panda {
     extern IApplication* g_pApp;
 
-	template<class T>
-	inline void SafeRelease(T **ppInterfaceToRelease)
-	{
-		if (*ppInterfaceToRelease != nullptr)
-		{
-			(*ppInterfaceToRelease)->Release();
+	//template<class T>
+	//inline void SafeRelease(T **ppInterfaceToRelease)
+	//{
+	//	if (*ppInterfaceToRelease != nullptr)
+	//	{
+	//		(*ppInterfaceToRelease)->Release();
 
-			(*ppInterfaceToRelease) = nullptr;
-		}
-	}
+	//		(*ppInterfaceToRelease) = nullptr;
+	//	}
+	//}
 	
     static void GetHardwareAdapter(IDXGIFactory4* pFactory, IDXGIAdapter1** ppAdapter)
     {

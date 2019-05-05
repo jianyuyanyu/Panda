@@ -3,6 +3,7 @@
 #include <math.h>
 #include <iostream>
 #include "Vector4D.hpp"
+#include "Utility.hpp"
 
 /**
  * 4x4 matrix of floating point values.
@@ -15,7 +16,7 @@ namespace Panda
     public:
         float m[4][4];
 
-        __forceinline Matrix4()
+        FORCEINLINE Matrix4()
         {
             m[0][0] = m[0][1] = m[0][2] = m[0][3] = 0;
             m[1][0] = m[1][1] = m[1][2] = m[1][3] = 0;
@@ -23,14 +24,14 @@ namespace Panda
             m[3][0] = m[3][1] = m[3][2] = m[3][3] = 0;
         }
 
-        __forceinline Matrix4(const Matrix4& inMat)
+        FORCEINLINE Matrix4(const Matrix4& inMat)
         {
             for (int i = 0; i < 4; ++i)
                 for (int j = 0; j < 4; ++j)
                     m[i][j] = inMat.m[i][j];
         }
 
-        __forceinline Matrix4(const Vector4D& in1, const Vector4D& in2, const Vector4D& in3, const Vector4D& in4)
+        FORCEINLINE Matrix4(const Vector4D& in1, const Vector4D& in2, const Vector4D& in3, const Vector4D& in4)
         {
             m[0][0] = in1.x; m[0][1] = in1.y; m[0][2] = in1.z; m[0][3] = in1.w;
             m[1][0] = in2.x; m[1][1] = in2.y; m[1][2] = in2.z; m[1][3] = in2.w;
@@ -46,7 +47,7 @@ namespace Panda
             m[3][0] = 0; m[3][1] = 0; m[3][2] = 0; m[3][3] = 1;
         }
 
-        __forceinline Matrix4 operator= (const Matrix4& inMat)
+        FORCEINLINE Matrix4 operator= (const Matrix4& inMat)
         {
             for (int i = 0; i < 4; ++i)
                 for (int j = 0; j < 4; ++j)
@@ -54,7 +55,7 @@ namespace Panda
             return *this;
         }
 
-        __forceinline Matrix4& operator+= (const Matrix4& inMat)
+        FORCEINLINE Matrix4& operator+= (const Matrix4& inMat)
         {
             for (int i = 0; i < 4; ++i)
                 for (int j = 0; j < 4; ++j)
@@ -63,7 +64,7 @@ namespace Panda
             return *this;
         }
 
-        __forceinline Matrix4& operator-= (const Matrix4& inMat)
+        FORCEINLINE Matrix4& operator-= (const Matrix4& inMat)
         {
             for (int i = 0; i < 4; ++i)
                 for (int j = 0; j < 4; ++j)
@@ -72,7 +73,7 @@ namespace Panda
             return *this;
         }
 
-        __forceinline Matrix4 operator+ (const Matrix4& inMat)
+        FORCEINLINE Matrix4 operator+ (const Matrix4& inMat)
         {
             Matrix4 result;
             for (int i = 0; i < 4; ++i)
@@ -82,7 +83,7 @@ namespace Panda
             return result;
         }
 
-        __forceinline Matrix4 operator- (const Matrix4& inMat)
+        FORCEINLINE Matrix4 operator- (const Matrix4& inMat)
         {
             Matrix4 result;
             for (int i = 0; i < 4; ++i)
@@ -92,7 +93,7 @@ namespace Panda
             return result;
         }
 
-        __forceinline Matrix4 operator* (float scale)
+        FORCEINLINE Matrix4 operator* (float scale)
         {
             Matrix4 result;
             for (int i = 0; i < 4; ++i)
@@ -101,7 +102,7 @@ namespace Panda
             return result;
         }
 
-        __forceinline Matrix4& operator*= (float scale)
+        FORCEINLINE Matrix4& operator*= (float scale)
         {
             for (int i = 0; i < 4; ++i)
                 for (int j = 0; j < 4; ++j)
@@ -109,7 +110,7 @@ namespace Panda
             return *this;
         }
 
-        __forceinline Matrix4 operator*(const Matrix4& inMat)
+        FORCEINLINE Matrix4 operator*(const Matrix4& inMat)
         {
             Matrix4 result;
             for (int i = 0; i < 4; ++i)
@@ -119,14 +120,14 @@ namespace Panda
             return result;
         }
 
-        __forceinline Matrix4& operator*=(const Matrix4& inMat)
+        FORCEINLINE Matrix4& operator*=(const Matrix4& inMat)
         {
             Matrix4 result = (*this) * inMat;
             *this = result;
             return *this;
         }
 
-        __forceinline Matrix4 operator/ (float scale)
+        FORCEINLINE Matrix4 operator/ (float scale)
         {
             float rScale = 1.0f / scale;
             Matrix4 result;
@@ -136,7 +137,7 @@ namespace Panda
             return result;
         }
 
-        __forceinline Matrix4& operator/= (float scale)
+        FORCEINLINE Matrix4& operator/= (float scale)
         {
             float rScale = 1.0f / scale;
             Matrix4 result;
@@ -146,7 +147,7 @@ namespace Panda
             return *this;
         }
 
-        __forceinline bool operator== (const Matrix4& inMat)
+        FORCEINLINE bool operator== (const Matrix4& inMat)
         {
             for (int i = 0; i < 4; ++i)
                 for (int j = 0; j < 4; ++j)
