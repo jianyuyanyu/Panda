@@ -15,10 +15,11 @@ target_link_libraries(PandaMathTest
 add_test(NAME TEST_PandaMath COMMAND PandaMathTest)
 
 # texture load test
-add_executable(TextureLoadTest TextureLoadTest.cpp)
-target_link_libraries(TextureLoadTest WindowsApplication Common D2DRHI d2d1)
-
-add_test(NAME TEST_TextureLoad COMMAND TextureLoadTest)
+IF(${WIN32})
+	add_executable(TextureLoadTest TextureLoadTest.cpp)
+    target_link_libraries(TextureLoadTest WindowsApplication Common D2DRHI d2d1)
+    add_test(NAME TEST_TextureLoad COMMAND TextureLoadTest)
+ENDIF(${WIN32})
 
 # scene object test
 include(PlatformDependencies) # load and run CMake code from a file or module

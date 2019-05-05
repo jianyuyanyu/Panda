@@ -42,7 +42,7 @@ namespace Panda
                 m_IndexBuffer(0),
                 m_IndexBufferSize(0),
                 m_IndexCount(0),
-                m_IndexType(IndexSize::kIndexSize16)
+                m_IndexType(static_cast<uint32_t>(IndexSize::kIndexSize16))
                 {}
 
         public:

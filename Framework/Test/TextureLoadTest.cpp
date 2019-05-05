@@ -4,7 +4,7 @@
 #include "D2D/D2DGraphicsManager.hpp"
 #include "MemoryManager.hpp"
 #include "AssetLoader.hpp"
-#include "utility.hpp"
+#include "Utility.hpp"
 #include "BMP.hpp"
 
 using namespace Panda;

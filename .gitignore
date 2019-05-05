@@ -31,9 +31,6 @@
 *.out
 *.app
 
-# directories
-Build/*
-
 # vso, pso
 *.vso
 *.pso
@@ -41,7 +38,8 @@ Build/*
 # vscode
 .vscode
 
-Build*/
+**/build
+Build/
 *.*~
 *.pdb
 *.ilk
