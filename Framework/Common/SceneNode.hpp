@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 #include <vector>
 #include <string>
 #include "SceneObject.hpp"
@@ -14,11 +15,11 @@ namespace Panda
     template <typename T>
     struct SceneNode : public BaseSceneNode
     {
-        T* t;
+        std::shared_ptr<T>* pSceneObject;
     };
 
     typedef BaseSceneNode SceneEmptyNode;
-    typedef SceneNode<SceneObjectMesh> SceneGeometryNode;
+    typedef SceneNode<SceneObjectGeometry> SceneGeometryNode;
     typedef SceneNode<SceneObjectMaterial> SceneMaterialNode;
     typedef SceneNode<SceneObjectLight> SceneLightNode;
     typedef SceneNode<SceneObjectCamera> SceneCameraNode;
