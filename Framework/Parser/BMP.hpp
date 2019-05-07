@@ -55,28 +55,28 @@ namespace Panda
                 std::cout << std::endl;
             }
 
-            img.width = pBmpHeader->width;
-            img.height = pBmpHeader->height;
-            img.bitcount = 32;
-            img.pitch = ((img.width * img.bitcount >> 3) + 3) & ~3; // 4 bytes alignment
-            img.dataSize = img.pitch * img.height;
-            img.data = reinterpret_cast<ColorRGBA*>(g_pMemoryManager->Allocate(img.dataSize));
+            img.Width = pBmpHeader->width;
+            img.Height = pBmpHeader->height;
+            img.BitCount = 32;
+            img.Pitch = ((img.Width * img.BitCount >> 3) + 3) & ~3; // 4 bytes alignment
+            img.DataSize = img.Pitch * img.Height;
+            img.Data = reinterpret_cast<ColorRGBAi*>(g_pMemoryManager->Allocate(img.DataSize));
 
-            if (img.bitcount < 24)
+            if (img.BitCount < 24)
             {
                 std::cout << "Sorry, only true color BMP is supported now." << std::endl;
             }
             else
             {
                 uint8_t* pSourceData = buf.m_pData + pFileHeader->bitsOffset;
-                for (int32_t y = img.height - 1; y >= 0; --y)
+                for (int32_t y = img.Height - 1; y >= 0; --y)
                 {
 					if (y == 0)
 						int m = 0;
-                    for (int32_t x = 0; x < img.width; ++x)
+                    for (int32_t x = 0; x < img.Width; ++x)
                     {
-                        ColorRGBA* pDst = img.data + img.width * (img.height - y - 1) + x;
-                        uint8_t* pSrc = pSourceData + img.pitch * y + x * (img.bitcount >> 3);
+                        ColorRGBAi* pDst = img.Data + img.Width * (img.Height - y - 1) + x;
+                        uint8_t* pSrc = pSourceData + img.Pitch * y + x * (img.BitCount >> 3);
                         pDst->b = *pSrc;
                         pDst->g = *(pSrc + 1);
                         pDst->r = *(pSrc + 2);

@@ -2,7 +2,7 @@
 
 namespace Panda
 {
-    void TranslateVector3D(Vector3D& inVec, const Matrix3& inMat)
+    void TranslateVector3D(Vector3Df& inVec, const Matrix3f& inMat)
     {
         float x, y, z;
 
@@ -17,7 +17,7 @@ namespace Panda
         return;       
     }
 
-    void TranslateVector3D(Vector3D& inVec, const Matrix4& inMat)
+    void TranslateVector3D(Vector3Df& inVec, const Matrix4f& inMat)
     {
         float x, y, z;
 
@@ -32,7 +32,18 @@ namespace Panda
         return;
     }
 
-    void MatrixTranslation(Matrix4& outMat, float x, float y, float z)
+    void MatrixScale(Matrix4f& outMat, const float x, const float y, const float z)
+    {
+        outMat.SetIdentity();
+
+        outMat.m[0][0] = x;
+        outMat.m[1][1] = y;
+        outMat.m[2][2] = z;
+
+        return;
+    }
+
+    void MatrixTranslation(Matrix4f& outMat, float x, float y, float z)
     {
         outMat.SetIdentity();
         outMat.m[0][3] = x;
@@ -42,7 +53,7 @@ namespace Panda
         return;
     }
 
-    void MatrixTranslation(Matrix4& outMat, const Vector3D& inVec)
+    void MatrixTranslation(Matrix4f& outMat, const Vector3Df& inVec)
     {
         outMat.SetIdentity();
         outMat.m[0][3] = inVec.x;
@@ -52,7 +63,7 @@ namespace Panda
         return;
     }
 
-    void MatrixRotationZ(Matrix4& outMat, const float angle)
+    void MatrixRotationZ(Matrix4f& outMat, const float angle)
     {
         outMat.SetIdentity();
 
@@ -67,7 +78,7 @@ namespace Panda
         return;
     }
 
-    void MatrixRotationX(Matrix4& outMat, const float angle)
+    void MatrixRotationX(Matrix4f& outMat, const float angle)
     {
         outMat.SetIdentity();
         float cosValue = cosf(angle);
@@ -81,7 +92,7 @@ namespace Panda
         return;
     }
 
-    void MatrixRotationY(Matrix4& outMat, const float angle)
+    void MatrixRotationY(Matrix4f& outMat, const float angle)
     {
         outMat.SetIdentity();
         float cosValue = cosf(angle);
@@ -95,7 +106,7 @@ namespace Panda
         return;
     }
 
-    void MatrixRotationYawPitchRoll(Matrix4& outMat, const float yaw, const float pitch, const float roll)
+    void MatrixRotationYawPitchRoll(Matrix4f& outMat, const float yaw, const float pitch, const float roll)
     {
         outMat.SetIdentity();
 
@@ -124,7 +135,7 @@ namespace Panda
         return;
     }
 
-    void MatrixRotation(Matrix4& outMat, const Vector3D& inVec, const float angle)
+    void MatrixRotationAxis(Matrix4f& outMat, const Vector3Df& inVec, const float angle)
     {
         outMat.SetIdentity();
 
@@ -143,14 +154,31 @@ namespace Panda
         return;
     }
 
-    // build unv camera system
-    void BuildViewMatrix(const Vector3D& pos, const Vector3D& target, const Vector3D& up, Matrix4& result)
+    void MatrixRotationQuaternion(Matrix4f& outMat, const Quaternion& q)
     {
-        Vector3D n = target - pos;
+        outMat.SetIdentity();
+
+        outMat.m[0][0] = 1.f - 2.f * q.y * q.y - 2.f * q.z * q.z;
+        outMat.m[0][1] = 2.f * q.x * q.y - 2.f * q.w * q.z;
+        outMat.m[0][2] = 2.f * q.x * q.z + 2.f * q.w * q.y;
+        outMat.m[1][0] = 2.f * q.x * q.y + 2.f * q.w * q.z;
+        outMat.m[1][1] = 1.f - 2.f * q.x * q.x - 2.f * q.z * q.z;
+        outMat.m[1][2] = 2.f * q.y * q.z - 2.f * q.w * q.x;
+        outMat.m[2][0] = 2.f * q.x * q.z - 2.f * q.w * q.y;
+        outMat.m[2][1] = 2.f * q.y * q.z + 2.f * q.w * q.x;
+        outMat.m[2][2] = 1.f - 2.f * q.x * q.x - 2.f * q.y * q.y;
+        
+        return;
+    }
+
+    // build unv camera system
+    void BuildViewMatrix(const Vector3Df& pos, const Vector3Df& target, const Vector3Df& up, Matrix4f& result)
+    {
+        Vector3Df n = target - pos;
         n.Normalize();
-        Vector3D u = up.CrossProduct(n);
+        Vector3Df u = up.CrossProduct(n);
         u.Normalize();
-        Vector3D v = n.CrossProduct(u);
+        Vector3Df v = n.CrossProduct(u);
 
         result.SetIdentity();
         result.m[0][0] = u.x;
@@ -173,7 +201,7 @@ namespace Panda
     }
 
     // our uvn camera system is left-handed
-    void BuildPerspectiveFovLHMatrix(Matrix4& result, const float fov, const float aspect, const float near, const float far)
+    void BuildPerspectiveFovLHMatrix(Matrix4f& result, const float fov, const float aspect, const float near, const float far)
     {
         result.m[0][0] = 1.0f / (aspect * tanf(fov / 2.0f));
         result.m[0][1] = 0.0f;

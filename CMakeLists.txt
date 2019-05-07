@@ -20,7 +20,8 @@ else()
     set(ARCH_BIT 32)
 endif()
 
-include_directories("${PROJECT_SOURCE_DIR}/Framework/Codec")       # include directory:Codec
+include_directories("${PROJECT_SOURCE_DIR}")
+include_directories("${PROJECT_SOURCE_DIR}/Framework/Parser")       # include directory:Parser
 include_directories("${PROJECT_SOURCE_DIR}/Framework/Common")		# include directory:Common
 include_directories("${PROJECT_SOURCE_DIR}/Framework/Interface")	# include directory:Interface
 include_directories("${PROJECT_SOURCE_DIR}/Framework/Math")			# include directory: Math
@@ -34,9 +35,25 @@ include_directories("${PROJECT_SOURCE_DIR}/Platform/${PANDA_TARGET_PLATFORM}")
 set(PANDA_EXTERNAL_ROOT ${PROJECT_SOURCE_DIR}/External/${PANDA_TARGET_PLATFORM}/)
 include_directories("${PANDA_EXTERNAL_ROOT}include")
 set(PANDA_EXTERNAL_LIBRARY_PATH ${PANDA_EXTERNAL_ROOT}lib/)
+include(CTest)
+include(CheckCXXSourceCompiles)
+include(PlatformDependencies)
+CHECK_CXX_SOURCE_COMPILES(
+"#include <memory>
+int main(int argc, char** argv)
+{
+    std::unique_ptr<int> my_int = std::make_unique<int>();
+    *my_int = 0;
+    return *my_int;
+}
+"
+ HAVE_MAKE_UNIQUE)
+ configure_file(${PROJECT_SOURCE_DIR}/config.h.in ${PROJECT_SOURCE_DIR}/config.h)
+
 add_subdirectory(Framework)		# sub directory, must have CMakeLists.txt in it
 add_subdirectory(Platform)
 add_subdirectory(RHI)
+add_subdirectory(Test)
 
 #IF (${UNIX})	# Unix platform compile configuration.
 #	set (CMAKE_C_COMPILER				"gcc")

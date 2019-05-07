@@ -275,8 +275,8 @@ HRESULT Panda::D3D12GraphicsManager::CreateTextureBuffer(const Image& image)
     D3D12_RESOURCE_DESC textureDesc = {};
     textureDesc.MipLevels = 1;
     textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-    textureDesc.Width = image.width;
-    textureDesc.Height = image.height;
+    textureDesc.Width = image.Width;
+    textureDesc.Height = image.Height;
     textureDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
     textureDesc.DepthOrArraySize = 1;
     textureDesc.SampleDesc.Count = 1;

@@ -65,7 +65,7 @@ namespace Panda
 
                 if (content)
                 {
-                    result = std::string(std::move(content)); // move content and clear content values, since C++11
+					result = std::string(std::move(content)); // move content and clear content values, since C++11
                 }
 
                 return result;

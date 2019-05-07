@@ -11,12 +11,13 @@
 
 namespace Panda
 {
+    template<typename T>
     struct Matrix4
     {
     public:
-        float m[4][4];
+        T m[4][4];
 
-        FORCEINLINE Matrix4()
+        FORCEINLINE Matrix4<T>()
         {
             m[0][0] = m[0][1] = m[0][2] = m[0][3] = 0;
             m[1][0] = m[1][1] = m[1][2] = m[1][3] = 0;
@@ -24,14 +25,14 @@ namespace Panda
             m[3][0] = m[3][1] = m[3][2] = m[3][3] = 0;
         }
 
-        FORCEINLINE Matrix4(const Matrix4& inMat)
+        FORCEINLINE Matrix4<T>(const Matrix4<T>& inMat)
         {
             for (int i = 0; i < 4; ++i)
                 for (int j = 0; j < 4; ++j)
                     m[i][j] = inMat.m[i][j];
         }
 
-        FORCEINLINE Matrix4(const Vector4D& in1, const Vector4D& in2, const Vector4D& in3, const Vector4D& in4)
+        FORCEINLINE Matrix4<T>(const Vector4D<T>& in1, const Vector4D<T>& in2, const Vector4D<T>& in3, const Vector4D<T>& in4)
         {
             m[0][0] = in1.x; m[0][1] = in1.y; m[0][2] = in1.z; m[0][3] = in1.w;
             m[1][0] = in2.x; m[1][1] = in2.y; m[1][2] = in2.z; m[1][3] = in2.w;
@@ -47,7 +48,18 @@ namespace Panda
             m[3][0] = 0; m[3][1] = 0; m[3][2] = 0; m[3][3] = 1;
         }
 
-        FORCEINLINE Matrix4 operator= (const Matrix4& inMat)
+        void SetTransposed()
+        {
+            for (size_t i = 0; i < 4; ++i)
+                for (size_t j = 0; j < i; ++j)
+                {
+                    T t = m[i][j];
+                    m[i][j] = m[j][i];
+                    m[j][i] = t;
+                }
+        }
+
+        FORCEINLINE Matrix4<T> operator= (const Matrix4<T>& inMat)
         {
             for (int i = 0; i < 4; ++i)
                 for (int j = 0; j < 4; ++j)
@@ -55,7 +67,16 @@ namespace Panda
             return *this;
         }
 
-        FORCEINLINE Matrix4& operator+= (const Matrix4& inMat)
+        FORCEINLINE Matrix4<T> operator= (const T* pArray)
+        {
+
+            for (int i = 0; i < 4; ++i)
+                for (int j = 0; j < 4; ++j)
+                    m[i][j] = pArray[i * 4 + j];
+            return *this;
+        }
+
+        FORCEINLINE Matrix4<T>& operator+= (const Matrix4<T>& inMat)
         {
             for (int i = 0; i < 4; ++i)
                 for (int j = 0; j < 4; ++j)
@@ -64,7 +85,7 @@ namespace Panda
             return *this;
         }
 
-        FORCEINLINE Matrix4& operator-= (const Matrix4& inMat)
+        FORCEINLINE Matrix4<T>& operator-= (const Matrix4<T>& inMat)
         {
             for (int i = 0; i < 4; ++i)
                 for (int j = 0; j < 4; ++j)
@@ -73,9 +94,9 @@ namespace Panda
             return *this;
         }
 
-        FORCEINLINE Matrix4 operator+ (const Matrix4& inMat)
+        FORCEINLINE Matrix4<T> operator+ (const Matrix4<T>& inMat)
         {
-            Matrix4 result;
+            Matrix4<T> result;
             for (int i = 0; i < 4; ++i)
                 for (int j = 0; j < 4; ++j)
                     result.m[i][j] = m[i][j] + inMat.m[i][j];
@@ -83,9 +104,9 @@ namespace Panda
             return result;
         }
 
-        FORCEINLINE Matrix4 operator- (const Matrix4& inMat)
+        FORCEINLINE Matrix4<T> operator- (const Matrix4<T>& inMat)
         {
-            Matrix4 result;
+            Matrix4<T> result;
             for (int i = 0; i < 4; ++i)
                 for (int j = 0; j < 4; ++j)
                     result.m[i][j] = m[i][j] - inMat.m[i][j];
@@ -93,16 +114,16 @@ namespace Panda
             return result;
         }
 
-        FORCEINLINE Matrix4 operator* (float scale)
+        FORCEINLINE Matrix4<T> operator* (float scale)
         {
-            Matrix4 result;
+            Matrix4<T> result;
             for (int i = 0; i < 4; ++i)
                 for (int j = 0; j < 4; ++j)
                     result.m[i][j] *= scale;
             return result;
         }
 
-        FORCEINLINE Matrix4& operator*= (float scale)
+        FORCEINLINE Matrix4<T>& operator*= (float scale)
         {
             for (int i = 0; i < 4; ++i)
                 for (int j = 0; j < 4; ++j)
@@ -110,9 +131,9 @@ namespace Panda
             return *this;
         }
 
-        FORCEINLINE Matrix4 operator*(const Matrix4& inMat)
+        FORCEINLINE Matrix4<T> operator*(const Matrix4<T>& inMat)
         {
-            Matrix4 result;
+            Matrix4<T> result;
             for (int i = 0; i < 4; ++i)
                 for (int j = 0; j < 4; ++j)
                     for (int k = 0; k < 4; ++k)
@@ -120,34 +141,34 @@ namespace Panda
             return result;
         }
 
-        FORCEINLINE Matrix4& operator*=(const Matrix4& inMat)
+        FORCEINLINE Matrix4<T>& operator*=(const Matrix4<T>& inMat)
         {
-            Matrix4 result = (*this) * inMat;
+            Matrix4<T> result = (*this) * inMat;
             *this = result;
             return *this;
         }
 
-        FORCEINLINE Matrix4 operator/ (float scale)
+        FORCEINLINE Matrix4<T> operator/ (float scale)
         {
             float rScale = 1.0f / scale;
-            Matrix4 result;
+            Matrix4<T> result;
             for (int i = 0; i < 4; ++i)
                 for (int j = 0; j < 4; ++j)
                     result.m[i][j] = m[i][j] * rScale;
             return result;
         }
 
-        FORCEINLINE Matrix4& operator/= (float scale)
+        FORCEINLINE Matrix4<T>& operator/= (float scale)
         {
             float rScale = 1.0f / scale;
-            Matrix4 result;
+            Matrix4<T> result;
             for (int i = 0; i < 4; ++i)
                 for (int j = 0; j < 4; ++j)
                     m[i][j] *= rScale;
             return *this;
         }
 
-        FORCEINLINE bool operator== (const Matrix4& inMat)
+        FORCEINLINE bool operator== (const Matrix4<T>& inMat)
         {
             for (int i = 0; i < 4; ++i)
                 for (int j = 0; j < 4; ++j)
@@ -156,7 +177,8 @@ namespace Panda
             return true;
         }
 
-        friend std::ostream& operator<< (std::ostream& out, const Matrix4& mat)
+
+        friend std::ostream& operator<< (std::ostream& out, const Matrix4<T>& mat)
         {
             out << std::endl;
 
@@ -174,5 +196,7 @@ namespace Panda
             return out;
         }
     };
+
+    typedef Matrix4<float> Matrix4f;
 }
 

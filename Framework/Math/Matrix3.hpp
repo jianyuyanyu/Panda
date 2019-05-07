@@ -11,26 +11,24 @@
 
 namespace Panda
 {
+    template<typename T>
     struct Matrix3
     {
     public:
-        float m[3][3];
+        T m[3][3];
 
-        FORCEINLINE Matrix3() 
+        FORCEINLINE Matrix3<T>() 
         {
-            m[0][0] = m[0][1] = m[0][2] = 0;
-            m[1][0] = m[1][1] = m[1][2] = 0;
-            m[2][0] = m[2][1] = m[2][2] = 0;
         }
 
-        FORCEINLINE Matrix3(const Matrix3& inMat)
+        FORCEINLINE Matrix3<T>(const Matrix3<T>& inMat)
         {
             for (int i = 0; i < 3; ++i)
                 for (int j = 0; j < 3; ++j)
                     m[i][j] = inMat.m[i][j];
         }
 
-        FORCEINLINE Matrix3(const Vector3D& in1, const Vector3D& in2, const Vector3D& in3)
+        FORCEINLINE Matrix3<T>(const Vector3D<T>& in1, const Vector3D<T>& in2, const Vector3D<T>& in3)
         {
             m[0][0] = in1.x; m[0][1] = in1.y; m[0][2] = in1.z;
             m[1][0] = in2.x; m[1][1] = in2.y; m[1][2] = in2.z;
@@ -44,7 +42,7 @@ namespace Panda
             m[2][0] = 0; m[2][1] = 0; m[2][2] = 1;
         }
 
-        FORCEINLINE Matrix3& operator= (const Matrix3& inMat)
+        FORCEINLINE Matrix3<T>& operator= (const Matrix3<T>& inMat)
         {
             for (int i = 0; i < 3; ++i)
                 for (int j = 0; j < 3; ++j)
@@ -53,7 +51,7 @@ namespace Panda
             return *this;
         }
 
-        FORCEINLINE Matrix3& operator+= (const Matrix3& inMat)
+        FORCEINLINE Matrix3<T>& operator+= (const Matrix3<T>& inMat)
         {
             for (int i = 0; i < 3; ++i)
                 for (int j = 0; j < 3; ++j)
@@ -62,7 +60,7 @@ namespace Panda
             return *this;
         }
 
-        FORCEINLINE Matrix3& operator-= (const Matrix3& inMat)
+        FORCEINLINE Matrix3<T>& operator-= (const Matrix3<T>& inMat)
         {
             for (int i = 0; i < 3; ++i)
                 for (int j = 0; j < 3; ++j)
@@ -71,9 +69,9 @@ namespace Panda
             return *this;
         }
 
-        FORCEINLINE Matrix3 operator+ (const Matrix3& inMat)
+        FORCEINLINE Matrix3<T> operator+ (const Matrix3<T>& inMat)
         {
-            Matrix3 result;
+            Matrix3<T> result;
             for (int i = 0; i < 3; ++i)
                 for (int j = 0; j < 3; ++j)
                     result.m[i][j] = m[i][j] + inMat.m[i][j];
@@ -81,9 +79,9 @@ namespace Panda
             return result;
         }
 
-        FORCEINLINE Matrix3 operator- (const Matrix3& inMat)
+        FORCEINLINE Matrix3<T> operator- (const Matrix3<T>& inMat)
         {
-            Matrix3 result;
+            Matrix3<T> result;
             for (int i = 0; i < 3; ++i)
                 for (int j = 0; j < 3; ++j)
                     result.m[i][j] = m[i][j] - inMat.m[i][j];
@@ -91,16 +89,16 @@ namespace Panda
             return result;
         }
 
-        FORCEINLINE Matrix3 operator* (float scale)
+        FORCEINLINE Matrix3<T> operator* (float scale)
         {
-            Matrix3 result;
+            Matrix3<T> result;
             for (int i = 0; i < 3; ++i)
                 for (int j = 0; j < 3; ++j)
                     result.m[i][j] = m[i][j] * scale;
             return result;
         }
 
-        FORCEINLINE Matrix3& operator*= (float scale)
+        FORCEINLINE Matrix3<T>& operator*= (float scale)
         {
             for (int i = 0; i < 3; ++i)
                 for (int j = 0; j < 3; ++j)
@@ -108,9 +106,9 @@ namespace Panda
             return *this;
         }
 
-        FORCEINLINE Matrix3 operator* (const Matrix3& inMat)
+        FORCEINLINE Matrix3<T> operator* (const Matrix3<T>& inMat)
         {
-            Matrix3 result;
+            Matrix3<T> result;
             for (int i = 0; i < 3; ++i)
                 for (int j = 0; j < 3; ++j)
                     for (int k = 0; k < 3; ++k)
@@ -118,16 +116,16 @@ namespace Panda
             return result;
         }
 
-        FORCEINLINE Matrix3& operator*= (const Matrix3& inMat)
+        FORCEINLINE Matrix3<T>& operator*= (const Matrix3<T>& inMat)
         {
-            Matrix3 result = (*this) * inMat;
+            Matrix3<T> result = (*this) * inMat;
             *this = result;
             return *this;
         }
 
-        FORCEINLINE Matrix3 operator/ (float scale)
+        FORCEINLINE Matrix3<T> operator/ (float scale)
         {
-            Matrix3 result;
+            Matrix3<T> result;
             float rScale = 1.f / scale;
             for (int i = 0; i < 3; ++i)
                 for (int j = 0; j < 3; ++j)
@@ -135,7 +133,7 @@ namespace Panda
             return result;
         }
 
-        FORCEINLINE Matrix3& operator/= (float scale)
+        FORCEINLINE Matrix3<T>& operator/= (float scale)
         {
             float rScale = 1.f / scale;
             for (int i = 0; i < 3; ++i)
@@ -144,7 +142,7 @@ namespace Panda
             return *this;
         }
 
-        FORCEINLINE bool operator== (const Matrix3& inMat)
+        FORCEINLINE bool operator== (const Matrix3<T>& inMat)
         {
             for (int i = 0; i < 3; ++i)
                 for (int j = 0; j < 3; ++j)
@@ -153,7 +151,7 @@ namespace Panda
             return true;
         }
 
-        friend std::ostream& operator<< (std::ostream& out, const Matrix3& mat)
+        friend std::ostream& operator<< (std::ostream& out, const Matrix3<T>& mat)
         {
             out << std::endl;
 
@@ -171,5 +169,7 @@ namespace Panda
             return out;
         }
     };
+
+    typedef Matrix3<float> Matrix3f;
 }
 

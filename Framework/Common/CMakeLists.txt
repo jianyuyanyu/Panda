@@ -4,13 +4,15 @@ add_library(Common
   AssetLoader.cpp
   BaseApplication.cpp
   GraphicsManager.cpp
+  Image.cpp
   MemoryManager.cpp
   SceneManager.cpp
   main.cpp)
 
 target_link_libraries(Common PandaMath)
 find_library(XG_LIBRARY xg PATHS ${PANDA_EXTERNAL_LIBRARY_PATH})
-target_link_libraries(Common ${XG_LIBRARY})
+find_library(OPENDDL_LIBRARY OpenDDL PATHS ${PANDA_EXTERNAL_LIBRARY_PATH})
+find_library(OPENGEX_LIBRARY OpenGEX PATHS ${PANDA_EXTERNAL_LIBRARY_PATH})
 
 if(WIN32)
 	add_definitions(-DGUID_WINDOWS)

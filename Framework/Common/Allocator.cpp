@@ -27,8 +27,6 @@ Panda::Allocator::~Allocator()
 }
 
 void* Panda::Allocator::Allocate() {
-	FreeAll();
-	
 	if (m_pFreeBlockList == nullptr) {
 		// 分配一页内存
 		PageHeader* pNewPage = reinterpret_cast<PageHeader*>(new uint8_t[m_PageSize]);
@@ -42,7 +40,7 @@ void* Panda::Allocator::Allocate() {
 		// 将所有内存块串联起来
 		BlockHeader* pBlockStart = m_pPageList->BlockStart();
 		m_pFreeBlockList = pBlockStart;
-		for (size_t i = 0; i < m_BlockCountPerPage; ++i) {
+		for (size_t i = 0; i < m_BlockCountPerPage - 1; ++i) {
 			pBlockStart->pNext = NextBlock(pBlockStart);
 			pBlockStart = pBlockStart->pNext;
 		}

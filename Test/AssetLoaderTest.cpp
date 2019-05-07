@@ -17,6 +17,7 @@ int main (int argc, char** argv)
 
     AssetLoader assetLoader;
     string str = assetLoader.SyncOpenAndReadFileToString("Shaders/copy.vs");
+	Buffer buffer = assetLoader.SyncOpenAndReadBinary("Shaders/copy.vs");
 
     cout << str;
 

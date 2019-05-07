@@ -126,8 +126,8 @@ Panda::Buffer Panda::AssetLoader::SyncOpenAndReadText(const char* filePath)
     {
         size_t length = GetSize(fp);
         pBuff = new Buffer(length + 1);
-        fread(pBuff->m_pData, length, 1, static_cast<FILE*>(fp));
-        pBuff->m_pData[length] = '\0';
+        size_t result = fread(pBuff->m_pData, 1, length, static_cast<FILE*>(fp));
+        pBuff->m_pData[result] = '\0';
 
         CloseFile(fp);
     }

@@ -82,8 +82,8 @@ void Panda::TestGraphicsManager::DrawBitmap(const Image* image, int32_t index)
     props.dpiX = 72.0f;
     props.dpiY = 72.0f;
     SafeRelease(&m_pBitmap);
-    hr = m_pRenderTarget->CreateBitmap(D2D1::SizeU(image[index].width, image[index].height), 
-                                                    image[index].data, image[index].pitch, props, &m_pBitmap);
+    hr = m_pRenderTarget->CreateBitmap(D2D1::SizeU(image[index].Width, image[index].Height), 
+                                                    image[index].Data, image[index].Pitch, props, &m_pBitmap);
 
     D2D1_SIZE_F rtSize = m_pRenderTarget->GetSize();
     D2D1_SIZE_F bmpSize = m_pBitmap->GetSize();

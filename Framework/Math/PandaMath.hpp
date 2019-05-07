@@ -5,7 +5,6 @@
 #include "Vector4D.hpp"
 #include "Matrix3.hpp"
 #include "Matrix4.hpp"
-#include "Color.hpp"
 #include <math.h>
 
 #ifndef PI
@@ -18,28 +17,32 @@
 
 namespace Panda
 {
-    void TranslateVector3D(Vector3D& inVec, const Matrix3& inMat);
+    void TranslateVector3D(Vector3Df& inVec, const Matrix3f& inMat);
 
-    void TranslateVector3D(Vector3D& inVec, const Matrix4& inMat);
+    void TranslateVector3D(Vector3Df& inVec, const Matrix4f& inMat);
 
-    void MatrixTranslation(Matrix4& outMat, float x, float y, float z);
+    void MatrixScale(Matrix4f& outMat, const float x, const float y, const float z);
 
-    void MatrixTranslation(Matrix4& outMat, const Vector3D& inVec);
+    void MatrixTranslation(Matrix4f& outMat, float x, float y, float z);
 
-    void MatrixRotationZ(Matrix4& outMat, const float angle);
+    void MatrixTranslation(Matrix4f& outMat, const Vector3Df& inVec);
 
-    void MatrixRotationX(Matrix4& outMat, const float angle);
+    void MatrixRotationZ(Matrix4f& outMat, const float angle);
 
-    void MatrixRotationY(Matrix4& outMat, const float angle);
+    void MatrixRotationX(Matrix4f& outMat, const float angle);
 
-    void MatrixRotationYawPitchRoll(Matrix4& outMat, const float yaw, const float pitch, const float roll);
+    void MatrixRotationY(Matrix4f& outMat, const float angle);
 
-    void MatrixRotation(Matrix4& outMat, const Vector3D& inVec, const float angle);
+    void MatrixRotationYawPitchRoll(Matrix4f& outMat, const float yaw, const float pitch, const float roll);
+
+    void MatrixRotationAxis(Matrix4f& outMat, const Vector3Df& inVec, const float angle);
+
+    void MatrixRotationQuaternion(Matrix4f& outMat, const Quaternion& q);
 
     // build unv camera system
-    void BuildViewMatrix(const Vector3D& pos, const Vector3D& target, const Vector3D& up, Matrix4& result);
+    void BuildViewMatrix(const Vector3Df& pos, const Vector3Df& target, const Vector3Df& up, Matrix4f& result);
 
     // our uvn camera system is left-handed
-    void BuildPerspectiveFovLHMatrix(Matrix4& result, const float fov, const float screenAspect, const float near, const float far);
+    void BuildPerspectiveFovLHMatrix(Matrix4f& result, const float fov, const float screenAspect, const float near, const float far);
 
 }

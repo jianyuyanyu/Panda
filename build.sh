@@ -1,5 +1,5 @@
 #!/bin/bash
 mkdir -p Build
-cd Build
-cmake ..
+rm -rf *
+cmake -DCMAKE_BUILD_TYPE=Debug ..
 cmake --build . --config debug
