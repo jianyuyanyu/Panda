@@ -297,8 +297,6 @@ HRESULT Panda::D3D12GraphicsManager::CreateTextureBuffer(const Image& image)
 
 HRESULT Panda::D3D12GraphicsManager::CreateSamplerBuffer()
 {
-    HRESULT hr;
-
     // Describe and create a sampler.
     D3D12_SAMPLER_DESC samplerDesc = {};
     samplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
@@ -312,7 +310,7 @@ HRESULT Panda::D3D12GraphicsManager::CreateSamplerBuffer()
     samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_ALWAYS;
     m_pDev->CreateSampler(&samplerDesc, m_pSamplerHeap->GetCPUDescriptorHandleForHeapStart());
 
-	return hr;
+	return S_OK;
 }
 
 HRESULT Panda::D3D12GraphicsManager::CreateConstantBuffer(const Buffer& buffer)
@@ -461,9 +459,4 @@ void Panda::D3D12GraphicsManager::Finalize()
     }
 	SafeRelease(&m_pSwapChain);
 	SafeRelease(&m_pDev);
-}
-
-void Panda::D3D12GraphicsManager::DrawSingleMesh(const Mesh& mesh)
-{
-    GraphicsManager::DrawSingleMesh(mesh);
 }

@@ -80,12 +80,6 @@ LRESULT CALLBACK Panda::WindowsApplication::WindowProc(HWND hWnd, UINT message, 
 {
     switch(message)
     {
-	case WM_PAINT:
-        // 之后我们的渲染操作就在这里
-	    {
-	    } 
-		break;
-
     case WM_DESTROY:
         {
             // 完全关闭应用，包括窗口和进程

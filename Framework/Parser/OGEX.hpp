@@ -350,7 +350,7 @@ namespace Panda
                     }
                 }
 
-                return std::move(root_node);
+                return root_node;
             }
     };
 }

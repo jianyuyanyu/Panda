@@ -151,6 +151,16 @@ namespace Panda
             return true;
         }
 
+        FORCEINLINE T* GetAddressOf()
+        {
+            return &m[0][0];
+        }
+
+        FORCEINLINE const T* GetAddressOf() const
+        {
+            return &m[0][0];
+        }
+
         friend std::ostream& operator<< (std::ostream& out, const Matrix3<T>& mat)
         {
             out << std::endl;

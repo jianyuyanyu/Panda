@@ -58,4 +58,6 @@ namespace Panda {
 		static Allocator* m_pAllocators;
 		static uint32_t* m_pLookUpTable;
 	};
+
+	extern MemoryManager* g_pMemoryManager;
 }

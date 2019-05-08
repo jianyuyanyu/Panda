@@ -35,3 +35,4 @@ void main(void)
 	// Store the input color for the pixel shader to use.
 	color = inputColor;
 }
+

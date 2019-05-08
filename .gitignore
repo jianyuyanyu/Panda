@@ -51,3 +51,5 @@ Build/
 **/Release
 **/lib
 **/lib64
+
+config.h

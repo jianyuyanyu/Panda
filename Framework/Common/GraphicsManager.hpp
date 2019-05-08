@@ -1,7 +1,6 @@
 #pragma once
 #include "Image.hpp"
 #include "IRuntimeModule.hpp"
-#include "Mesh.hpp"
 
 namespace Panda {
   class GraphicsManager : implements IRuntimeModule {
@@ -13,6 +12,9 @@ namespace Panda {
 
 		virtual void Tick();
 
-		void DrawSingleMesh(const Mesh& mesh);
+		virtual void Clear();
+		virtual void Draw();
   };
+
+	extern GraphicsManager* g_pGraphicsManager;
 }

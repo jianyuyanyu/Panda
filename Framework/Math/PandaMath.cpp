@@ -2,7 +2,7 @@
 
 namespace Panda
 {
-    void TranslateVector3D(Vector3Df& inVec, const Matrix3f& inMat)
+    void TransformCoord(Vector3Df& inVec, const Matrix3f& inMat)
     {
         float x, y, z;
 
@@ -17,7 +17,7 @@ namespace Panda
         return;       
     }
 
-    void TranslateVector3D(Vector3Df& inVec, const Matrix4f& inMat)
+    void TransformCoord(Vector3Df& inVec, const Matrix4f& inMat)
     {
         float x, y, z;
 

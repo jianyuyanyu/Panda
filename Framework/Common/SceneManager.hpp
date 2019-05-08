@@ -15,7 +15,11 @@ namespace Panda
 
             virtual void Tick();
 
+            void LoadOgexScene(const char* sceneFileName);
+
         protected:
-            SceneEmptyNode m_RootNode;
+            std::unique_ptr<BaseSceneNode> m_RootNode;
     };
+
+    extern SceneManager* g_pSceneManager;
 }

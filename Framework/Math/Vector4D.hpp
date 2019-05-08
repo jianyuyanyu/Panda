@@ -116,6 +116,17 @@ namespace Panda
             z /= len;
             w /= len;
         }
+
+        friend std::ostream& operator<< (std::ostream& out, const Vector4D<T>& vec)
+        {
+			out << "(";
+
+            out << vec.x << "," << vec.y << "," << vec.z << "," << vec.w;
+
+            out << ")";
+
+			return out;
+        }
     };
 
     typedef Vector4D<uint32_t>  Vector4Di;

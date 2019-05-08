@@ -1,4 +1,6 @@
 #include "SceneManager.hpp"
+#include "AssetLoader.hpp"
+#include "OGEX.hpp"
 
 using namespace Panda;
 
@@ -21,4 +23,13 @@ void SceneManager::Finalize()
 void SceneManager::Tick()
 {
 
+}
+
+void SceneManager::LoadOgexScene(const char* sceneFileName)
+{
+    AssetLoader assetLoader;
+    std::string ogexText = assetLoader.SyncOpenAndReadFileToString(sceneFileName);
+
+    OgexParser ogexParser;
+    m_RootNode = ogexParser.Parse(ogexText);
 }

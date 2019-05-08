@@ -4,12 +4,10 @@ cmake_minimum_required (VERSION 3.1)	# Minimum limited version, 3.1
 
 project(Panda) # project name
 
-set (CMAKE_C_STNDARD 99)
+set (CMAKE_C_STNDARD 11)
 set (CMAKE_CXX_STANDARD 11)
 
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMake")
-list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMake/Platform")
-list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/External/src/crossguid/cmake")
 include (TargetArchDetect)
 
 target_architecture(TARGET_ARCH)
@@ -20,21 +18,20 @@ else()
     set(ARCH_BIT 32)
 endif()
 
-include_directories("${PROJECT_SOURCE_DIR}")
-include_directories("${PROJECT_SOURCE_DIR}/Framework/Parser")       # include directory:Parser
-include_directories("${PROJECT_SOURCE_DIR}/Framework/Common")		# include directory:Common
-include_directories("${PROJECT_SOURCE_DIR}/Framework/Interface")	# include directory:Interface
-include_directories("${PROJECT_SOURCE_DIR}/Framework/Math")			# include directory: Math
-include_directories("${PROJECT_SOURCE_DIR}/RHI")
-IF(${UNIX})
-	set(PANDA_TARGET_PLATFORM "Linux")
-ELSEIF(${WIN32})
-	set(PANDA_TARGET_PLATFORM "Windows")
-ENDIF(${UNIX})
-include_directories("${PROJECT_SOURCE_DIR}/Platform/${PANDA_TARGET_PLATFORM}")
-set(PANDA_EXTERNAL_ROOT ${PROJECT_SOURCE_DIR}/External/${PANDA_TARGET_PLATFORM}/)
-include_directories("${PANDA_EXTERNAL_ROOT}include")
+include_directories("${PROJECT_SOURCE_DIR}/")
+include_directories("${PROJECT_SOURCE_DIR}/Framework/Parser/")       # include directory:Parser
+include_directories("${PROJECT_SOURCE_DIR}/Framework/Common/")		# include directory:Common
+include_directories("${PROJECT_SOURCE_DIR}/Framework/Interface/")	# include directory:Interface
+include_directories("${PROJECT_SOURCE_DIR}/Framework/Math/")			# include directory: Math
+include_directories("${PROJECT_SOURCE_DIR}/RHI/")
+include_directories("${PROJECT_SOURCE_DIR}/Platform/Empty/")
+include_directories("${PROJECT_SOURCE_DIR}/Platform/${CMAKE_SYSTEM_NAME}/")
+set(PANDA_EXTERNAL_ROOT ${PROJECT_SOURCE_DIR}/External/${CMAKE_SYSTEM_NAME}/)
+include_directories("${PANDA_EXTERNAL_ROOT}/include/")
 set(PANDA_EXTERNAL_LIBRARY_PATH ${PANDA_EXTERNAL_ROOT}lib/)
+find_library(XG_LIBRARY xg PATHS ${PANDA_EXTERNAL_LIBRARY_PATH})
+find_library(OPENDDL_LIBRARY OpenDDL PATHS ${PANDA_EXTERNAL_LIBRARY_PATH})
+find_library(OPENGEX_LIBRARY OpenGEX PATHS ${PANDA_EXTERNAL_LIBRARY_PATH})
 include(CTest)
 include(CheckCXXSourceCompiles)
 include(PlatformDependencies)
@@ -247,6 +244,14 @@ MESSAGE(STATUS "CMAKE_RANLIB:				" ${CMAKE_RANLIB})
 MESSAGE(STATUS "CMAKE_CROSSCOMPILING:		" ${CMAKE_CROSSCOMPILING})
 
 MESSAGE(STATUS "TARGET_ARCH:				" ${TARGET_ARCH})
+
+MESSAGE(STATUS "PANDA_EXTERNAL_ROOT: " ${PANDA_EXTERNAL_ROOT})
+MESSAGE(STATUS "PANDA_EXTERNAL_LIBRARY_PATH: " ${PANDA_EXTERNAL_LIBRARY_PATH})
+
+MESSAGE(STATUS "XG_LIBRARY: " ${XG_LIBRARY})
+MESSAGE(STATUS "OPENDDL_LIBRARY: " ${OPENDDL_LIBRARY})
+MESSAGE(STATUS "OPENGEX_LIBRARY: " ${OPENGEX_LIBRARY})
+
 #
 #MESSAGE( STATUS ": " ${} )
 

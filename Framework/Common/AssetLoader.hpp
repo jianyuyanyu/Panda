@@ -74,4 +74,6 @@ namespace Panda
         private:
             std::vector<std::string> m_SearchPath;
     };
+
+    extern AssetLoader* g_pAssetLoader;
 }

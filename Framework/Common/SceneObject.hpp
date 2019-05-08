@@ -37,19 +37,7 @@ namespace Panda
         kSceneObjectTypeGeometry = "GEOM"_i32,
     };
 
-    std::ostream& operator<<(std::ostream& out, SceneObjectType type)
-    {
-        int32_t n = static_cast<int32_t> (type);
-        n = endian_net<int32_t>(n);
-        char* c = reinterpret_cast<char*>(&n);
-
-        for (size_t i = 0; i < sizeof (int32_t); ++i)
-        {
-            out << *c++;
-        }
-
-        return out;
-    }
+    std::ostream& operator<<(std::ostream& out, SceneObjectType type);
 
     using namespace xg;
 
@@ -78,15 +66,7 @@ namespace Panda
         const Guid& GetGuid() const {return m_Guid;}
         const SceneObjectType GetType() const {return m_Type;}
     
-        friend std::ostream& operator<<(std::ostream& out, const BaseSceneObject& obj)
-        {
-            out << "SceneObject" << std::endl;
-            out << "------------" << std::endl;
-            out << "GUID: " << obj.m_Guid << std::endl;
-            out << "Type: " << obj.m_Type << std::endl;
-
-            return out;
-        }
+        friend std::ostream& operator<<(std::ostream& out, const BaseSceneObject& obj);
     };
 
     ENUM(VertexDataType)
@@ -101,19 +81,7 @@ namespace Panda
         kVertexDataTypeDouble4   = "DUB4"_i32,
     };
 
-    std::ostream& operator<<(std::ostream& out, VertexDataType type)
-    {
-        int32_t n = static_cast<int32_t>(type);
-        n = endian_net<int32_t> (n);
-        char* c = reinterpret_cast<char*>(&n);
-
-        for (size_t i = 0; i < sizeof(int32_t); ++i)
-        {
-            out << *c++;
-        }
-
-        return out;
-    }
+    std::ostream& operator<<(std::ostream& out, VertexDataType type);
 
     class SceneObjectVertexArray
     {
@@ -134,20 +102,7 @@ namespace Panda
             SceneObjectVertexArray(SceneObjectVertexArray& arr) = default; // this two might be modified
             SceneObjectVertexArray(SceneObjectVertexArray&& arr) = default;
 
-            friend std::ostream& operator<<(std::ostream& out, const SceneObjectVertexArray& obj)
-            {
-                out << "Attribute: " << obj.m_Attribute << std::endl;
-                out << "Morph Target Index: 0x" << obj.m_MorphTargetIndex << std::endl;
-                out << "Data Type: " << obj.m_DataType << std::endl;
-                out << "Data Size: 0x" << obj.m_DataSize << std::endl;
-                out << "Data: ";
-                for (size_t i = 0; i < obj.m_DataSize; ++i)
-                {
-                    out << *(reinterpret_cast<const float*>(obj.m_pData) + i) << ' ';
-                }
-
-                return out;
-            }
+            friend std::ostream& operator<<(std::ostream& out, const SceneObjectVertexArray& obj);
     };
 
     ENUM (IndexDataType)
@@ -158,18 +113,7 @@ namespace Panda
         kIndexDataTypeInt64 = "I64 "_i32,
     };
 
-    std::ostream& operator<<(std::ostream& out, IndexDataType type)
-    {
-        int32_t n = static_cast<int32_t>(type);
-        n = endian_net<int32_t>(n);
-        char* c = reinterpret_cast<char*>(&n);
-
-        for (size_t i = 0; i < sizeof(int32_t); ++i)
-        {
-            out << *c++;
-        }
-        return out;
-    }
+    std::ostream& operator<<(std::ostream& out, IndexDataType type);
 
     class SceneObjectIndexArray
     {
@@ -190,37 +134,7 @@ namespace Panda
                 SceneObjectIndexArray(SceneObjectIndexArray& arr) = default;
                 SceneObjectIndexArray(SceneObjectIndexArray&& arr) = default;
 
-            friend std::ostream& operator<<(std::ostream& out, const SceneObjectIndexArray& obj)
-            {
-                out << "Material Index: 0x" << obj.m_MaterialIndex << std::endl;
-                out << "Restart Index: 0x" << obj.m_RestartIndex << std::endl;
-                out << "Data Type: " << obj.m_DataType << std::endl;
-                out << "Data Size: 0x" << obj.m_DataSize << std::endl;
-                out << "Data: ";
-
-                for (size_t i = 0; i < obj.m_DataSize; ++i)
-                {
-                    switch(obj.m_DataType)
-                    {
-                        case IndexDataType::kIndexDataTypeInt8:
-                            out << "0x" << *(reinterpret_cast<const uint8_t*>(obj.m_pData) + i) << ' ';
-                            break;
-                        case IndexDataType::kIndexDataTypeInt16:
-                            out << "0x" << *(reinterpret_cast<const uint16_t*>(obj.m_pData) + i) << ' ';
-                            break;
-                        case IndexDataType::kIndexDataTypeInt32:
-                            out << "0x" << *(reinterpret_cast<const uint32_t*>(obj.m_pData) + i) << ' ';
-                            break;
-                        case IndexDataType::kIndexDataTypeInt64:
-                            out << "0x" << *(reinterpret_cast<const uint64_t*>(obj.m_pData) + i) << ' ';
-                            break;
-                        default:
-                            break;
-                    }
-                }
-
-                return out;
-            }
+            friend std::ostream& operator<<(std::ostream& out, const SceneObjectIndexArray& obj);
                     
     };
 
@@ -244,19 +158,7 @@ namespace Panda
 		kPrimitiveTypePolygon = "POLY"_i32,     ///< For N>=0, vertices [0, N+1, N+2] render a triangle.
 	};
 
-    std::ostream& operator<<(std::ostream&out, PrimitiveType type)
-    {
-        int32_t n = static_cast<int32_t>(type);
-        n = endian_net<int32_t>(n);
-        char* c = reinterpret_cast<char*>(&n);
-
-        for(size_t i = 0; i < sizeof(int32_t); ++i)
-        {
-            out << *c++;
-        }
-
-        return out;
-    }
+    std::ostream& operator<<(std::ostream&out, PrimitiveType type);
 
     class SceneObjectMesh : public BaseSceneObject
     {
@@ -286,26 +188,7 @@ namespace Panda
         void AddVertexArray(SceneObjectVertexArray&& array) {m_VertexArray.push_back(std::move(array));}
         void SetPrimitiveType(PrimitiveType type) {m_PrimitiveType = type;}
         
-        friend std::ostream& operator<<(std::ostream& out, const SceneObjectMesh& obj)
-        {
-            out << static_cast<const BaseSceneObject&>(obj) << std::endl;
-            out << "Primitive Type: " << obj.m_PrimitiveType << std::endl;
-            out << "This mesh contains 0x" << obj.m_VertexArray.size() << " vertex properties." << std::endl;
-            for (size_t i = 0; i < obj.m_VertexArray.size(); ++i)
-            {
-                out << obj.m_VertexArray[i] << std::endl;
-            }
-            out << "This mesh contains 0x" << obj.m_IndexArray.size() << " index arrays." << std::endl;
-            for(size_t i = 0; i < obj.m_IndexArray.size(); ++i)
-            {
-                out << obj.m_IndexArray[i] << std::endl;
-            }
-            out << "Visible: " << obj.m_IsVisible << std::endl;
-            out << "Shadow: " << obj.m_IsVisible << std::endl;
-            out << "Motion Blur: " << obj.m_IsMotionBlur << std::endl;
-
-            return out;
-        }
+        friend std::ostream& operator<<(std::ostream& out, const SceneObjectMesh& obj);
     };
 
     // This might be modified in the furture.
@@ -329,16 +212,7 @@ namespace Panda
             void SetName(std::string& name) {m_Name = name;}
             void AddTransform(Matrix4f& matrix) {m_Transforms.push_back(matrix);}
 
-            friend std::ostream& operator<<(std::ostream& out, const SceneObjectTexture& obj)
-            {
-                out << static_cast<const BaseSceneObject&>(obj) << std::endl;
-                out << "Coord Index: " << obj.m_TexCoordIndex << std::endl;
-                out << "Name: " << obj.m_TexCoordIndex << std::endl;
-                if (obj.m_pImage)
-                    out << "Image: " << *obj.m_pImage << std::endl;
-                
-                return out;
-            }
+            friend std::ostream& operator<<(std::ostream& out, const SceneObjectTexture& obj);
     };
 
     template <typename T>
@@ -351,11 +225,11 @@ namespace Panda
         ParameterValueMap(const T value) : Value(value) {}
         ParameterValueMap(const std::shared_ptr<SceneObjectTexture>& value) : ValueMap(value) {}
         
-        ParameterValueMap(const ParameterValueMap& rhs) = default;
-        ParameterValueMap(ParameterValueMap&& rhs) = default;
+        ParameterValueMap(const ParameterValueMap<T>& rhs) = default;
+        ParameterValueMap(ParameterValueMap<T>&& rhs) = default;
         
-        ParameterValueMap& operator=(const ParameterValueMap& rhs) = default;
-        ParameterValueMap& operator=(ParameterValueMap&& rhs) = default;
+        ParameterValueMap& operator=(const ParameterValueMap<T>& rhs) = default;
+        ParameterValueMap& operator=(ParameterValueMap<T>&& rhs) = default;
         ParameterValueMap& operator=(const std::shared_ptr<SceneObjectTexture>& rhs)
         {
             ValueMap = rhs;
@@ -364,9 +238,9 @@ namespace Panda
 
         ~ParameterValueMap() = default;
 
-        friend std::ostream& operator<<(std::ostream& out, const ParameterValueMap&obj)
+        friend std::ostream& operator<<(std::ostream& out, const ParameterValueMap<T>&obj)
         {
-            //out << "Parameter Value: " << obj.Value << std::endl;
+            out << "Parameter Value: " << obj.Value << std::endl;
             if (obj.ValueMap)
             {
                 out << "Parameter Map: " << *obj.ValueMap << std::endl;
@@ -423,19 +297,7 @@ namespace Panda
                 // }
             }
 
-            friend std::ostream& operator<<(std::ostream& out, const SceneObjectMaterial& obj)
-            {
-                out << static_cast<const BaseSceneObject&>(obj) << std::endl;
-                out << "Name: " << obj.m_Name << std::endl;
-                out << "Albedo: " << obj.m_BaseColor << std::endl;
-                out << "Metallic: " << obj.m_BaseColor << std::endl;
-                out << "Roughness: " << obj.m_Roughness << std::endl;
-                out << "Normal: " << obj.m_Normal << std::endl;
-                out << "Specular: " << obj.m_Specular << std::endl;
-                out << "Ambient Occlusion: " << obj.m_AmbientOcclusion << std::endl;
-
-                return out;
-            }
+            friend std::ostream& operator<<(std::ostream& out, const SceneObjectMaterial& obj);
     };
 
     class SceneObjectGeometry : public BaseSceneObject
@@ -458,24 +320,12 @@ namespace Panda
 
             void AddMesh(std::shared_ptr<SceneObjectMesh>& mesh) {m_Mesh.push_back(std::move(mesh));}
 
-            friend std::ostream& operator<<(std::ostream& out, const SceneObjectGeometry& obj)
-            {
-                auto count = obj.m_Mesh.size();
-                for (decltype(count) i = 0; i < count; ++i)
-                {
-                    out << "Mesh: " << *obj.m_Mesh[i] << std::endl;
-                }
-
-                return out;
-            }
+            friend std::ostream& operator<<(std::ostream& out, const SceneObjectGeometry& obj);
     };
 
     typedef float (*AttenFunc) (float /* Intensity */, float /* Distance */);
 
-    float DefaultAttenFunc (float intensity, float distance)
-    {
-        return intensity / (1 + distance);
-    }
+    float DefaultAttenFunc (float intensity, float distance);
 
     class SceneObjectLight : public BaseSceneObject
     {
@@ -495,17 +345,7 @@ namespace Panda
                 m_LightAttenuation(atten_fun), m_NearClipDistance(near_clip), m_FarClipDistance(far_clip), m_IsCastShadows(cast_shadows) 
             {}
 
-            friend std::ostream& operator<<(std::ostream& out, const SceneObjectLight& obj)
-            {
-                out << static_cast<const BaseSceneObject&>(obj) << std::endl;
-                out << "Color: " << obj.m_LightColor << std::endl;
-                out << "Intensity: " << obj.m_Intensity << std::endl;
-                out << "Near Clip Distance: " << obj.m_NearClipDistance << std::endl;
-                out << "Far Clip Distance: " << obj.m_FarClipDistance << std::endl;
-                out << "Cast Shadows: " << obj.m_IsCastShadows << std::endl;
-
-                return out;
-            }
+            friend std::ostream& operator<<(std::ostream& out, const SceneObjectLight& obj);
     };
 
     // point light
@@ -514,13 +354,7 @@ namespace Panda
         public:
             using SceneObjectLight::SceneObjectLight;
 
-        friend std::ostream& operator<<(std::ostream& out, const SceneObjectPointLight& obj)
-        {
-            out << static_cast<const SceneObjectLight&>(obj) << std::endl;
-            out << "Light Type: Point" << std::endl;
-
-            return out;
-        }
+        friend std::ostream& operator<<(std::ostream& out, const SceneObjectPointLight& obj);
     };
 
     // spot light
@@ -537,14 +371,7 @@ namespace Panda
             {
             }
 
-            friend std::ostream& operator<<(std::ostream& out, const SceneObjectSpotLight& obj)
-            {
-                out << static_cast<const SceneObjectLight&>(obj) << std::endl;
-                out << "Light Type: Spot" << std::endl;
-                out << "Cone Angle: " << obj.m_ConeAngle << std::endl;
-                out << "Penumbra Angle: " << obj.m_PenumbraAngle << std::endl;
-                return out;
-            }
+            friend std::ostream& operator<<(std::ostream& out, const SceneObjectSpotLight& obj);
     };
 
     // camera
@@ -559,15 +386,7 @@ namespace Panda
                 BaseSceneObject(SceneObjectType::kSceneObjectTypeCamera), m_Aspect(aspect), m_NearClipDistance(near_clip), m_FarClipDistance(far_clip) 
                 {}
 
-            friend std::ostream& operator<<(std::ostream& out, const SceneObjectCamera& obj)
-            {
-                out << static_cast<const BaseSceneObject&>(obj) << std::endl;
-                out << "Aspect: " << obj.m_Aspect << std::endl;
-                out << "Near Clip Distance: " << obj.m_NearClipDistance << std::endl;
-                out << "Far Clip Disance: " << obj.m_FarClipDistance << std::endl;
-
-                return out;
-            }
+            friend std::ostream& operator<<(std::ostream& out, const SceneObjectCamera& obj);
     };
 
     class SceneObjectOrthogonalCamera : public SceneObjectCamera
@@ -575,12 +394,7 @@ namespace Panda
         public:
             using SceneObjectCamera::SceneObjectCamera;
 
-        friend std::ostream& operator<<(std::ostream& out, const SceneObjectOrthogonalCamera& obj)
-        {
-            out << static_cast<const SceneObjectCamera&>(obj) << std::endl;
-            out << "Camera Type: Orthogonal" << std::endl;
-            return out;
-        }
+        friend std::ostream& operator<<(std::ostream& out, const SceneObjectOrthogonalCamera& obj);
     };
 
     class SceneObjectPerspectiveCamera : public SceneObjectCamera
@@ -593,14 +407,7 @@ namespace Panda
                 SceneObjectCamera(aspect, near_clip, far_clip), m_Fov(fov)
                 {}
             
-            friend std::ostream& operator<<(std::ostream& out, const SceneObjectPerspectiveCamera& obj)
-            {
-                out << static_cast<const SceneObjectCamera&>(obj) << std::endl;
-                out << "Camera Type: Perspective" << std::endl;
-                out << "FOV: " << obj.m_Fov << std::endl;
-
-                return out;
-            }
+            friend std::ostream& operator<<(std::ostream& out, const SceneObjectPerspectiveCamera& obj);
     };
 
     class SceneObjectTransform
@@ -613,13 +420,7 @@ namespace Panda
             SceneObjectTransform() {m_Matrix.SetIdentity(); m_IsSceneObjectOnly = false;}
             SceneObjectTransform(const Matrix4f& matrix, const bool objectOnly = false) {m_Matrix = matrix; m_IsSceneObjectOnly = objectOnly;}
 
-            friend std::ostream& operator<<(std::ostream& out, const SceneObjectTransform& obj)
-            {
-                out << "Transform Matrix: " << obj.m_Matrix << std::endl;
-                out << "Is Object Local: " << obj.m_IsSceneObjectOnly << std::endl;
-
-                return out;
-            }
+            friend std::ostream& operator<<(std::ostream& out, const SceneObjectTransform& obj);
     };
 
     class SceneObjectTranslation : public SceneObjectTransform

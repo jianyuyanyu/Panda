@@ -17,9 +17,9 @@
 
 namespace Panda
 {
-    void TranslateVector3D(Vector3Df& inVec, const Matrix3f& inMat);
+    void TransformCoord(Vector3Df& inVec, const Matrix3f& inMat);
 
-    void TranslateVector3D(Vector3Df& inVec, const Matrix4f& inMat);
+    void TransformCoord(Vector3Df& inVec, const Matrix4f& inMat);
 
     void MatrixScale(Matrix4f& outMat, const float x, const float y, const float z);
 

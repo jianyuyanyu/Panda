@@ -4,6 +4,7 @@
 #include "D2D/D2DGraphicsManager.hpp"
 #include "MemoryManager.hpp"
 #include "AssetLoader.hpp"
+#include "SceneManager.hpp"
 #include "Utility.hpp"
 #include "BMP.hpp"
 
@@ -39,7 +40,8 @@ namespace Panda {
 	IApplication* g_pApp                = static_cast<IApplication*>(new TestApplication(config));
     GraphicsManager* g_pGraphicsManager = static_cast<GraphicsManager*>(new TestGraphicsManager);
     MemoryManager*   g_pMemoryManager   = static_cast<MemoryManager*>(new MemoryManager);
-
+    AssetLoader* g_pAssetLoader = static_cast<AssetLoader*>(new AssetLoader);
+    SceneManager* g_pSceneManager = static_cast<SceneManager*>(new SceneManager);
 }
 
 int Panda::TestApplication::Initialize()
@@ -49,13 +51,12 @@ int Panda::TestApplication::Initialize()
     result = WindowsApplication::Initialize();
 
     if (result == 0) {
-        AssetLoader asset_loader;
         BmpParser   parser;
-        Buffer buf = asset_loader.SyncOpenAndReadBinary("Textures/icelogo-color.bmp");
+        Buffer buf = g_pAssetLoader->SyncOpenAndReadBinary("Textures/icelogo-color.bmp");
 
         m_Image[0] = parser.Parse(buf);
 
-        buf = asset_loader.SyncOpenAndReadBinary("Textures/1.bmp");
+        buf = g_pAssetLoader->SyncOpenAndReadBinary("Textures/1.bmp");
 
         m_Image[1] = parser.Parse(buf);
     }

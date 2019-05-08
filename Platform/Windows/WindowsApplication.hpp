@@ -21,9 +21,9 @@ namespace Panda
 											WPARAM wParam,
 											LPARAM lParam);
 											
-		inline HWND GetMainWindow() {return m_hWnd;}
+		HWND GetMainWindow() {return m_hWnd;}
 	
-	private:
+	protected:
 		HWND m_hWnd;
 	};
 }
