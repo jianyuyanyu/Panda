@@ -199,7 +199,7 @@ namespace Panda
 
         // Set the color shader as the current shader program and set the matrices that it will use for rendering.
         glUseProgram(m_ShaderProgram);
-        //SetShaderParameters(m_WorldMatrix, m_ViewMatrix, m_ProjectionMatrix);
+        SetShaderParameters(m_WorldMatrix, m_ViewMatrix, m_ProjectionMatrix);
 
         // Render the model using the color shader.
         RenderBuffers();
