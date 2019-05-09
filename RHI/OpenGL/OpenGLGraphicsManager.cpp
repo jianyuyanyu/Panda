@@ -101,7 +101,7 @@ namespace Panda
         result = gladLoadGL();
         if (!result) {
             std::cerr << "OpenGL load failed!" << std::endl;
-            result = -1;
+            result = -1; 
         } else {
             result = 0;
             std::cout << "OpenGL Version " << GLVersion.major << "." << GLVersion.minor << " loaded" << std::endl;
@@ -184,7 +184,7 @@ namespace Panda
 
     void OpenGLGraphicsManager::Draw()
     {
-        static float rotateAngle = 0.f;
+		static float rotateAngle = 0.f;
 
         // Update world matrix to rotate the model.
         rotateAngle += PI / 120;
@@ -192,13 +192,13 @@ namespace Panda
         Matrix4f rotationMatrixZ;
         MatrixRotationY(rotationMatrixY, rotateAngle);
         MatrixRotationZ(rotationMatrixZ, rotateAngle);
-        m_WorldMatrix = m_WorldMatrix * rotationMatrixY * rotationMatrixZ;
+        m_WorldMatrix = rotationMatrixY * rotationMatrixZ;
 
         // Generate the view matrix based on the camera's position.
         CalculateCameraPosition();
 
         // Set the color shader as the current shader program and set the matrices that it will use for rendering.
-        glUseProgram(m_ShaderProgram);
+		glUseProgram(m_ShaderProgram);
         SetShaderParameters(m_WorldMatrix, m_ViewMatrix, m_ProjectionMatrix);
 
         // Render the model using the color shader.
@@ -209,6 +209,13 @@ namespace Panda
 
     bool OpenGLGraphicsManager::SetShaderParameters(const Matrix4f& worldMatrix, const Matrix4f& viewMatrix, const Matrix4f& projectionMatrix)
     {
+		Matrix4f world = worldMatrix;
+		Matrix4f view = viewMatrix;
+		Matrix4f projection = projectionMatrix;
+		world.SetTransposed();
+		view.SetTransposed();
+		projection.SetTransposed();
+
         unsigned int location;
 
         // Set the world matrix in the vertex shader.
@@ -217,7 +224,7 @@ namespace Panda
         {
             return false;
         }
-        glUniformMatrix4fv(location, 1, false, worldMatrix.GetAddressOf());
+        glUniformMatrix4fv(location, 1, false, world.GetAddressOf());
 
         // Set the view matrix in the vertex shader.
         location = glGetUniformLocation(m_ShaderProgram, "viewMatrix");
@@ -225,7 +232,7 @@ namespace Panda
         {
             return false;
         }
-        glUniformMatrix4fv(location, 1, false, viewMatrix.GetAddressOf());
+        glUniformMatrix4fv(location, 1, false, view.GetAddressOf());
 
 
         // Set the projection matrix in the vertex shader.
@@ -234,7 +241,7 @@ namespace Panda
         {
             return false;
         }
-        glUniformMatrix4fv(location, 1, false, projectionMatrix.GetAddressOf());
+        glUniformMatrix4fv(location, 1, false, projection.GetAddressOf());
 
         return true;
     }
@@ -280,12 +287,12 @@ namespace Panda
 
         // Enable the twe vertex array attributes.
         glEnableVertexAttribArray(0);   // Vertex position.
-        glEnableVertexAttribArray(1);   // Vertex color.
+		glEnableVertexAttribArray(1);   // Vertex color.
 
-        // Specify the location and format of the position portion of the vertex buffer.
-        glBindBuffer(GL_ARRAY_BUFFER, m_VertexBufferId);
-        glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof(VertexType), 0);
-
+		// Specify the location and format of the position portion of the vertex buffer.
+		glBindBuffer(GL_ARRAY_BUFFER, m_VertexBufferId);
+		glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof(VertexType), 0);
+		
         // Specify the location and format of the color portion of the vertex buffer.
         glBindBuffer(GL_ARRAY_BUFFER, m_VertexBufferId);
         glVertexAttribPointer(1, 3, GL_FLOAT, false, sizeof(VertexType), (char*)NULL + (3 * sizeof(float)));
@@ -404,8 +411,8 @@ namespace Panda
         glAttachShader(m_ShaderProgram, m_FragmentShader);
 
         // Bind the shader input variables.
-        glBindAttribLocation(m_ShaderProgram, 0, "inputPosition");
-        glBindAttribLocation(m_ShaderProgram, 1, "inputColor");
+		glBindAttribLocation(m_ShaderProgram, 0, "inputPosition");
+		glBindAttribLocation(m_ShaderProgram, 1, "inputColor");
 
         // Link the shader program.
         glLinkProgram(m_ShaderProgram);

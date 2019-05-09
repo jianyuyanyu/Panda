@@ -39,7 +39,7 @@ int Panda::OpenGLApplication::Initialize()
 		pfd.cDepthBits = m_Config.depthBits;
 		pfd.iLayerType = PFD_MAIN_PLANE;
 		
-		HDC m_hDC = GetDC(m_hWnd);
+		m_hDC = GetDC(m_hWnd);
 		// Set a temporary default pixel format.
 		int pixelFormat = ChoosePixelFormat(m_hDC, &pfd);
 		if (pixelFormat == 0)
@@ -65,7 +65,7 @@ int Panda::OpenGLApplication::Initialize()
 			printf("Windows could not create the context. ErrorCode = %d\n", error);
 			return -1;
 		}
-		
+
 		// Set the temporary rendering context as the current rendering context for this window.
 		result = wglMakeCurrent(m_hDC, m_RenderContext);
 		if (result != 1)

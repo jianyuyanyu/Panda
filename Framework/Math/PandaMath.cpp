@@ -106,6 +106,8 @@ namespace Panda
         return;
     }
 
+	// yaw - y, pitch - x, roll - z
+	// order: roll->pitch->yaw
     void MatrixRotationYawPitchRoll(Matrix4f& outMat, const float yaw, const float pitch, const float roll)
     {
         outMat.SetIdentity();

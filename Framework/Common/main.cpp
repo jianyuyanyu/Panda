@@ -14,7 +14,7 @@ int main (int argc, char** argv) {
   if ((ret = g_pMemoryManager->Initialize()) != 0)
   {
 	  printf("Memory Manager initialize failed, will exit now.");
-    return ret;
+	  return ret;
   }
 
   if ((ret = g_pGraphicsManager->Initialize()) != 0)
