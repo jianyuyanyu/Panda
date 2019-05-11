@@ -7,10 +7,15 @@
 #include "MemoryManager.hpp"
 #include "AssetLoader.hpp"
 #include "SceneManager.hpp"
+#include "Utility.hpp"
 
 using namespace Panda;
 
 namespace Panda {
+	// match with articles
+	Handness g_ViewHandness = Handness::kHandnessLeft;
+	DepthClipSpace g_DepthClipSpace = DepthClipSpace::kDepthClipZeroToOne;
+
     GfxConfiguration config(8, 8, 8, 8, 24, 8, 0, 960, 540, "Game Engine From Scratch (Linux)");
     IApplication* g_pApp                = static_cast<IApplication*>(new OpenGLApplication(config));
     GraphicsManager* g_pGraphicsManager = static_cast<GraphicsManager*>(new OpenGLGraphicsManager);

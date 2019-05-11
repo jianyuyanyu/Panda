@@ -6,6 +6,7 @@
 #include "Matrix3.hpp"
 #include "Matrix4.hpp"
 #include <math.h>
+#include "Utility.hpp"
 
 #ifndef PI
 #define PI 3.14159265358979323846f
@@ -17,9 +18,9 @@
 
 namespace Panda
 {
-    void TransformCoord(Vector3Df& inVec, const Matrix3f& inMat);
-
     void TransformCoord(Vector3Df& inVec, const Matrix4f& inMat);
+
+    void MatrixTranspose(Matrix4f& outMat, const Matrix4f& inMat);
 
     void MatrixScale(Matrix4f& outMat, const float x, const float y, const float z);
 
@@ -39,10 +40,15 @@ namespace Panda
 
     void MatrixRotationQuaternion(Matrix4f& outMat, const Quaternion& q);
 
-    // build unv camera system
-    void BuildViewMatrix(const Vector3Df& pos, const Vector3Df& target, const Vector3Df& up, Matrix4f& result);
+    void BuildViewMatrix(Matrix4f& result, const Vector3Df& pos, const Vector3Df& target, const Vector3Df& up, Handness handness = Handness::kHandnessRight);
 
-    // our uvn camera system is left-handed
-    void BuildPerspectiveFovLHMatrix(Matrix4f& result, const float fov, const float screenAspect, const float near, const float far);
+    void BuildViewMatrixLH(Matrix4f& result, const Vector3Df& pos, const Vector3Df& target, const Vector3Df& up);
 
+    void BuildViewMatrixRH(Matrix4f& result, const Vector3Df& pos, const Vector3Df& target, const Vector3Df& up);
+
+    void BuildPerspectiveFovMatrix(Matrix4f& result, const float fov, const float aspect, const float near, const float far, Handness handness = Handness::kHandnessRight);
+
+    void BuildPerspectiveFovLHMatrix(Matrix4f& result, const float fov, const float aspect, const float near, const float far);
+
+    void BuildPerspectiveFovRHMatrix(Matrix4f& result, const float fov, const float aspect, const float near, const float far);
 }

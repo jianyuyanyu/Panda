@@ -19,6 +19,9 @@ namespace Panda
 
         FORCEINLINE Matrix3<T>() 
         {
+            m[0][0] = m[0][1] = m[0][2] = 0;
+            m[1][0] = m[1][1] = m[1][2] = 0;
+            m[2][0] = m[2][1] = m[2][2] = 0;
         }
 
         FORCEINLINE Matrix3<T>(const Matrix3<T>& inMat)
@@ -28,18 +31,22 @@ namespace Panda
                     m[i][j] = inMat.m[i][j];
         }
 
-        FORCEINLINE Matrix3<T>(const Vector3D<T>& in1, const Vector3D<T>& in2, const Vector3D<T>& in3)
-        {
-            m[0][0] = in1.x; m[0][1] = in1.y; m[0][2] = in1.z;
-            m[1][0] = in2.x; m[1][1] = in2.y; m[1][2] = in2.z;
-            m[2][0] = in3.x; m[2][1] = in3.y; m[2][2] = in3.z;
-        }
-
         void SetIdentity() 
         {
             m[0][0] = 1; m[0][1] = 0; m[0][2] = 0;
             m[1][0] = 0; m[1][1] = 1; m[1][2] = 0;
             m[2][0] = 0; m[2][1] = 0; m[2][2] = 1;
+        }
+
+        void SetTransposed()
+        {
+            for (size_t i = 0; i < 3; ++i)
+                for (size_t j = 0; j < i; ++j)
+                {
+                    T t = m[i][j];
+                    m[i][j] = m[j][i];
+                    m[j][i] = t;
+                }
         }
 
         FORCEINLINE Matrix3<T>& operator= (const Matrix3<T>& inMat)

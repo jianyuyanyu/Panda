@@ -4,6 +4,7 @@
 #include "OpenGLGraphicsManager.hpp"
 #include "AssetLoader.hpp"
 #include "IApplication.hpp"
+#include "Utility.hpp"
 
 const char VS_SHADER_SOURCE_FILE[] = "Shaders/color.vs";
 const char PS_SHADER_SOURCE_FILE[] = "Shaders/color.ps";
@@ -130,7 +131,7 @@ namespace Panda
                 float screenAspect = (float)conf.screenWidth / (float)conf.screenHeight;
 
                 // Build the perspective projection matrix.
-                BuildPerspectiveFovLHMatrix(m_ProjectionMatrix, fieldOfView, screenAspect, k_ScreenNear, k_ScreenFar);
+                BuildPerspectiveFovMatrix(m_ProjectionMatrix, fieldOfView, screenAspect, k_ScreenNear, k_ScreenFar, g_ViewHandness);
             }
 
             InitializeShader(VS_SHADER_SOURCE_FILE, PS_SHADER_SOURCE_FILE);
@@ -212,9 +213,6 @@ namespace Panda
 		Matrix4f world = worldMatrix;
 		Matrix4f view = viewMatrix;
 		Matrix4f projection = projectionMatrix;
-		world.SetTransposed();
-		view.SetTransposed();
-		projection.SetTransposed();
 
         unsigned int location;
 
@@ -357,7 +355,7 @@ namespace Panda
         lookAt.z = position.z + lookAt.z;
 
         // Finally create the view matrix from the three updated vectors.
-        BuildViewMatrix(position, lookAt, up, m_ViewMatrix);
+        BuildViewMatrix(m_ViewMatrix, position, lookAt, up, g_ViewHandness);
     }
 
     bool OpenGLGraphicsManager::InitializeShader(const char* vsFilename, const char* fsFilename)

@@ -1,15 +1,7 @@
 #pragma once
+#include "portable.hpp"
 
-#if !defined(_FORCEINLINE)
-# if defined(_MSC_VER)
-#	define FORCEINLINE __forceinline
-# elif defined(__GNUC__) && __GNUC__ > 3
- 	// Clang also defines __GNUC__ (as 4)
-#	define FORCEINLINE inline __attribute__ ((__always_inline__))
-# else
-#	define FORCEINLINE inline
-# endif
-#endif
+
 
 namespace Panda {
 	template<class T>
@@ -22,4 +14,20 @@ namespace Panda {
 			(*ppInterfaceToRelease) = nullptr;
 		}
 	}
+
+	ENUM(Handness)
+	{
+		kHandnessRight,
+		kHandnessLeft,
+	};
+
+	ENUM(DepthClipSpace)
+	{
+		kDepthClipZeroToOne,
+		kDepthClipNegativeOneToOne,
+	};
+
+	extern Handness g_EngineHandness; // DO NOT change this. Engine handness is just a showcase.
+	extern Handness g_ViewHandness;
+	extern DepthClipSpace g_DepthClipSpace;
 }

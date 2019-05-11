@@ -21,7 +21,7 @@ namespace Panda
 			struct { T u, v; };
         };
 
-        FORCEINLINE Vector2D<T>() {}
+        FORCEINLINE Vector2D<T>() {x = y = 0;}
         FORCEINLINE Vector2D<T>(const Vector2D<T>& inV) : x(inV.x), y(inV.y) {}
         FORCEINLINE Vector2D<T>(T _v): x(_v), y(_v) {}
         FORCEINLINE Vector2D<T>(T _x, T _y) : x(_x), y(_y) {}

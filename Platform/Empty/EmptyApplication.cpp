@@ -3,8 +3,13 @@
 #include "MemoryManager.hpp"
 #include "AssetLoader.hpp"
 #include "SceneManager.hpp"
+#include "Utility.hpp"
 
 namespace Panda {
+	// match with articles
+	Handness g_ViewHandness = Handness::kHandnessLeft;
+	DepthClipSpace g_DepthClipSpace = DepthClipSpace::kDepthClipZeroToOne;
+
     GfxConfiguration config;
 	IApplication*    g_pApp             = static_cast<IApplication*>(new BaseApplication(config));
     GraphicsManager* g_pGraphicsManager = static_cast<GraphicsManager*>(new GraphicsManager);

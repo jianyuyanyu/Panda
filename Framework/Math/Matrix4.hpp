@@ -32,14 +32,14 @@ namespace Panda
                     m[i][j] = inMat.m[i][j];
         }
 
-        FORCEINLINE Matrix4<T>(const Vector4D<T>& in1, const Vector4D<T>& in2, const Vector4D<T>& in3, const Vector4D<T>& in4)
+        void SetZero()
         {
-            m[0][0] = in1.x; m[0][1] = in1.y; m[0][2] = in1.z; m[0][3] = in1.w;
-            m[1][0] = in2.x; m[1][1] = in2.y; m[1][2] = in2.z; m[1][3] = in2.w;
-            m[2][0] = in3.x; m[2][1] = in3.y; m[2][2] = in3.z; m[2][3] = in3.w;
-            m[3][0] = in4.x; m[3][1] = in4.y; m[3][2] = in3.z; m[3][3] = in4.w;
+            m[0][0] = m[0][1] = m[0][2] = m[0][3] = 0;
+            m[1][0] = m[1][1] = m[1][2] = m[1][3] = 0;
+            m[2][0] = m[2][1] = m[2][2] = m[2][3] = 0;
+            m[3][0] = m[3][1] = m[3][2] = m[3][3] = 0;
         }
-
+        
         void SetIdentity() 
         {
             m[0][0] = 1; m[0][1] = 0; m[0][2] = 0; m[0][3] = 0;

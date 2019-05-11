@@ -21,7 +21,7 @@ namespace Panda
 			struct { T r, g, b; };
         };
 
-        FORCEINLINE Vector3D<T>() {}
+        FORCEINLINE Vector3D<T>() {x = y = z = 0;}
         FORCEINLINE Vector3D<T>(const Vector3D<T>& inV) : x(inV.x), y(inV.y), z(inV.z) {}
         FORCEINLINE Vector3D<T>(T _v): x(_v), y(_v), z(_v) {}
         FORCEINLINE Vector3D<T>(T _x, T _y, T _z) : x(_x), y(_y), z(_z) {}

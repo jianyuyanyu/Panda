@@ -19,7 +19,7 @@ namespace Panda
 			struct { T r, g, b, a; };
         };
 
-        FORCEINLINE Vector4D<T>() {}
+        FORCEINLINE Vector4D<T>() {x = y = z = w = 0;}
         FORCEINLINE Vector4D<T>(const Vector4D<T>& inV) : x(inV.x), y(inV.y), z(inV.z), w(inV.w) {}
         FORCEINLINE Vector4D<T>(T _v): x(_v), y(_v), z(_v), w(_v) {}
         FORCEINLINE Vector4D<T>(T _x, T _y, T _z, T _w) : x(_x), y(_y), z(_z), w(_w) {}

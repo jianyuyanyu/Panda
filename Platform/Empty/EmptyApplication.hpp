@@ -5,3 +5,4 @@
 #include "MemoryManager.hpp"
 #include "AssetLoader.hpp"
 #include "SceneManager.hpp"
+#include "Utility.hpp"

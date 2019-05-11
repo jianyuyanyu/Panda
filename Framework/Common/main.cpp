@@ -3,6 +3,11 @@
 
 using namespace Panda;
 
+namespace Panda
+{
+	Handness g_EngineHandness = Handness::kHandnessRight;
+}
+
 int main (int argc, char** argv) {
   int ret;
 
