@@ -1,6 +1,9 @@
 #pragma once
-#include "GfxConfiguration.hpp"
 #include "IApplication.hpp"
+#include "GraphicsManager.hpp"
+#include "MemoryManager.hpp"
+#include "AssetLoader.hpp"
+#include "SceneManager.hpp"
 
 namespace Panda {
   class BaseApplication : implements IApplication {
@@ -28,4 +31,8 @@ namespace Panda {
 		// 不允许没有配置的构造函数
 		BaseApplication() {}
   };
+
+	extern Handness g_EngineHandness; // DO NOT change this. Engine handness is just a showcase.
+	extern Handness g_ViewHandness;
+	extern DepthClipSpace g_DepthClipSpace;
 }

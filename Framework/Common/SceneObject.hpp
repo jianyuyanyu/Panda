@@ -102,6 +102,76 @@ namespace Panda
             SceneObjectVertexArray(SceneObjectVertexArray& arr) = default; // this two might be modified
             SceneObjectVertexArray(SceneObjectVertexArray&& arr) = default;
 
+            const std::string& GetAttributeName() const {return m_Attribute;}
+            VertexDataType GetDataType() const {return m_DataType;}
+            size_t GetDataSize() const
+            {
+                size_t size = m_DataSize;
+
+                switch(m_DataType)
+                {
+                    case VertexDataType::kVertexDataTypeFloat1:
+                    case VertexDataType::kVertexDataTypeFloat2:
+                    case VertexDataType::kVertexDataTypeFloat3:
+                    case VertexDataType::kVertexDataTypeFloat4:
+                        size *= sizeof(float);
+                        break;
+
+                    case VertexDataType::kVertexDataTypeDouble1:
+                    case VertexDataType::kVertexDataTypeDouble2:
+                    case VertexDataType::kVertexDataTypeDouble3:
+                    case VertexDataType::kVertexDataTypeDouble4:
+                        size *= sizeof(double);
+                        break;
+                    default:
+                        size = 0;
+                        assert(0);
+                        break;
+                }
+
+                return size;
+            }
+
+            const void* GetData() const {return m_pData;}
+
+            size_t GetVertexCount() const
+            {
+                size_t size = m_DataSize;
+
+                switch(m_DataType)
+                {
+                    case VertexDataType::kVertexDataTypeFloat1:
+                        size /= 1;
+                        break;
+                    case VertexDataType::kVertexDataTypeFloat2:
+                        size /= 2;
+                        break;
+                    case VertexDataType::kVertexDataTypeFloat3:
+                        size /= 3;
+                        break;
+                    case VertexDataType::kVertexDataTypeFloat4:
+                        size /= 4;
+                        break;
+                    case VertexDataType::kVertexDataTypeDouble1:
+                        size /= 1;
+                        break;
+                    case VertexDataType::kVertexDataTypeDouble2:
+                        size /= 2;
+                        break;
+                    case VertexDataType::kVertexDataTypeDouble3:
+                        size /= 3;
+                        break;
+                    case VertexDataType::kVertexDataTypeDouble4:
+                        size /= 4;
+                        break;
+                    default:
+                        size = 0;
+                        assert(0);
+                        break;
+                }
+
+                return size;
+            }
             friend std::ostream& operator<<(std::ostream& out, const SceneObjectVertexArray& obj);
     };
 
@@ -134,7 +204,40 @@ namespace Panda
                 SceneObjectIndexArray(SceneObjectIndexArray& arr) = default;
                 SceneObjectIndexArray(SceneObjectIndexArray&& arr) = default;
 
-            friend std::ostream& operator<<(std::ostream& out, const SceneObjectIndexArray& obj);
+                const IndexDataType GetIndexType() const {return m_DataType;}
+                const void* GetData() const {return m_pData;}
+                size_t GetDataSize() const
+                {
+                    size_t size = m_DataSize;
+
+                    switch(m_DataType)
+                    {
+                        case IndexDataType::kIndexDataTypeInt8:
+                            size *= sizeof(int8_t);
+                            break;
+                        case IndexDataType::kIndexDataTypeInt16:
+                            size *= sizeof(int16_t);
+                            break;
+                        case IndexDataType::kIndexDataTypeInt32:
+                            size *= sizeof(int32_t);
+                            break;
+                        case IndexDataType::kIndexDataTypeInt64:
+                            size *= sizeof(int64_t);
+                            break;
+                        default:
+                            size = 0;
+                            assert(0);
+                            break;
+                    }
+
+                    return size;
+                }
+
+                size_t GetIndexCount() const
+                {
+                    return m_DataSize;
+                }
+                friend std::ostream& operator<<(std::ostream& out, const SceneObjectIndexArray& obj);
                     
     };
 
@@ -188,29 +291,37 @@ namespace Panda
         void AddVertexArray(SceneObjectVertexArray&& array) {m_VertexArray.push_back(std::move(array));}
         void SetPrimitiveType(PrimitiveType type) {m_PrimitiveType = type;}
         
+        size_t GetIndexCount() const {return m_IndexArray.empty()? 0 : m_IndexArray[0].GetIndexCount();}
+        size_t GetVertexCount() const {return m_VertexArray.empty() ? 0 : m_VertexArray[0].GetVertexCount();}
+        size_t GetVertexPropertiesCount() const {return m_VertexArray.size();}
+        const SceneObjectVertexArray& GetVertexPropertyArray(const size_t index) const {return m_VertexArray[index];}
+        const SceneObjectIndexArray& GetIndexArray(const size_t index) const {return m_IndexArray[index];}
+        const PrimitiveType& GetPrimitiveType() {return m_PrimitiveType;}
+
         friend std::ostream& operator<<(std::ostream& out, const SceneObjectMesh& obj);
     };
 
-    // This might be modified in the furture.
+    
     class SceneObjectTexture: public BaseSceneObject
     {
         protected:
-            uint32_t m_TexCoordIndex;
             std::string m_Name;
-
+            uint32_t m_TexCoordIndex;
             std::shared_ptr<Image> m_pImage;
 
             std::vector<Matrix4f> m_Transforms;
 
         public:
             SceneObjectTexture() : BaseSceneObject(SceneObjectType::kSceneObjectTypeTexture), m_TexCoordIndex(0) {}
-            SceneObjectTexture(std::string& name) : BaseSceneObject(SceneObjectType::kSceneObjectTypeTexture), m_TexCoordIndex(0), m_Name(name) {}
+            SceneObjectTexture(std::string& name) : BaseSceneObject(SceneObjectType::kSceneObjectTypeTexture), m_Name(name), m_TexCoordIndex(0) {}
             SceneObjectTexture(uint32_t coord_index, std::shared_ptr<Image>& image) : BaseSceneObject(SceneObjectType::kSceneObjectTypeTexture), m_TexCoordIndex(coord_index), m_pImage(image) {}
             SceneObjectTexture(uint32_t coord_index, std::shared_ptr<Image>&& image) : BaseSceneObject(SceneObjectType::kSceneObjectTypeTexture), m_TexCoordIndex(coord_index), m_pImage(std::move(image)) {}
             SceneObjectTexture(SceneObjectTexture&) = default;
             SceneObjectTexture(SceneObjectTexture&&) = default;
-            void SetName(std::string& name) {m_Name = name;}
+            
             void AddTransform(Matrix4f& matrix) {m_Transforms.push_back(matrix);}
+            void SetName(const std::string& name) {m_Name = name;}
+            void SetName(std::string&& name) {m_Name = std::move(name);}
 
             friend std::ostream& operator<<(std::ostream& out, const SceneObjectTexture& obj);
     };
@@ -269,10 +380,9 @@ namespace Panda
         public:
             SceneObjectMaterial(const std::string& name) : BaseSceneObject(SceneObjectType::kSceneObjectTypeMaterial), m_Name(name) {}
             SceneObjectMaterial(std::string&& name) : BaseSceneObject(SceneObjectType::kSceneObjectTypeMaterial), m_Name(std::move(name)) {}
-            SceneObjectMaterial(const std::string& name = "", Color&& base_color = ColorRGBAf(1.0f), Parameter&& metallic = 0.0f, Parameter&& roughness = 0.0f,
-                Normal&& normal = Vector3Df(0.0f, 0.0f, 1.0f), Parameter&& specular = 0.0f, Parameter&& ao = 0.0f) : 
-                BaseSceneObject(SceneObjectType::kSceneObjectTypeMaterial), m_Name(name), m_BaseColor(std::move(base_color)), m_Metallic(std::move(metallic)),
-                m_Roughness(std::move(roughness)), m_Normal(std::move(normal)), m_Specular(std::move(specular)), m_AmbientOcclusion(std::move(ao))
+            SceneObjectMaterial() : 
+                BaseSceneObject(SceneObjectType::kSceneObjectTypeMaterial), m_Name(""), m_BaseColor(ColorRGBAf(1.0f)), m_Metallic(0.0f),
+                m_Roughness(0.0f), m_Normal(Vector3Df(0.0f, 0.0f, 1.0f)), m_Specular(0.0f), m_AmbientOcclusion(1.0f)
                 {}
 
             void SetName(const std::string& name) {m_Name = name;}
@@ -319,6 +429,8 @@ namespace Panda
             const bool MotionBlur() {return m_IsMotionBlur;}
 
             void AddMesh(std::shared_ptr<SceneObjectMesh>& mesh) {m_Mesh.push_back(std::move(mesh));}
+            const std::weak_ptr<SceneObjectMesh> GetMesh() {return m_Mesh.empty()? nullptr : m_Mesh[0];}
+            const std::weak_ptr<SceneObjectMesh> GetMeshLOD(size_t lod) {return lod < m_Mesh.size()? m_Mesh[lod] : nullptr;}
 
             friend std::ostream& operator<<(std::ostream& out, const SceneObjectGeometry& obj);
     };
@@ -333,16 +445,41 @@ namespace Panda
             Color       m_LightColor;
             float       m_Intensity;
             AttenFunc   m_LightAttenuation;
-            float       m_NearClipDistance;
-            float       m_FarClipDistance;
             bool        m_IsCastShadows;
+            std::string m_Texture;
+
+        public:
+            void SetIfCastShadow(bool shadow) {m_IsCastShadows = shadow;}
+
+            void SetColor(std::string& attrib, ColorRGBAf& color)
+            {
+                if (attrib == "light")
+                {
+                    m_LightColor = color;
+                }
+            }
+
+            void SetParam(std::string& attrib, float param)
+            {
+                if (attrib == "intensity")
+                {
+                    m_Intensity = param;
+                }
+            }
+
+            void SetTexture(std::string& attrib, std::string& textureName)
+            {
+                if (attrib == "projection")
+                {
+                    m_Texture = textureName;
+                }
+            }
 
         protected:
             // can only used as base class of delivered lighting objects
-            SceneObjectLight(Color&& color = ColorRGBAf(1.0f), float intensity = 10.0f, AttenFunc atten_fun = DefaultAttenFunc, 
-                float near_clip = 1.0f, float far_clip = 100.0f, bool cast_shadows = false) : 
-                BaseSceneObject(SceneObjectType::kSceneObjectTypeLight), m_LightColor(std::move(color)), m_Intensity(intensity),
-                m_LightAttenuation(atten_fun), m_NearClipDistance(near_clip), m_FarClipDistance(far_clip), m_IsCastShadows(cast_shadows) 
+            SceneObjectLight() : 
+                BaseSceneObject(SceneObjectType::kSceneObjectTypeLight), m_LightColor(ColorRGBAf(1.0f)), m_Intensity(100.0f),
+                m_LightAttenuation(DefaultAttenFunc), m_IsCastShadows(false) 
             {}
 
             friend std::ostream& operator<<(std::ostream& out, const SceneObjectLight& obj);
@@ -365,9 +502,8 @@ namespace Panda
             float   m_PenumbraAngle;
 
         public:
-            SceneObjectSpotLight(Color&& color = ColorRGBAf(1.0f), float intensity = 10.0f, AttenFunc atten_func = DefaultAttenFunc, float near_clip = 1.0f,
-                float far_clip = 100.0f, bool cast_shadows = false, float cone_angle = PI / 4.0f, float penumbra_angle = PI / 3.0f) :
-                SceneObjectLight(std::move(color), intensity, atten_func, near_clip, far_clip, cast_shadows), m_ConeAngle(cone_angle), m_PenumbraAngle(penumbra_angle)
+            SceneObjectSpotLight() :
+                SceneObjectLight(), m_ConeAngle(PI / 4.0f), m_PenumbraAngle(PI / 3.0f)
             {
             }
 
@@ -381,9 +517,32 @@ namespace Panda
             float m_Aspect;
             float m_NearClipDistance;
             float m_FarClipDistance;
+
         public:
-            SceneObjectCamera(float aspect = 16.0f / 9.0f, float near_clip = 1.0f, float far_clip = 100.0f) : 
-                BaseSceneObject(SceneObjectType::kSceneObjectTypeCamera), m_Aspect(aspect), m_NearClipDistance(near_clip), m_FarClipDistance(far_clip) 
+            void SetColor(std::string& attrib, ColorRGBAf& color)
+            {
+                // TODO: extension
+            }
+
+            void SetParam(std::string& attrib, float param)
+            {
+                if (attrib == "near")
+                {
+                    m_NearClipDistance = param;
+                }
+                else if (attrib == "far")
+                {
+                    m_FarClipDistance = param;
+                }
+            }
+
+            void SetTexture(std::string& attrib, std::string& textureName)
+            {
+                // TODO: extension
+            }
+        public:
+            SceneObjectCamera() : 
+                BaseSceneObject(SceneObjectType::kSceneObjectTypeCamera), m_Aspect(16.0f / 9.0f), m_NearClipDistance(1.0f), m_FarClipDistance(100.0f) 
                 {}
 
             friend std::ostream& operator<<(std::ostream& out, const SceneObjectCamera& obj);
@@ -403,8 +562,16 @@ namespace Panda
             float m_Fov;
 
         public:
-            SceneObjectPerspectiveCamera(float aspect = 16.0f / 9.0f, float near_clip = 1.0f, float far_clip = 100.0f, float fov = PI / 2.0) :
-                SceneObjectCamera(aspect, near_clip, far_clip), m_Fov(fov)
+            void SetParam(std::string& attrib, float param)
+            {
+                // TODO: handle fovx, fovy
+                if (attrib == "fov")
+                {
+                    m_Fov = param;
+                }
+            }
+            SceneObjectPerspectiveCamera(float fov = PI / 2.0f) :
+                SceneObjectCamera(), m_Fov(fov)
                 {}
             
             friend std::ostream& operator<<(std::ostream& out, const SceneObjectPerspectiveCamera& obj);

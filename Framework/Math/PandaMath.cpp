@@ -264,7 +264,7 @@ namespace Panda
         }
         else /* g_DepthClipSpace == DepthClipSpace::kDepthClipNegativeOneToOne */
         {
-            result.m[2][2] = (near + far) * (near - far);
+            result.m[2][2] = (near + far) / (near - far);
             result.m[3][2] = (2 * near * far) / (near - far);
         }
         

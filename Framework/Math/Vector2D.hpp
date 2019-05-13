@@ -115,5 +115,8 @@ namespace Panda
             return out;
         }
     };
+
+    typedef Vector2D<uint32_t>  Vector2Di;
+    typedef Vector2D<float>     Vector2Df;
 }
 

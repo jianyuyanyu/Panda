@@ -176,8 +176,6 @@ namespace Panda
         out << static_cast<const BaseSceneObject&>(obj) << std::endl;
         out << "Color: " << obj.m_LightColor << std::endl;
         out << "Intensity: " << obj.m_Intensity << std::endl;
-        out << "Near Clip Distance: " << obj.m_NearClipDistance << std::endl;
-        out << "Far Clip Distance: " << obj.m_FarClipDistance << std::endl;
         out << "Cast Shadows: " << obj.m_IsCastShadows << std::endl;
 
         return out;

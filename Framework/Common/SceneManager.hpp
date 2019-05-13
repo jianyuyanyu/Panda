@@ -1,7 +1,7 @@
 #pragma once
 #include "PandaMath.hpp"
 #include "IRuntimeModule.hpp"
-#include "SceneNode.hpp"
+#include "SceneParser.hpp"
 
 namespace Panda
 {
@@ -15,10 +15,15 @@ namespace Panda
 
             virtual void Tick();
 
-            void LoadOgexScene(const char* sceneFileName);
+            void LoadScene(const char* sceneFileName);
+
+            const Scene& GetScene();
 
         protected:
-            std::unique_ptr<BaseSceneNode> m_RootNode;
+            void LoadOgexScene(const char* ogexSceneFileName);
+
+        protected:
+            std::unique_ptr<Scene> m_pScene;
     };
 
     extern SceneManager* g_pSceneManager;

@@ -25,11 +25,21 @@ void SceneManager::Tick()
 
 }
 
-void SceneManager::LoadOgexScene(const char* sceneFileName)
+void SceneManager::LoadScene(const char* sceneFileName)
 {
-    AssetLoader assetLoader;
-    std::string ogexText = assetLoader.SyncOpenAndReadFileToString(sceneFileName);
+    // now we only have ogex scene parser, call it directly
+    LoadOgexScene(sceneFileName);
+}
+
+void SceneManager::LoadOgexScene(const char* ogexSceneFileName)
+{
+    std::string ogexText = g_pAssetLoader->SyncOpenAndReadFileToString(ogexSceneFileName);
 
     OgexParser ogexParser;
-    m_RootNode = ogexParser.Parse(ogexText);
+    m_pScene = ogexParser.Parse(ogexText);
+}
+
+const Scene& SceneManager::GetScene()
+{
+    return *m_pScene;
 }

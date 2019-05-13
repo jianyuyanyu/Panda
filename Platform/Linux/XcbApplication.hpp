@@ -18,6 +18,6 @@ namespace Panda {
         xcb_connection_t*    m_pConn   = nullptr;
         xcb_screen_t*        m_pScreen = nullptr;
         xcb_window_t         m_Window;
-        uint32_t             m_nVi     = 0;;
+        uint32_t             m_Vi     = 0;
     };
 }

@@ -15,8 +15,6 @@ int Panda::WindowsApplication::Initialize()
     // 获取控制台的句柄
     HINSTANCE hInstance = GetModuleHandle(NULL);
 
-    // 窗口句柄
-    HWND hWnd;
     // 窗口类
     WNDCLASSEX wc;
 
@@ -36,7 +34,7 @@ int Panda::WindowsApplication::Initialize()
     RegisterClassEx(&wc);
 
     // 创建窗口
-    hWnd = CreateWindowEx(0,
+    m_hWnd = CreateWindowEx(0,
                           "Panda",      					// 窗口类名
                           m_Config.appName,             	// 窗口名
                           WS_OVERLAPPEDWINDOW,              // 窗口风格
@@ -50,9 +48,7 @@ int Panda::WindowsApplication::Initialize()
                           NULL);                            // 不使用多窗口
 
     // 显示窗口
-    ShowWindow(hWnd, SW_SHOW);
-	
-	m_hWnd = hWnd;
+    ShowWindow(m_hWnd, SW_SHOW);
 
     return result;
 }

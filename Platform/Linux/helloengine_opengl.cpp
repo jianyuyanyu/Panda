@@ -265,7 +265,7 @@ int main (void) {
   else {
     int context_attribs[] = {
       GLX_CONTEXT_MAJOR_VERSION_ARB, 3,
-      GLX_CONTEXT_MINOR_VERSION_ARB, 0,
+      GLX_CONTEXT_MINOR_VERSION_ARB, 2,
       None
     };
 
@@ -274,7 +274,7 @@ int main (void) {
 
     XSync(display, False);
     if (!ctxErrorOccurred && context)
-      printf("Create GL 3.0 context \n");
+      printf("Create GL 3.2 context \n");
     else {
       /* GLX_CONTEXT_MAJOR_VERSION_ARB = 1*/
       context_attribs[1] = 1;
@@ -283,7 +283,7 @@ int main (void) {
 
       ctxErrorOccurred = false;
 
-      printf("Failed to create GL 3.0 context"
+      printf("Failed to create GL 3.2 context"
              "... using old-style GLX context\n");
       context = glXCreateContextAttribsARB(display, fb_config, 0, True, context_attribs);
     }

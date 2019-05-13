@@ -9,23 +9,55 @@ using namespace Panda;
 namespace Panda
 {
     MemoryManager* g_pMemoryManager = new MemoryManager();
+    AssetLoader* g_pAssetLoader = new AssetLoader();
+}
+
+template<typename T>
+static std::ostream& operator<<(std::ostream& out, std::unordered_map<std::string, std::shared_ptr<T>> map)
+{
+    for (auto p : map)
+    {
+        out << *p.second << endl;
+    }
+
+    return out;
 }
 
 int main (int , char**)
 {
     g_pMemoryManager->Initialize();
+    g_pAssetLoader->Initialize();
 
-    AssetLoader asset_loader;
-    string ogex_text = asset_loader.SyncOpenAndReadFileToString("Scene/Example.ogex");
+    string ogex_text = g_pAssetLoader->SyncOpenAndReadFileToString("Scene/cube.ogex");
 
     OgexParser* ogex_parser = new OgexParser();
-    unique_ptr<BaseSceneNode> root_node = ogex_parser->Parse(ogex_text);
+    std::unique_ptr<Scene> pScene = ogex_parser->Parse(ogex_text);
     delete ogex_parser;
 
-    std::cout << *root_node << std::endl;
+    std::cout << "Dump of Scene Graph" << std::endl;
+    std::cout << "-----------------------" << std::endl;
+    std::cout << *pScene->SceneGraph << std::endl;
 
+    std::cout << "Dump of Cameras" << std::endl;
+    std::cout << "-----------------------" << std::endl;
+    std::cout << pScene->Cameras << std::endl;
+
+    std::cout << "Dump of Lights" << std::endl;
+    std::cout << "------------------------" << std::endl;
+    std::cout << pScene->Lights << std::endl;
+
+    std::cout << "Dump of Geometries" << std::endl;
+    std::cout << "------------------------" << std::endl;
+    std::cout << pScene->Geometries << std::endl;
+
+    std::cout << "Dump of Materials" << std::endl;
+    std::cout << "------------------------" << std::endl;
+    std::cout << pScene->Materials << std::endl;
+
+    g_pAssetLoader->Finalize();
     g_pMemoryManager->Finalize();
 
+    delete g_pAssetLoader;
     delete g_pMemoryManager;
 
 	getchar();

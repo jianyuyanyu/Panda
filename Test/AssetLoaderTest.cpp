@@ -9,20 +9,23 @@ using namespace Panda;
 namespace Panda
 {
     MemoryManager* g_pMemoryManager = new MemoryManager();
+    AssetLoader* g_pAssetLoader = new AssetLoader();
 }
 
 int main (int argc, char** argv)
 {
     g_pMemoryManager->Initialize();
+    g_pAssetLoader->Initialize();
 
-    AssetLoader assetLoader;
-    string str = assetLoader.SyncOpenAndReadFileToString("Shaders/copy.vs");
-	Buffer buffer = assetLoader.SyncOpenAndReadBinary("Shaders/copy.vs");
+    g_pAssetLoader->AddSearchPath("/app0");
+    string shader_pgm = g_pAssetLoader->SyncOpenAndReadFileToString("Shaders/copy.vs");
 
-    cout << str;
+    cout << shader_pgm;
 
+    g_pAssetLoader->Finalize();
     g_pMemoryManager->Finalize();
 
+    delete g_pAssetLoader;
     delete g_pMemoryManager;
 
 	getchar();

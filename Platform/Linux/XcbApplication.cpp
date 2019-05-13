@@ -25,7 +25,7 @@ int Panda::XcbApplication::Initialize()
     if (!m_pScreen) {
         /* get the first screen */
         m_pScreen = xcb_setup_roots_iterator(xcb_get_setup(m_pConn)).data;
-        m_nVi = m_pScreen->root_visual;
+        m_Vi = m_pScreen->root_visual;
     }
 
     /* get the root window */
@@ -39,7 +39,7 @@ int Panda::XcbApplication::Initialize()
         XCB_COLORMAP_ALLOC_NONE,
         colormap,
         m_Window,
-        m_nVi 
+        m_Vi 
         );
 
     /* create window */
@@ -57,7 +57,7 @@ int Panda::XcbApplication::Initialize()
                        m_Config.screenHeight,   /* height */
                        10,                      /* boarder width */
                        XCB_WINDOW_CLASS_INPUT_OUTPUT, /* class */
-                       m_nVi,  /* visual */
+                       m_Vi,  /* visual */
                        mask, values);           /* masks */
 
     /* set the title of the window */
@@ -88,18 +88,27 @@ void Panda::XcbApplication::Finalize()
 void Panda::XcbApplication::Tick()
 {
     xcb_generic_event_t* pEvent;
-    pEvent = xcb_wait_for_event(m_pConn);
-    switch(pEvent->response_type & ~0x80) {
-    case XCB_EXPOSE:
-            {       
-		OnDraw();
-            }
+    if (pEvent = xcb_poll_for_event(m_pConn)
+    {
+        switch(pEvent->response_type & ~0x80) {
+        case XCB_EXPOSE:
             break;
-    case XCB_KEY_PRESS:
+        case XCB_KEY_PRESS:
             BaseApplication::m_Quit = true;
             break;
+        default:
+            break;
+        }
+        free(pEvent);        
     }
-    free(pEvent);
+    else
+    {
+        if (xcb_connextion_has_error(m_pConn))
+            m_Quit = true;
+        else
+            OnDraw();
+    }
+    
 }
 
 
