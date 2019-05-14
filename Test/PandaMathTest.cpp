@@ -1,5 +1,6 @@
-#include "PandaMath.hpp"
 #include <iostream>
+#include <assert.h>
+#include "PandaMath.hpp"
 
 using namespace Panda;
 using namespace std;
@@ -50,9 +51,10 @@ void MatrixTest()
 
     cout << "Identity Matrix : " << m1 << endl;
 
+    Matrix4f mEu;
     float yaw = 0.2f, pitch = 0.3f, roll = 0.4f;
-    MatrixRotationYawPitchRoll(m1, yaw, pitch, roll);
-    cout << "Matrix of yaw(" << yaw << ") pitch(" << pitch << ") roll(" << roll << "):" << m1 << endl;
+    MatrixRotationYawPitchRoll(mEu, yaw, pitch, roll);
+    cout << "Matrix of yaw(" << yaw << ") pitch(" << pitch << ") roll(" << roll << "):" << mEu << endl;
 
     Matrix4f ry;
     float angle = PI / 2.0f;
@@ -107,12 +109,42 @@ void MatrixTest()
 
     float fov = PI / 2.0f, aspect = 16.0f / 9.0f, near = 1.0f, far = 100.0f;
     Matrix4f perspective;
-    BuildPerspectiveFovMatrix(perspective, fov, aspect, near, far);
-    cout << "Perspective Matrix with fov(" << fov << ") aspect(" << aspect << ") near ... far(" << near << "..." << far << "):";
+    BuildPerspectiveFovLHMatrix(perspective, fov, aspect, near, far);
+    cout << "(Left-Handed) Perspective Matrix with fov(" << fov << ") aspect(" << aspect << ") near ... far(" << near << "..." << far << "):";
+    cout << perspective << endl;
+    BuildPerspectiveFovRHMatrix(perspective, fov, aspect, near, far);
+    cout << "(Right-Handed) Perspective Matrix with fov(" << fov << ") aspect(" << aspect << ") near ... far(" << near << "..." << far << "):";
     cout << perspective << endl;
 
     Matrix4f mvp = perspective * view;
     cout << "MVP: " << mvp << endl;
+
+	Matrix3f mat3(
+		{ 2.0f, 1.0f, 10.0f },
+		{ 1.0f, 2.0f, 3.0f },
+		{ 2.0f, 3.0f, 4.0f }
+	);
+	mat3.SetInverse();
+	cout << "Inverse mat3 : " << mat3 << endl;
+
+    Matrix4f invertable(
+        1.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 1.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 1.0f, 0.0f,
+        13.0f, 14.0f, 15.0f, 1.0f);
+    cout << "Known Invertable Matrix: " << invertable;
+    assert(invertable.SetInverse());
+    cout << "Inverse of Matrix: " << invertable;
+
+    Matrix4f nonInvertable(
+         1.0f,  2.0f,  3.0f,  4.0f,
+         5.0f,  6.0f,  7.0f,  8.0f,
+         9.0f, 10.0f, 11.0f, 12.0f,
+        13.0f, 14.0f, 15.0f, 16.0f
+    );
+    cout << "Know sigular Matrix: " << nonInvertable;
+    assert(!nonInvertable.SetInverse());
+    cout << "InvertMatrix4f returns false. " << endl;
 }
 
 int main (int argc, char** argv)

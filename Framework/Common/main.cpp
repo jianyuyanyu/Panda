@@ -38,7 +38,7 @@ int main(int argc, char **argv)
 		return ret;
 	}
 
-	g_pSceneManager->LoadScene("Scene/complex.ogex");
+	g_pSceneManager->LoadScene("Scene/test.ogex");
 
 	if ((ret = g_pGraphicsManager->Initialize()) != 0)
 	{

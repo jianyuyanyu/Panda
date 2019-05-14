@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <vector>
 #include <string>
+#include <memory>
 #include "glad/glad.h"
 
 namespace Panda {
@@ -18,11 +19,15 @@ namespace Panda {
             virtual void Clear();
             virtual void Draw();
         private:
-            bool SetShaderParameters(const Matrix4f& worldMatrix, const Matrix4f& viewMatrix, const Matrix4f& projectionMatrix);
+            bool SetPerBatchShaderParameters(const char* paramName, float* param);
+            bool SetPerFrameShaderParameters();
+            
+            //bool SetShaderParameters(const Matrix4f& worldMatrix, const Matrix4f& viewMatrix, const Matrix4f& projectionMatrix);
 
             void InitializeBuffers();
             void RenderBuffers();
-            void CalculateCameraPosition();
+            void CalculateCameraMatrix();
+            void CalculateLights();
             bool InitializeShader(const char* vsFileName, const char* fsFileName);
 
         private:
@@ -30,6 +35,14 @@ namespace Panda {
             unsigned int m_FragmentShader;
             unsigned int m_ShaderProgram;
 
+            struct DrawFrameContext
+            {
+                Matrix4f    WorldMatrix;
+                Matrix4f    ViewMatrix;
+                Matrix4f    ProjectionMatrix;
+                Vector3Df   LightPosition;
+                Vector4Df   LightColor;
+            };
             const bool VSYNC_ENABLED = true;
             const float k_ScreenFar = 1000.f;
             const float k_ScreenNear = 0.1f;
@@ -40,15 +53,11 @@ namespace Panda {
                 GLenum mode;
                 GLenum type;
                 GLsizei count;
+                std::shared_ptr<Matrix4f> transform;
             };
 
-            std::vector<DrawBatchContext> m_VAO;
-            std::unordered_map<std::string, unsigned int> m_Buffers;
-
-            float m_PositionX = 0, m_PositionY = 0, m_PositionZ = -10;
-            float m_RotationX = 0, m_RotationY = 0, m_RotationZ = 0;
-            Matrix4f m_WorldMatrix;
-            Matrix4f m_ViewMatrix;
-            Matrix4f m_ProjectionMatrix;
+            DrawFrameContext m_DrawFrameContext;
+            std::vector<DrawBatchContext> m_DrawBatchContext;
+            std::vector<GLuint> m_Buffers;
     };
 }

@@ -24,6 +24,13 @@ namespace Panda
             m[2][0] = m[2][1] = m[2][2] = 0;
         }
 
+        FORCEINLINE Matrix3<T>(const Vector3D<T>& in1, const Vector3D<T>& in2, const Vector3D<T>& in3)
+        {
+            m[0][0] = in1.x; m[0][1] = in1.y; m[0][2] = in1.z;
+            m[1][0] = in2.x; m[1][1] = in2.y; m[1][2] = in2.z;
+            m[2][0] = in3.x; m[2][1] = in3.y; m[2][2] = in3.z;
+        }
+
         FORCEINLINE Matrix3<T>(const Matrix3<T>& inMat)
         {
             for (int i = 0; i < 3; ++i)
@@ -47,6 +54,65 @@ namespace Panda
                     m[i][j] = m[j][i];
                     m[j][i] = t;
                 }
+        }
+
+        bool SetInverse()
+        {
+            if (GetDeterminant() == 0)
+                return false;
+
+            T det = GetDeterminant();
+			Matrix3<T> mat(*this);
+			m[0][0] = mat.m[1][1] * mat.m[2][2] - mat.m[1][2] * mat.m[2][1];
+			m[0][1] = mat.m[0][2] * mat.m[2][1] - mat.m[0][1] * mat.m[2][2];
+			m[0][2] = mat.m[0][1] * mat.m[1][2] - mat.m[0][2] * mat.m[1][1];
+
+			m[1][0] = mat.m[1][2] * mat.m[2][0] - mat.m[1][0] * mat.m[2][2];
+			m[1][1] = mat.m[0][0] * mat.m[2][2] - mat.m[0][2] * mat.m[2][0];
+			m[1][2] = mat.m[0][2] * mat.m[1][0] - mat.m[0][0] * mat.m[1][2];
+
+			m[2][0] = mat.m[1][0] * mat.m[2][1] - mat.m[1][1] * mat.m[2][0];
+			m[2][1] = mat.m[0][1] * mat.m[2][0] - mat.m[0][0] * mat.m[2][1];
+			m[2][2] = mat.m[0][0] * mat.m[1][1] - mat.m[0][1] * mat.m[1][0];
+
+			(*this) /= det;
+            return true;
+        }
+
+		// 行列式
+        T GetDeterminant()
+        {
+            return m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1]) 
+                  -m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0])
+                  +m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0]);
+        }
+
+		// 代数余子式
+        T GetCofactor(int32_t row, int32_t col)
+        {
+            int32_t coefficient = 1;
+            if((row + col) % 2 == 1)
+                coefficient = -1;
+
+            T data[2][2] = {0};
+            int32_t mi = 0;
+            for (int32_t i = 0; i < 3; ++i)
+            {
+                if (i == row)
+                    continue;
+
+                int32_t mj = 0;
+                for (int32_t j = 0; j < 3; ++j)
+                {
+                    if (j == col)
+                        continue;
+                    data[mi][mj] = m[i][j];
+                    ++mj;
+                }
+                ++mi;
+            }
+
+            return coefficient * (data[0][0] * data[1][1] - data[0][1] * data[1][0]);
         }
 
         FORCEINLINE Matrix3<T>& operator= (const Matrix3<T>& inMat)

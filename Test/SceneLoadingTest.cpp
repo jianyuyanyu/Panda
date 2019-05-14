@@ -32,34 +32,43 @@ int main(int, char**)
     g_pSceneManager->Initialize();
     g_pAssetLoader->Initialize();
 
-    g_pSceneManager->LoadScene("Scene/complex.ogex");
+    g_pSceneManager->LoadScene("Scene/test.ogex");
     auto& scene = g_pSceneManager->GetScene();
 
     cout << "Dump of Cameras" << endl;
     cout << "----------------------" << endl;
-    weak_ptr<SceneObjectCamera> pCamera = scene.GetFirstCamera();
-    while (auto pObj = pCamera.lock())
+	weak_ptr<SceneCameraNode> pCameraNode = scene.GetFirstCameraNode();
+    while (auto pObj = pCameraNode.lock())
     {
-        cout << *pObj << endl;
-        pCamera = scene.GetNextCamera();
+		auto pCamera = scene.GetCamera(pObj->GetSceneObjectRef());
+		if (pCamera.get() == nullptr)
+			break;
+        cout << *pCamera << endl;
+		pCameraNode = scene.GetNextCameraNode();
     }
 
     cout << "Dump of Lights" << endl;
     cout << "-----------------------" << endl;
-    weak_ptr<SceneObjectLight> pLight = scene.GetFirstLight();
-    while (auto pObj = pLight.lock())
+	weak_ptr<SceneLightNode> pLightNode = scene.GetFirstLightNode();
+    while (auto pObj = pLightNode.lock())
     {
-        cout << *pObj <<endl;
-        pLight = scene.GetNextLight();
+		auto pLight = scene.GetLight(pObj->GetSceneObjectRef());
+		if (pLight.get() == nullptr)
+			break;
+        cout << *pLight <<endl;
+		pLightNode = scene.GetNextLightNode();
     }
 
     cout << "Dump of Geometries" << endl;
     cout << "-----------------------" << endl;
-    weak_ptr<SceneObjectGeometry> pGeometry = scene.GetFirstGeometry();
-    while (auto pObj = pGeometry.lock())
+	weak_ptr<SceneGeometryNode> pGeometryNode = scene.GetFirstGeometryNode();
+    while (auto pObj = pGeometryNode.lock())
     {
-        cout << *pObj << endl;
-        pGeometry = scene.GetNextGeometry();
+		auto pGeometry = scene.GetGeometry(pObj->GetSceneObjectRef());
+		if (pGeometry.get() == nullptr)
+			break;
+        cout << *pGeometry << endl;
+		pGeometryNode = scene.GetNextGeometryNode();
     }
 
     cout << "Dump of metarials" << endl;

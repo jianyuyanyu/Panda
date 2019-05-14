@@ -12,28 +12,52 @@ namespace Panda
     {
         protected:
             std::string m_Name;
-            std::list<std::unique_ptr<BaseSceneNode>> m_Children;
-            std::list<std::unique_ptr<SceneObjectTransform>> m_Transforms;
+            std::list<std::shared_ptr<BaseSceneNode>> m_Children;
+            std::list<std::shared_ptr<SceneObjectTransform>> m_Transforms;
+			std::vector<std::shared_ptr<SceneObjectTransform>> m_Trans;
 
         protected:
             virtual void Dump(std::ostream& out) const {}
 
         public:
             BaseSceneNode() {}
-            BaseSceneNode(const char* name) {m_Name = name;}
             BaseSceneNode(const std::string& name) {m_Name = name;}
-            BaseSceneNode(const std::string&& name) {m_Name = std::move(name);}
             virtual ~BaseSceneNode() {}
 
-            void AppendChild(std::unique_ptr<BaseSceneNode>&& node)
+			void AppendChild(const std::shared_ptr<BaseSceneNode>& node)
+			{
+				m_Children.push_back(node);
+			}
+
+            void AppendChild(std::shared_ptr<BaseSceneNode>&& node)
             {
                 m_Children.push_back(std::move(node));
             }
 
-            void AppendTransform(std::unique_ptr<SceneObjectTransform>&& transform)
+			void AppendTransform(const std::shared_ptr<SceneObjectTransform>& transform)
+			{
+				m_Transforms.push_back(transform);
+			}
+
+            void AppendTransform(std::shared_ptr<SceneObjectTransform>&& transform)
             {
                 m_Transforms.push_back(std::move(transform));
             }
+
+            const std::shared_ptr<Matrix4f> GetCalclulatedTrasform() const
+            {
+                std::shared_ptr<Matrix4f> result (new Matrix4f);
+                result->SetIdentity();
+
+                // TODO: cascading calcuation
+                for (auto trans : m_Transforms)
+                {
+                    *result = *result * static_cast<Matrix4f>(*trans);
+                }
+
+                return result;
+            }
+
 
             friend std::ostream& operator<<(std::ostream& out, const BaseSceneNode& node)
             {
@@ -46,12 +70,12 @@ namespace Panda
                 node.Dump(out);
                 out << std::endl;
 
-                for (const std::unique_ptr<BaseSceneNode>& subNode : node.m_Children)
+                for (const std::shared_ptr<BaseSceneNode>& subNode : node.m_Children)
                 {
                     out << *subNode << std::endl;
                 }
 
-                for (const std::unique_ptr<SceneObjectTransform>& subTransform : node.m_Transforms)
+                for (const std::shared_ptr<SceneObjectTransform>& subTransform : node.m_Transforms)
                 {
                     out << *subTransform << std::endl;
                 }
@@ -79,6 +103,7 @@ namespace Panda
             SceneNode() = default;
 
             void AddSceneObjectRef(const std::string& key) {m_SceneObjectKey = key;}
+            const std::string& GetSceneObjectRef() {return m_SceneObjectKey;}
     };
 
     typedef BaseSceneNode SceneEmptyNode;

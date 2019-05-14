@@ -17,7 +17,6 @@ int main (int argc, char** argv)
     g_pMemoryManager->Initialize();
     g_pAssetLoader->Initialize();
 
-    g_pAssetLoader->AddSearchPath("/app0");
     string shader_pgm = g_pAssetLoader->SyncOpenAndReadFileToString("Shaders/copy.vs");
 
     cout << shader_pgm;

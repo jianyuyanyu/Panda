@@ -16,7 +16,7 @@ namespace Panda
 	Handness g_ViewHandness = Handness::kHandnessLeft;
 	DepthClipSpace g_DepthClipSpace = DepthClipSpace::kDepthClipZeroToOne;
 
-	GfxConfiguration config(8, 8, 8, 8, 24, 8, 0, 1280, 720, "Panda (Windows OpenGL)");
+	GfxConfiguration config(8, 8, 8, 8, 24, 8, 0, 960, 540, "Panda (Windows OpenGL)");
 	IApplication* g_pApp = static_cast<IApplication*>(new OpenGLApplication(config));
 	GraphicsManager* g_pGraphicsManager = static_cast<GraphicsManager*>(new OpenGLGraphicsManager);
 	MemoryManager* g_pMemoryManager = static_cast<MemoryManager*> (new MemoryManager);

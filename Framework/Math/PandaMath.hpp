@@ -20,6 +20,8 @@ namespace Panda
 {
     void TransformCoord(Vector3Df& inVec, const Matrix4f& inMat);
 
+    void TransformCoord(Vector4Df& inVec, const Matrix4f& inMat);
+
     void MatrixTranspose(Matrix4f& outMat, const Matrix4f& inMat);
 
     void MatrixScale(Matrix4f& outMat, const float x, const float y, const float z);

@@ -234,6 +234,6 @@ namespace Panda
 
     float DefaultAttenFunc (float intensity, float distance)
     {
-        return intensity / (1 + distance);
+        return intensity / std::pow(1 + distance, 2.0f);
     }
 }

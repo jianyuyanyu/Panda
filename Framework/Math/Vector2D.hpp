@@ -104,6 +104,11 @@ namespace Panda
             y /= len;
         }
 
+        FORCEINLINE T* GetAddressOf()
+        {
+            return &data[0];
+        }
+
         friend std::ostream& operator<< (std::ostream& out, const Vector2D<T>& vec)
         {
 			out << "(";

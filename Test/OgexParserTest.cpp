@@ -5,6 +5,7 @@
 #include "OGEX.hpp"
 
 using namespace Panda;
+using namespace std;
 
 namespace Panda
 {
@@ -12,8 +13,8 @@ namespace Panda
     AssetLoader* g_pAssetLoader = new AssetLoader();
 }
 
-template<typename T>
-static std::ostream& operator<<(std::ostream& out, std::unordered_map<std::string, std::shared_ptr<T>> map)
+template<typename Key, typename T>
+static std::ostream& operator<<(std::ostream& out, std::unordered_map<Key, T> map)
 {
     for (auto p : map)
     {

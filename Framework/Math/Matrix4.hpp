@@ -25,6 +25,22 @@ namespace Panda
             m[3][0] = m[3][1] = m[3][2] = m[3][3] = 0;
         }
 
+        FORCEINLINE Matrix4<T> (const Vector4D<T>& in1, const Vector4D<T>& in2, const Vector4D<T>& in3, const Vector4D<T>& in4)
+        {
+            m[0][0] = in1.x; m[0][1] = in1.y; m[0][2] = in1.z; m[0][3] = in1.w;
+            m[1][0] = in2.x; m[1][1] = in2.y; m[1][2] = in2.z; m[1][3] = in2.w;
+            m[2][0] = in3.x; m[2][1] = in3.y; m[2][2] = in3.z; m[2][3] = in3.w;
+            m[3][0] = in4.x; m[3][1] = in4.y; m[3][2] = in4.z; m[3][3] = in4.w;
+        }
+
+        FORCEINLINE Matrix4<T> (T m00, T m01, T m02, T m03, T m10, T m11, T m12, T m13, T m20, T m21, T m22, T m23, T m30, T m31, T m32, T m33)
+        {
+            m[0][0] = m00; m[0][1] = m01; m[0][2] = m02; m[0][3] = m03;
+            m[1][0] = m10; m[1][1] = m11; m[1][2] = m12; m[1][3] = m13;
+            m[2][0] = m20; m[2][1] = m21; m[2][2] = m22; m[2][3] = m23;
+            m[3][0] = m30; m[3][1] = m31; m[3][2] = m32; m[3][3] = m33;
+        }
+
         FORCEINLINE Matrix4<T>(const Matrix4<T>& inMat)
         {
             for (int i = 0; i < 4; ++i)
@@ -57,6 +73,62 @@ namespace Panda
                     m[i][j] = m[j][i];
                     m[j][i] = t;
                 }
+        }
+
+        bool SetInverse()
+        {
+            if (GetDeterminant() == 0)
+                return false;
+            
+            Matrix4<T> transpose(*this);
+            transpose.SetTransposed();
+
+            T det = GetDeterminant();
+            for (int32_t i = 0; i < 4; ++i)
+            {
+                for (int32_t j = 0; j < 4; ++j)
+                {
+                    m[i][j] = transpose.GetCofactor(i, j) / det;
+                }
+            }
+            return true;
+        }
+
+        // 行列式
+        T GetDeterminant()
+        {
+            return  m[0][0] * (m[1][1] * (m[2][2] * m[3][3] - m[2][3] * m[3][2]) - m[1][2] * (m[2][1] * m[3][3] - m[2][3] * m[3][1]) + m[1][3] * (m[2][1] * m[3][2] - m[2][2] * m[3][1])) 
+                  - m[0][1] * (m[1][0] * (m[2][2] * m[3][3] - m[2][3] * m[3][2]) - m[1][2] * (m[2][0] * m[3][3] - m[2][3] * m[3][0]) + m[1][3] * (m[2][0] * m[3][2] - m[2][2] * m[3][0]))
+                  + m[0][2] * (m[1][0] * (m[2][1] * m[3][3] - m[2][3] * m[3][1]) - m[1][1] * (m[2][0] * m[3][3] - m[2][3] * m[3][0]) + m[1][3] * (m[2][0] * m[3][1] - m[2][1] * m[3][0]))
+                  - m[0][3] * (m[1][0] * (m[2][1] * m[3][2] - m[2][2] * m[3][1]) - m[1][1] * (m[2][0] * m[3][2] - m[2][2] * m[3][0]) + m[1][2] * (m[2][0] * m[3][1] - m[2][1] * m[3][0]));
+        }
+
+        // 代数余子式
+        T GetCofactor(int32_t row, int32_t col)
+        {
+            int32_t coefficient = 1;
+            if((row + col) % 2 == 1)
+                coefficient = -1;
+            
+            Matrix3<T> mat;
+            int32_t mi = 0;
+            for (int32_t i = 0; i < 4; ++i)
+            {
+                if (i == row)
+                    continue;
+
+                int32_t mj = 0;
+                for (int32_t j = 0; j < 4; ++j)
+                {
+                    if (j == col)
+                        continue;
+                    mat.m[mi][mj] = m[i][j];
+                    ++mj;
+                }
+                ++mi;
+            }
+
+            return coefficient * mat.GetDeterminant();
         }
 
         FORCEINLINE Matrix4<T> operator= (const Matrix4<T>& inMat)

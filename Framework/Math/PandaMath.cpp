@@ -4,16 +4,25 @@ namespace Panda
 {
     void TransformCoord(Vector3Df& inVec, const Matrix4f& inMat)
     {
-        float x, y, z;
+        Vector4Df temp(inVec.x, inVec.y, inVec.z, 1.0f);
+        TransformCoord(temp, inMat);
+        
+        inVec.x = temp.x;
+        inVec.y = temp.y;
+        inVec.z = temp.z;
 
-        x = inMat.m[0][0] * inVec.x + inMat.m[0][1] * inVec.y + inMat.m[0][2] * inVec.z;
-        y = inMat.m[1][0] * inVec.x + inMat.m[1][1] * inVec.y + inMat.m[1][2] * inVec.z;
-        z = inMat.m[2][0] * inVec.x + inMat.m[2][1] * inVec.y + inMat.m[2][2] * inVec.z;
+        return;
+    }
 
-        inVec.x = x;
-        inVec.y = y;
-        inVec.z = z;
-
+    void TransformCoord(Vector4Df& inVec, const Matrix4f& inMat)
+    {
+        Vector4Df temp;
+        temp.x = inVec.x * inMat.m[0][0] + inVec.y * inMat.m[1][0] + inVec.z * inMat.m[2][0] + inVec.w * inMat.m[3][0];
+        temp.y = inVec.x * inMat.m[0][1] + inVec.y * inMat.m[1][1] + inVec.z * inMat.m[2][1] + inVec.w * inMat.m[3][1];
+        temp.z = inVec.x * inMat.m[0][2] + inVec.y * inMat.m[1][2] + inVec.z * inMat.m[2][2] + inVec.w * inMat.m[3][2];
+        temp.w = inVec.x * inMat.m[0][3] + inVec.y * inMat.m[1][3] + inVec.z * inMat.m[2][3] + inVec.w * inMat.m[3][3];
+        
+        inVec = temp;
         return;
     }
 

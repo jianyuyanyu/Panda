@@ -475,6 +475,14 @@ namespace Panda
                 }
             }
 
+            void SetAttenuation(AttenFunc func)
+            {
+                m_LightAttenuation = func;
+            }
+
+            const Color& GetColor() {return m_LightColor;}
+            float GetIntensity() {return m_Intensity;}
+
         protected:
             // can only used as base class of delivered lighting objects
             SceneObjectLight() : 
@@ -540,6 +548,9 @@ namespace Panda
             {
                 // TODO: extension
             }
+
+            float GetNearClipDistance() const {return m_NearClipDistance;}
+            float GetFarClipDistance() const {return m_FarClipDistance;}
         public:
             SceneObjectCamera() : 
                 BaseSceneObject(SceneObjectType::kSceneObjectTypeCamera), m_Aspect(16.0f / 9.0f), m_NearClipDistance(1.0f), m_FarClipDistance(100.0f) 
@@ -569,11 +580,13 @@ namespace Panda
                 {
                     m_Fov = param;
                 }
+                SceneObjectCamera::SetParam(attrib, param);
             }
             SceneObjectPerspectiveCamera(float fov = PI / 2.0f) :
                 SceneObjectCamera(), m_Fov(fov)
                 {}
             
+            float GetFov() const {return m_Fov;}
             friend std::ostream& operator<<(std::ostream& out, const SceneObjectPerspectiveCamera& obj);
     };
 
@@ -587,6 +600,8 @@ namespace Panda
             SceneObjectTransform() {m_Matrix.SetIdentity(); m_IsSceneObjectOnly = false;}
             SceneObjectTransform(const Matrix4f& matrix, const bool objectOnly = false) {m_Matrix = matrix; m_IsSceneObjectOnly = objectOnly;}
 
+            operator Matrix4f() {return m_Matrix;}
+            operator const Matrix4f() const {return m_Matrix;}
             friend std::ostream& operator<<(std::ostream& out, const SceneObjectTransform& obj);
     };
 

@@ -114,24 +114,15 @@ namespace Panda
                 // Enable depth testing.
                 glEnable(GL_DEPTH_TEST);
 
-                // Set the polygon winding to front facing for the left handed system.
-                glFrontFace(GL_CW);
+                // Set the polygon winding to front facing for the right handed system.
+                glFrontFace(GL_CCW);
 
                 // Enable back face culling.
                 glEnable(GL_CULL_FACE);
                 glCullFace(GL_BACK);
 
                 // Initialize the world/model matrix to the identity matrix.
-                m_WorldMatrix.SetIdentity();
-
-                // Set the field of view and screen aspect ratio.
-                float fieldOfView = PI / 4.0f;
-                const GfxConfiguration& conf = g_pApp->GetConfiguration();
-
-                float screenAspect = (float)conf.screenWidth / (float)conf.screenHeight;
-
-                // Build the perspective projection matrix.
-                BuildPerspectiveFovMatrix(m_ProjectionMatrix, fieldOfView, screenAspect, k_ScreenNear, k_ScreenFar, g_ViewHandness);
+                m_DrawFrameContext.WorldMatrix.SetIdentity();
             }
 
             InitializeShader(VS_SHADER_SOURCE_FILE, PS_SHADER_SOURCE_FILE);
@@ -143,18 +134,21 @@ namespace Panda
 
     void OpenGLGraphicsManager::Finalize()
     {
+        for (auto dbc : m_DrawBatchContext)
+        {
+            glDeleteVertexArrays(1, &dbc.vao);
+        }
+
+        m_DrawBatchContext.clear();
         for (auto i = 0; i < m_Buffers.size() - 1; ++i)
             glDisableVertexAttribArray(i);
 
         for (auto buf : m_Buffers)
         {
-            if (buf.first == "index")
-                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-            else
-                glBindBuffer(GL_ARRAY_BUFFER, 0);
-            
-            glDeleteBuffers(1, &buf.second);
+            glDeleteBuffers(1, &buf);
         }
+
+        m_Buffers.clear();
 
         // Detach the vertex and fragment shaders from the program.
         glDetachShader(m_ShaderProgram, m_VertexShader);
@@ -182,71 +176,101 @@ namespace Panda
 
     void OpenGLGraphicsManager::Draw()
     {
-		static float rotateAngle = 0.f;
-
-        // Update world matrix to rotate the model.
-        rotateAngle += PI / 120;
-        Matrix4f rotationMatrixY;
-        Matrix4f rotationMatrixZ;
-        MatrixRotationY(rotationMatrixY, rotateAngle);
-        MatrixRotationZ(rotationMatrixZ, rotateAngle);
-        m_WorldMatrix = rotationMatrixY * rotationMatrixZ;
-
-        // Generate the view matrix based on the camera's position.
-        CalculateCameraPosition();
-
-        // Set the color shader as the current shader program and set the matrices that it will use for rendering.
-		glUseProgram(m_ShaderProgram);
-        SetShaderParameters(m_WorldMatrix, m_ViewMatrix, m_ProjectionMatrix);
-
         // Render the model using the color shader.
         RenderBuffers();
 
         glFlush();
     }
 
-    bool OpenGLGraphicsManager::SetShaderParameters(const Matrix4f& worldMatrix, const Matrix4f& viewMatrix, const Matrix4f& projectionMatrix)
+    bool OpenGLGraphicsManager::SetPerFrameShaderParameters()
     {
-		Matrix4f world = worldMatrix;
-		Matrix4f view = viewMatrix;
-		Matrix4f projection = projectionMatrix;
-
         unsigned int location;
 
         // Set the world matrix in the vertex shader.
         location = glGetUniformLocation(m_ShaderProgram, "worldMatrix");
-        if (location == -1)
-        {
+        if(location == -1)
             return false;
-        }
-        glUniformMatrix4fv(location, 1, false, world.GetAddressOf());
+        glUniformMatrix4fv(location, 1, false, m_DrawFrameContext.WorldMatrix.GetAddressOf());
 
         // Set the view matrix in the vertex shader.
         location = glGetUniformLocation(m_ShaderProgram, "viewMatrix");
-        if(location == -1)
-        {
+        if (location == -1)
             return false;
-        }
-        glUniformMatrix4fv(location, 1, false, view.GetAddressOf());
-
+        glUniformMatrix4fv(location, 1, false, m_DrawFrameContext.ViewMatrix.GetAddressOf());
 
         // Set the projection matrix in the vertex shader.
         location = glGetUniformLocation(m_ShaderProgram, "projectionMatrix");
         if (location == -1)
-        {
             return false;
-        }
-        glUniformMatrix4fv(location, 1, false, projection.GetAddressOf());
+        glUniformMatrix4fv(location, 1, false, m_DrawFrameContext.ProjectionMatrix.GetAddressOf());
+
+        // Set lighting parameters for PS shader
+        location = glGetUniformLocation(m_ShaderProgram, "lightPosition");
+        if (location == -1)
+            return false;
+        glUniform3fv(location, 1, m_DrawFrameContext.LightPosition.GetAddressOf());
+
+        location = glGetUniformLocation(m_ShaderProgram, "lightColor");
+        if (location == -1)
+            return false;
+        glUniform4fv(location, 1, m_DrawFrameContext.LightColor.GetAddressOf());
+    }
+
+    bool OpenGLGraphicsManager::SetPerBatchShaderParameters(const char* paramName, float* param)
+    {
+        unsigned int location;
+
+        location = glGetUniformLocation(m_ShaderProgram, paramName);
+        if (location == -1)
+            return false;
+        glUniformMatrix4fv(location, 1, false, param);
 
         return true;
     }
+    // bool OpenGLGraphicsManager::SetShaderParameters(const Matrix4f& worldMatrix, const Matrix4f& viewMatrix, const Matrix4f& projectionMatrix)
+    // {
+	// 	Matrix4f world = worldMatrix;
+	// 	Matrix4f view = viewMatrix;
+	// 	Matrix4f projection = projectionMatrix;
+
+    //     unsigned int location;
+
+    //     // Set the world matrix in the vertex shader.
+    //     location = glGetUniformLocation(m_ShaderProgram, "worldMatrix");
+    //     if (location == -1)
+    //     {
+    //         return false;
+    //     }
+    //     glUniformMatrix4fv(location, 1, false, world.GetAddressOf());
+
+    //     // Set the view matrix in the vertex shader.
+    //     location = glGetUniformLocation(m_ShaderProgram, "viewMatrix");
+    //     if(location == -1)
+    //     {
+    //         return false;
+    //     }
+    //     glUniformMatrix4fv(location, 1, false, view.GetAddressOf());
+
+
+    //     // Set the projection matrix in the vertex shader.
+    //     location = glGetUniformLocation(m_ShaderProgram, "projectionMatrix");
+    //     if (location == -1)
+    //     {
+    //         return false;
+    //     }
+    //     glUniformMatrix4fv(location, 1, false, projection.GetAddressOf());
+
+    //     return true;
+    // }
 
     void OpenGLGraphicsManager::InitializeBuffers()
     {
         auto& scene = g_pSceneManager->GetScene();
-        auto pGeometry = scene.GetFirstGeometry();
-        while (pGeometry)
+        auto pGeometryNode = scene.GetFirstGeometryNode();
+        while (pGeometryNode)
         {
+            auto pGeometry = scene.GetGeometry(pGeometryNode->GetSceneObjectRef());
+            assert(pGeometry);
             auto pMesh = pGeometry->GetMesh().lock();
             if (!pMesh) return;
 
@@ -311,7 +335,7 @@ namespace Panda
                         break;
                 }
 
-                m_Buffers[v_property_array.GetAttributeName()] = buffer_id;
+                m_Buffers.push_back(buffer_id);
             }
 
             // Generate an ID for the index buffer.
@@ -373,16 +397,17 @@ namespace Panda
                     continue;
             }
 
-            m_Buffers["index"] = buffer_id;
+            m_Buffers.push_back(buffer_id);
 
             DrawBatchContext dbc;
             dbc.vao = vao;
             dbc.mode = mode;
             dbc.type = type;
             dbc.count = indexCount;
-            m_VAO.push_back(std::move(dbc));
+            dbc.transform = pGeometryNode->GetCalclulatedTrasform();
+            m_DrawBatchContext.push_back(std::move(dbc));
 
-            pGeometry = scene.GetNextGeometry();
+            pGeometryNode = scene.GetNextGeometryNode();
         }
 
         return;
@@ -390,8 +415,27 @@ namespace Panda
 
     void OpenGLGraphicsManager::RenderBuffers()
     {
-        for (auto dbc : m_VAO)
+        static float rotateAngle = 0.0f;
+
+        // Update world matrix to rotate the model
+        rotateAngle += PI / 120;
+        Matrix4f rotationMatrixY;
+        Matrix4f rotationMatrixZ;
+        MatrixRotationZ(rotationMatrixZ, rotateAngle);
+        m_DrawFrameContext.WorldMatrix = rotationMatrixZ;
+
+        // Generate the view matrix based on the camera's position
+        CalculateCameraMatrix();
+        CalculateLights();
+
+        SetPerFrameShaderParameters();
+
+        for (auto dbc : m_DrawBatchContext)
         {
+            // Set the color shader as the current shader program and set the matrices that it will use for rendering.
+            glUseProgram(m_ShaderProgram);
+            SetPerBatchShaderParameters("objectLocalMatrix", (*dbc.transform).GetAddressOf());
+
             glBindVertexArray(dbc.vao);
 
             // Render the vertex buffer using the index buffer
@@ -401,46 +445,55 @@ namespace Panda
         return;
     }
 
-    void OpenGLGraphicsManager::CalculateCameraPosition()
+    void OpenGLGraphicsManager::CalculateCameraMatrix()
     {
-        Vector3Df up, position, lookAt;
-        float yaw, pitch, roll;
-        Matrix4f rotationMatrix;
+        auto& scene = g_pSceneManager->GetScene();
+        auto pCameraNode = scene.GetFirstCameraNode();
+        if (pCameraNode)
+        {
+            m_DrawFrameContext.ViewMatrix = *pCameraNode->GetCalclulatedTrasform();
+            m_DrawFrameContext.ViewMatrix.SetInverse();
+        }
+        else
+        {
+            // use default build-in camera
+            Vector3Df position = {0, 0, 5}, lookAt = {0, 0, 0}, up = {0, 1, 0};
+            BuildViewMatrix(m_DrawFrameContext.ViewMatrix, position, lookAt, up, g_ViewHandness);
+        }
+        
+        auto pCamera = scene.GetCamera(pCameraNode->GetSceneObjectRef());
 
-        // Setup the vector that points upwards.
-        up.x = 0.f;
-        up.y = 1.f;
-        up.z = 0.f;
+        // Set the field of view and scene aspect ratio
+        float fieldOfView = std::dynamic_pointer_cast<SceneObjectPerspectiveCamera>(pCamera)->GetFov();
+        const GfxConfiguration& conf = g_pApp->GetConfiguration();
 
-        // Setup the position of the camera in the world.
-        position.x = m_PositionX;
-        position.y = m_PositionY;
-        position.z = m_PositionZ;
+        float screenAspect = (float)conf.screenWidth / (float)conf.screenHeight;
 
-        // Setup where the camera is looking by default.
-        lookAt.x = 0.0f;
-        lookAt.y = 0.0f;
-        lookAt.z = 1.0f;
+        // Build the perspective projection matrix.
+        BuildPerspectiveFovMatrix(m_DrawFrameContext.ProjectionMatrix, fieldOfView, screenAspect, pCamera->GetNearClipDistance(), pCamera->GetFarClipDistance());
+    }
 
-        // Set the yaw (Y axis), pitch (X axis), and roll (Z axis) rotations in radians.
-        pitch = m_PositionX * 0.0174532925f;
-        yaw   = m_PositionY * 0.0174532925f;
-        roll  = m_PositionZ * 0.0174532925f;
+    void OpenGLGraphicsManager::CalculateLights()
+    {
+        auto& scene = g_pSceneManager->GetScene();
+        auto pLightNode = scene.GetFirstLightNode();
+        if (pLightNode)
+        {
+            m_DrawFrameContext.LightPosition = {0.0f, 0.0f, 0.0f};
+            TransformCoord(m_DrawFrameContext.LightPosition, *pLightNode->GetCalclulatedTrasform());
 
-        // Create the rotation matrix from the yaw, pitch, and roll values.
-        MatrixRotationYawPitchRoll(rotationMatrix, yaw, pitch, roll);
-
-        // Transform the lookAt and up vector by the rotation matrix so the view is correctly rotated at the origin.
-        TransformCoord(lookAt, rotationMatrix);
-        TransformCoord(up, rotationMatrix);
-
-        // Translate the rotated camera position to the location of the viewer
-        lookAt.x = position.x + lookAt.x;
-        lookAt.y = position.y + lookAt.y;
-        lookAt.z = position.z + lookAt.z;
-
-        // Finally create the view matrix from the three updated vectors.
-        BuildViewMatrix(m_ViewMatrix, position, lookAt, up, g_ViewHandness);
+            auto pLight = scene.GetLight(pLightNode->GetSceneObjectRef());
+            if (pLight)
+            {
+                m_DrawFrameContext.LightColor = pLight->GetColor().Value;
+            }
+        }
+        else
+        {
+            // use default build-in light
+            m_DrawFrameContext.LightPosition = {10.0f, 10.0f, -10.0f};
+            m_DrawFrameContext.LightColor = {1.0f, 1.0f, 1.0f, 1.0f};
+        }
     }
 
     bool OpenGLGraphicsManager::InitializeShader(const char* vsFilename, const char* fsFilename)

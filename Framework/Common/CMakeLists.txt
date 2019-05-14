@@ -7,8 +7,8 @@ add_library(Common
   Image.cpp
   MemoryManager.cpp
   SceneManager.cpp
+  Scene.cpp
   SceneObject.cpp
-  SceneParser.cpp
   main.cpp)
 
 target_link_libraries(Common PandaMath)

@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include "OpenGEX.h"
 #include "portable.hpp"
+#include "Scene.hpp"
 #include "SceneParser.hpp"
 
 namespace Panda
@@ -10,30 +11,46 @@ namespace Panda
     class OgexParser : implements SceneParser
     {
         private:
-            void ConvertOddlStructureToSceneNode(const ODDL::Structure& structure, std::unique_ptr<BaseSceneNode>& baseNode, Scene& scene)
+            void ConvertOddlStructureToSceneNode(const ODDL::Structure& structure, std::shared_ptr<BaseSceneNode>& baseNode, Scene& scene)
             {
-                std::unique_ptr<BaseSceneNode> node;
+                std::shared_ptr<BaseSceneNode> node;
 
                 switch(structure.GetStructureType())
                 {
+                    case OGEX::kStructureMetric:
+                    {
+                        const OGEX::MetricStructure& _structure = dynamic_cast<const OGEX::MetricStructure&>(structure);
+                        auto _key = _structure.GetMetricKey();
+                        const ODDL::Structure* subStructure = _structure.GetFirstCoreSubnode();
+                        if (_key == "up")
+                        {
+                            const ODDL::DataStructure<ODDL::StringDataType>* dataStructure = static_cast<const ODDL::DataStructure<ODDL::StringDataType> *>(subStructure);
+                            auto axisName = dataStructure->GetDataElement(0);
+                            if (axisName == "y")
+                                m_UpIsYAxis = true;
+                            else
+                                m_UpIsYAxis = false;
+                        }
+                        
+                        return;
+                    }
                     case OGEX::kStructureNode:
                     {
-                        node = std::make_unique<SceneEmptyNode>(structure.GetStructureName());
+                        node = std::make_shared<SceneEmptyNode>(structure.GetStructureName());
                         break;
                     }
                     case OGEX::kStructureGeometryNode:
                     {
-                        node = std::make_unique<SceneGeometryNode>(structure.GetStructureName());
+                        auto _node = std::make_shared<SceneGeometryNode>(structure.GetStructureName());
                         const OGEX::GeometryNodeStructure& _structure = dynamic_cast<const OGEX::GeometryNodeStructure&>(structure);
 
-                        SceneGeometryNode& _node = dynamic_cast<SceneGeometryNode&>(*node);
-                        _node.SetVisibility(_structure.GetVisibleFlag());
-                        _node.SetIfCastShadow(_structure.GetShadowFlag());
-                        _node.SetIfMotionBlur(_structure.GetMotionBlurFlag());
+                        _node->SetVisibility(_structure.GetVisibleFlag());
+                        _node->SetIfCastShadow(_structure.GetShadowFlag());
+                        _node->SetIfMotionBlur(_structure.GetMotionBlurFlag());
 
                         // ref scene objects
                         std::string _key = _structure.GetObjectStructure()->GetStructureName();
-                        _node.AddSceneObjectRef(_key);
+                        _node->AddSceneObjectRef(_key);
 
                         // ref materials
                         auto materials = _structure.GetMaterialStructureArray();
@@ -42,34 +59,42 @@ namespace Panda
                         {
                             auto material = materials[i];
                             _key = material->GetStructureName();
-                            _node.AddSceneObjectRef(_key);
+                            _node->AddMaterialRef(_key);
                         }
+
+                        scene.GeometryNodes.emplace(_key, _node);
+
+						node = _node;
                         break;
                     }
                     case OGEX::kStructureLightNode:
                     {
-                        node = std::make_unique<SceneLightNode>(structure.GetStructureName());
+                        auto _node = std::make_shared<SceneLightNode>(structure.GetStructureName());
                         const OGEX::LightNodeStructure& _structure = dynamic_cast<const OGEX::LightNodeStructure&>(structure);
 
-                        SceneLightNode& _node = dynamic_cast<SceneLightNode&>(*node);
-                        _node.SetIfCastShadow(_structure.GetShadowFlag());
+                        _node->SetIfCastShadow(_structure.GetShadowFlag());
 
                         // ref scene objects
                         std::string _key = _structure.GetObjectStructure()->GetStructureName();
-                        _node.AddSceneObjectRef(_key);
+                        _node->AddSceneObjectRef(_key);
 
+                        scene.LightNodes.emplace(_key, _node);
+
+                        node = _node;
                         break;
                     }
                     case OGEX::kStructureCameraNode:
                     {
-                        node = std::make_unique<SceneCameraNode>(structure.GetStructureName());
+                        auto _node = std::make_shared<SceneCameraNode>(structure.GetStructureName());
                         const OGEX::CameraNodeStructure& _structure = dynamic_cast<const OGEX::CameraNodeStructure&>(structure);
 
-                        SceneCameraNode& _node = dynamic_cast<SceneCameraNode&>(*node);
-                        
                         // ref scene objects
                         std::string _key = _structure.GetObjectStructure()->GetStructureName();
-                        _node.AddSceneObjectRef(_key);
+                        _node->AddSceneObjectRef(_key);
+
+                        scene.CameraNodes.emplace(_key, _node);
+
+                        node = _node;
                         break;
                     }
                     case OGEX::kStructureGeometryObject:
@@ -248,16 +273,21 @@ namespace Panda
                         const OGEX::TransformStructure& _structure = dynamic_cast<const OGEX::TransformStructure&>(structure);
                         bool object_flag = _structure.GetObjectFlag();
                         Matrix4f matrix;
-                        std::unique_ptr<SceneObjectTransform> transform;
+                        std::shared_ptr<SceneObjectTransform> transform;
 
                         count = _structure.GetTransformCount();
                         for (index = 0; index < count; ++index)
                         {
                             const float* data = _structure.GetTransform(index);
                             matrix = data;
-                            matrix.SetTransposed();
-                            transform = std::make_unique<SceneObjectTransform>(matrix, object_flag);
+                            if (!m_UpIsYAxis)
+                            {
+                                // TODO: EXCHANGE y and z
+                                // ExchangeYandZ(matrix)
+                            }
+                            transform = std::make_shared<SceneObjectTransform>(matrix, object_flag);
                             baseNode->AppendTransform(std::move(transform));
+							//baseNode->AppendTransform(transform);
                         }
                         return;
                     }
@@ -368,7 +398,8 @@ namespace Panda
                                 }
                                 case OGEX::kStructureAtten:
                                 {
-                                    // TODO: implement it
+                                    // TODO: truly implement it
+                                    light->SetAttenuation(DefaultAttenFunc);
                                     break;
                                 }
                                 default:
@@ -455,7 +486,7 @@ namespace Panda
                     const ODDL::Structure* structure = openGexDataDescription.GetRootStructure()->GetFirstSubnode();
                     while (structure)
                     {
-                        ConvertOddlStructureToSceneNode(*structure, pScene->SceneGraph, *pScene.get());
+                        ConvertOddlStructureToSceneNode(*structure, pScene->SceneGraph, *pScene);
 
                         structure = structure->Next();
                     }
@@ -463,5 +494,8 @@ namespace Panda
 
                 return pScene;
             }
+
+        private:
+            bool m_UpIsYAxis;
     };
 }
