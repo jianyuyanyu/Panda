@@ -199,7 +199,7 @@ int Panda::OpenGLApplication::Initialize()
         int context_attribs[] =
           {
             GLX_CONTEXT_MAJOR_VERSION_ARB, 3,
-            GLX_CONTEXT_MINOR_VERSION_ARB, 2,
+            GLX_CONTEXT_MINOR_VERSION_ARB, 3,
             None
           };
 
@@ -209,7 +209,7 @@ int Panda::OpenGLApplication::Initialize()
 
         XSync(m_pDisplay, False);
         if (!ctxErrorOccurred && m_Context)
-          printf( "Created GL 3.2 context\n" );
+          printf( "Created GL 3.3 context\n" );
         else
         {
           /* GLX_CONTEXT_MAJOR_VERSION_ARB = 1 */
@@ -219,7 +219,7 @@ int Panda::OpenGLApplication::Initialize()
 
           ctxErrorOccurred = false;
 
-          printf( "Failed to create GL 3.2 context"
+          printf( "Failed to create GL 3.3 context"
                   " ... using old-style GLX context\n" );
           m_Context = glXCreateContextAttribsARB(m_pDisplay, fb_config, 0, 
                                             True, context_attribs );

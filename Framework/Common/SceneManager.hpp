@@ -15,12 +15,12 @@ namespace Panda
 
             virtual void Tick();
 
-            void LoadScene(const char* sceneFileName);
+            int LoadScene(const char* sceneFileName);
 
             const Scene& GetScene();
 
         protected:
-            void LoadOgexScene(const char* ogexSceneFileName);
+            bool LoadOgexScene(const char* ogexSceneFileName);
 
         protected:
             std::unique_ptr<Scene> m_pScene;

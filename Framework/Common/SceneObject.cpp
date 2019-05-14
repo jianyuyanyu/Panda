@@ -1,4 +1,4 @@
-#include "SceneNode.hpp"
+#include "SceneObject.hpp"
 
 namespace Panda
 {
@@ -197,6 +197,14 @@ namespace Panda
         out << "Penumbra Angle: " << obj.m_PenumbraAngle << std::endl;
         return out;
     }
+
+	std::ostream& operator<<(std::ostream& out, const SceneObjectInfiniteLight& obj)
+	{
+		out << static_cast<const SceneObjectLight&>(obj) << std::endl;
+		out << "Light Type: Infinite" << std::endl;
+
+		return out;
+	}
 
     std::ostream& operator<<(std::ostream& out, const SceneObjectCamera& obj)
     {

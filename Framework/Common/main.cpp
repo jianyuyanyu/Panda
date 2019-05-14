@@ -38,7 +38,14 @@ int main(int argc, char **argv)
 		return ret;
 	}
 
-	g_pSceneManager->LoadScene("Scene/test.ogex");
+	std::string sceneFileName = "Scene/aili_cycle.ogex";
+	if (argc > 1)
+		sceneFileName = argv[1];
+	if ((ret = g_pSceneManager->LoadScene(sceneFileName.c_str())) != 0)
+	{
+		printf("Unable to load scene: %s\n", sceneFileName.c_str());
+		return ret;
+	}
 
 	if ((ret = g_pGraphicsManager->Initialize()) != 0)
 	{

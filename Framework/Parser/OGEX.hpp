@@ -58,8 +58,8 @@ namespace Panda
                         for (auto i = 0; i < materials_count; ++i)
                         {
                             auto material = materials[i];
-                            _key = material->GetStructureName();
-                            _node->AddMaterialRef(_key);
+                            std::string name = material->GetStructureName();
+                            _node->AddMaterialRef(name);
                         }
 
                         scene.GeometryNodes.emplace(_key, _node);
@@ -354,8 +354,7 @@ namespace Panda
 
                         if (!strncmp(typeStr, "infinite", 8))
                         {
-                            // TODO: implement this
-                            return;
+							light = std::make_shared<SceneObjectInfiniteLight>();
                         }
                         else if (!strncmp(typeStr, "point", 5))
                         {
