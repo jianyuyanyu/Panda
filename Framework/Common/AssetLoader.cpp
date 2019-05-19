@@ -126,8 +126,8 @@ Panda::Buffer Panda::AssetLoader::SyncOpenAndReadText(const char* filePath)
     {
         size_t length = GetSize(fp);
         pBuff = new Buffer(length + 1);
-        size_t result = fread(pBuff->m_pData, 1, length, static_cast<FILE*>(fp));
-        pBuff->m_pData[result] = '\0';
+        size_t result = fread(pBuff->GetData(), 1, length, static_cast<FILE*>(fp));
+        pBuff->GetData()[result] = '\0';
 
         CloseFile(fp);
     }
@@ -152,7 +152,7 @@ Panda::Buffer Panda::AssetLoader::SyncOpenAndReadBinary(const char* filePath)
     {
         size_t length = GetSize(fp);
         pBuff = new Buffer(length);
-        fread (pBuff->m_pData, length, 1, static_cast<FILE*>(fp));
+        fread (pBuff->GetData(), length, 1, static_cast<FILE*>(fp));
 
         CloseFile(fp);
     }
@@ -197,7 +197,7 @@ size_t Panda::AssetLoader::SyncRead(const AssetFilePtr& fp, Buffer& buf)
         return 0;
     }
 
-    sz = fread(buf.m_pData, buf.m_Size, 1, static_cast<FILE*>(fp));
+    sz = fread(buf.GetData(), buf.m_Size, 1, static_cast<FILE*>(fp));
 
 #ifdef DEBUG
     fprintf(stderr, "Read file '%s', %d bytes\n", filePath, length);

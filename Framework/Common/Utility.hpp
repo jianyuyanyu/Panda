@@ -1,8 +1,6 @@
 #pragma once
 #include "portable.hpp"
 
-
-
 namespace Panda {
 	template<class T>
 	inline void SafeRelease(T **ppInterfaceToRelease)

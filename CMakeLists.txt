@@ -51,6 +51,18 @@ int main(int argc, char** argv)
 "
  HAVE_MAKE_UNIQUE)
  configure_file(${PROJECT_SOURCE_DIR}/config.h.in ${PROJECT_SOURCE_DIR}/config.h)
+ 
+CHECK_CXX_SOURCE_COMPILES(
+"#include <algorithm>
+
+int main(int argc, char** argv)
+{
+	int result = -1;
+	result = std::clamp(result, 0, 1);
+	return result;
+}
+"
+HAVE_CLAMP)
 
 add_subdirectory(Framework)		# sub directory, must have CMakeLists.txt in it
 add_subdirectory(Platform)

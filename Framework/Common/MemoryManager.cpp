@@ -11,12 +11,11 @@ namespace Panda
 {
 	Allocator* MemoryManager::m_pAllocators = nullptr;
 	uint32_t* MemoryManager::m_pLookUpTable = nullptr;
+	bool MemoryManager::m_IsInitialized = false;
 }
 
 int Panda::MemoryManager::Initialize() {
-	static bool s_bInitialized = false;
-	
-	if (!s_bInitialized) 
+	if (!m_IsInitialized) 
 	{
 		// 初始化分配器
 		m_pAllocators = new Allocator[k_BlockSizeCount];
@@ -38,7 +37,7 @@ int Panda::MemoryManager::Initialize() {
 			m_pLookUpTable[i] = j;
 		}
 	
-		s_bInitialized = true;
+		m_IsInitialized = true;
 	}
 
 	return 0;
@@ -48,6 +47,7 @@ void Panda::MemoryManager::Finalize()
 {
 	delete[] m_pAllocators;
 	delete[] m_pLookUpTable;
+	m_IsInitialized = false;
 }
 
 void Panda::MemoryManager::Tick()
@@ -89,12 +89,15 @@ void* Panda::MemoryManager::Allocate(size_t inSize, size_t alignment)
 
 void Panda::MemoryManager::Free(void* p, size_t inSize) 
 {
-	Allocator* pAlloc = LookUpAllocator(inSize);
-	
-	if (pAlloc)
-		pAlloc->Free(p);
-	else
-		free(p);
+	if (m_IsInitialized)
+	{
+		Allocator* pAlloc = LookUpAllocator(inSize);
+		
+		if (pAlloc)
+			pAlloc->Free(p);
+		else
+			free(p);		
+	}
 }
 
 Panda::Allocator* Panda::MemoryManager::LookUpAllocator(size_t inSize)

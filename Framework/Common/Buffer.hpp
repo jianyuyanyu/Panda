@@ -1,12 +1,12 @@
 #pragma once
-#include <memory.h>
-#include <stddef.h>
+#include <memory>
+#include <cstddef>
+#include <cstdlib>
+#include <cstring>
 #include "MemoryManager.hpp"
 
 namespace Panda
 {
-    extern MemoryManager* g_pMemoryManager;
-
     class Buffer
     {
         public:
@@ -72,6 +72,10 @@ namespace Panda
                     m_pData = nullptr;
                 }
             }
+
+            uint8_t*    GetData() {return m_pData;}
+            const uint8_t* GetData() const {return m_pData;}
+            size_t GetDataSize() const {return m_Size;}
         public:
             uint8_t* m_pData;
             size_t m_Size;

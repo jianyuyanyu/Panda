@@ -37,8 +37,8 @@ namespace Panda
         virtual Image Parse(const Buffer& buf)
         {
             Image img;
-            BITMAP_FILEHEADER* pFileHeader = reinterpret_cast<BITMAP_FILEHEADER*>(buf.m_pData);
-            BITMAP_HEADER* pBmpHeader = reinterpret_cast<BITMAP_HEADER*>(buf.m_pData + BITMAP_FILEHEADER_SIZE);
+            const BITMAP_FILEHEADER* pFileHeader = reinterpret_cast<const BITMAP_FILEHEADER*>(buf.GetData());
+            const BITMAP_HEADER* pBmpHeader = reinterpret_cast<const BITMAP_HEADER*>(reinterpret_cast<const uint8_t*>(buf.GetData())+ BITMAP_FILEHEADER_SIZE);
             if (pFileHeader->signature == 0X4D42 /* 'M' 'B'*/)
             {
                 std::cout << "Aset is Windows BMP file" << std::endl;
@@ -58,9 +58,10 @@ namespace Panda
             img.Width = pBmpHeader->width;
             img.Height = pBmpHeader->height;
             img.BitCount = 32;
-            img.Pitch = ((img.Width * img.BitCount >> 3) + 3) & ~3; // 4 bytes alignment
+            auto byteCount = img.BitCount >> 3;
+            img.Pitch = ((img.Width * byteCount) + 3) & ~3; // 4 bytes alignment
             img.DataSize = img.Pitch * img.Height;
-            img.Data = reinterpret_cast<ColorRGBAi*>(g_pMemoryManager->Allocate(img.DataSize));
+            img.Data = g_pMemoryManager->Allocate(img.DataSize);
 
             if (img.BitCount < 24)
             {
@@ -68,19 +69,19 @@ namespace Panda
             }
             else
             {
-                uint8_t* pSourceData = buf.m_pData + pFileHeader->bitsOffset;
+                const uint8_t* pSourceData = reinterpret_cast<const uint8_t*>(buf.GetData()) + pFileHeader->bitsOffset;
                 for (int32_t y = img.Height - 1; y >= 0; --y)
                 {
 					if (y == 0)
 						int m = 0;
                     for (int32_t x = 0; x < img.Width; ++x)
                     {
-                        ColorRGBAi* pDst = img.Data + img.Width * (img.Height - y - 1) + x;
-                        uint8_t* pSrc = pSourceData + img.Pitch * y + x * (img.BitCount >> 3);
-                        pDst->b = *pSrc;
-                        pDst->g = *(pSrc + 1);
-                        pDst->r = *(pSrc + 2);
-						pDst->a = *(pSrc + 3);
+                        uint8_t* pDst = reinterpret_cast<uint8_t*>(img.Data) + img.Width * (img.Height - y - 1) + x;
+                        const uint8_t* pSrc = pSourceData + img.Pitch * y + x * byteCount;
+                        pDst[2] = *pSrc;
+                        pDst[1] = *(pSrc + 1);
+                        pDst[0] = *(pSrc + 2);
+						pDst[3] = *(pSrc + 3);
 
                         // (img.data + img.width * (img.height - y - 1) + x)->bgra = 
                         //     *reinterpret_cast<ColorRGBA*>(pSourceData + img.pitch * y + x * (img.bitcount >> 3));

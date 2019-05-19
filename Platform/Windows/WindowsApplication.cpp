@@ -74,17 +74,47 @@ void Panda::WindowsApplication::Tick()
 // 消息处理
 LRESULT CALLBACK Panda::WindowsApplication::WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    switch(message)
+   WindowsApplication* pThis;
+    if (message == WM_NCCREATE)
     {
-    case WM_DESTROY:
+        pThis = static_cast<WindowsApplication*>(reinterpret_cast<CREATESTRUCT*>(lParam)->lpCreateParams);
+
+        SetLastError(0);
+        if (!SetWindowLongPtr(hWnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pThis)))
         {
-            // 完全关闭应用，包括窗口和进程
-            PostQuitMessage(0);
-            BaseApplication::m_Quit = true;
-            return 0;
+            if (GetLastError() != 0)
+                return FALSE;
         }
     }
+    else
+    {
+        pThis = reinterpret_cast<WindowsApplication*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
+    }
 
-    // 没有处理的消息继续往下发
+    // sort through and find what code to run for the message given
+    switch(message)
+    {
+        case WM_PAINT:
+            {
+                g_pApp->OnDraw();
+            }
+            break;
+        case WM_KEYDOWN:
+            {
+                // we will replace this with input manager
+                //m_Quit = true;
+            } 
+            break;
+
+            // this message is read when the window is closed
+        case WM_DESTROY:
+            {
+                // close the application entirely
+                PostQuitMessage(0);
+                m_Quit = true;
+            }
+    }
+
+    // Handle any messages the switch statement didn't
     return DefWindowProc (hWnd, message, wParam, lParam);
 }

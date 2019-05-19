@@ -61,7 +61,7 @@ namespace Panda
             {
                 std::string result;
                 Buffer buffer = SyncOpenAndReadText(fileName);
-                char* content = reinterpret_cast<char*>(buffer.m_pData);
+                char* content = reinterpret_cast<char*>(buffer.GetData());
 
                 if (content)
                 {

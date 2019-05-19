@@ -1,5 +1,6 @@
 #include <iostream>
 #include <assert.h>
+#include <iomanip>
 #include "PandaMath.hpp"
 
 using namespace Panda;
@@ -9,6 +10,20 @@ namespace Panda
 {
 	Handness g_ViewHandness = Handness::kHandnessRight;
 	DepthClipSpace g_DepthClipSpace = DepthClipSpace::kDepthClipNegativeOneToOne;
+}
+
+template<typename T>
+ostream& Output (ostream& out, int32_t cut, int32_t count, T in[])
+{
+    for (int i = 0; i < count; ++i)
+    {
+		if (i != 0 && (i % cut == 0))
+			out << endl;
+        out << fixed << setprecision(6) <<  in[i] << ",";
+    }
+
+	out << endl;
+    return out;
 }
 
 void VectorTest()
@@ -147,12 +162,57 @@ void MatrixTest()
     cout << "InvertMatrix4f returns false. " << endl;
 }
 
+void TestDCTs()
+{
+    float pixelBlock[64] = {
+        -76, -73, -67, -62, -58, -67, -64, -55,
+        -65, -69, -73, -38, -19, -43, -59, -56,
+        -66, -69, -60, -15,  16, -24, -62, -55,
+        -65, -70, -57, - 6,  26, -22, -58, -59,
+        -61, -67, -60, -24, - 2, -40, -60, -58,
+        -49, -63, -68, -58, -51, -60, -70, -53,
+        -43, -57, -64, -69, -73, -67, -63, -45,
+        -41, -49, -59, -60, -63, -52, -50, -34
+    };
+
+    cout << "A 8x8 int pixel block: " << endl;
+    Output(cout, 8, 64, pixelBlock);
+    float dct[64] = {0.0};
+    DCT8x8(pixelBlock, dct);
+	cout << endl;
+    cout << "After DCTII : " << endl;
+    Output(cout, 8, 64, dct);
+	cout << endl;
+	cout << endl;
+
+	float pixelBlock2[64] = {
+		-416, -33, -60,  32,  48, -40,   0,   0,
+		   0, -24, -56,  19,  26,   0,   0,   0,
+		 -42,  13,  80, -24, -40,   0,   0,   0,
+		 -42,  17,  44, -29,   0,   0,   0,   0,
+		  18,   0,   0,   0,   0,   0,   0,   0,
+		   0,   0,   0,   0,   0,   0,   0,   0,
+		   0,   0,   0,   0,   0,   0,   0,   0,
+		   0,   0,   0,   0,   0,   0,   0,   0
+	};
+
+	cout << "A 8x8 int pixel block 2: " << endl;
+	Output(cout, 8, 64, pixelBlock2);
+	float dct2[64] = { 0.0f };
+	IDCT8x8(pixelBlock2, dct2);
+	cout << endl;
+	cout << "After DCTIII : " << endl;
+	Output(cout, 8, 64, dct2);
+	cout << endl;
+}
+
 int main (int argc, char** argv)
 {
 	cout << std::endl;
 
 	VectorTest();
 	MatrixTest();
+	TestDCTs();
 
 	getchar();
 

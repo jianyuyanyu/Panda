@@ -7,6 +7,7 @@
 #include "SceneManager.hpp"
 #include "Utility.hpp"
 #include "BMP.hpp"
+#include "JPEG.hpp"
 
 using namespace Panda;
 using namespace std;
@@ -16,7 +17,7 @@ namespace Panda {
     {
         public:
             using D2DGraphicsManager::D2DGraphicsManager;
-            void DrawBitmap(const Image image[], int32_t index);
+            void DrawImage(const Image image);
         private:
             ID2D1Bitmap* m_pBitmap = nullptr;
     };
@@ -31,11 +32,14 @@ namespace Panda {
         virtual void OnDraw();
 
     private:
-        Image m_Image[2];
+        Image m_Image;
     };
 }
 
 namespace Panda {
+	Handness g_ViewHandness = Handness::kHandnessRight;
+	DepthClipSpace g_DepthClipSpace = DepthClipSpace::kDepthClipNegativeOneToOne;
+
     GfxConfiguration config(8, 8, 8, 8, 24, 8, 0, 1024, 512, "Texture Load Test (Windows)");
 	IApplication* g_pApp                = static_cast<IApplication*>(new TestApplication(config));
     GraphicsManager* g_pGraphicsManager = static_cast<GraphicsManager*>(new TestGraphicsManager);
@@ -51,14 +55,19 @@ int Panda::TestApplication::Initialize()
     result = WindowsApplication::Initialize();
 
     if (result == 0) {
-        BmpParser   parser;
-        Buffer buf = g_pAssetLoader->SyncOpenAndReadBinary("Textures/icelogo-color.bmp");
+        Buffer buf;
 
-        m_Image[0] = parser.Parse(buf);
+        JfifParser jfifParser;
+        if(m_ArgC > 1)
+        {
+            buf = g_pAssetLoader->SyncOpenAndReadBinary(m_ppArgV[1]);
+        }
+        else 
+        {
+            buf = g_pAssetLoader->SyncOpenAndReadBinary("Texture/jpeg_decoder_test.jpg");
+        }
 
-        buf = g_pAssetLoader->SyncOpenAndReadBinary("Textures/1.bmp");
-
-        m_Image[1] = parser.Parse(buf);
+        m_Image = jfifParser.Parse(buf);
     }
 
     return result;
@@ -66,11 +75,10 @@ int Panda::TestApplication::Initialize()
 
 void Panda::TestApplication::OnDraw()
 {
-    dynamic_cast<TestGraphicsManager*>(g_pGraphicsManager)->DrawBitmap(m_Image, 0);
-    dynamic_cast<TestGraphicsManager*>(g_pGraphicsManager)->DrawBitmap(m_Image, 1);
+    dynamic_cast<TestGraphicsManager*>(g_pGraphicsManager)->DrawImage(m_Image);
 }
 
-void Panda::TestGraphicsManager::DrawBitmap(const Image* image, int32_t index)
+void Panda::TestGraphicsManager::DrawImage(const Image image)
 {
 	HRESULT hr;
 
@@ -83,8 +91,8 @@ void Panda::TestGraphicsManager::DrawBitmap(const Image* image, int32_t index)
     props.dpiX = 72.0f;
     props.dpiY = 72.0f;
     SafeRelease(&m_pBitmap);
-    hr = m_pRenderTarget->CreateBitmap(D2D1::SizeU(image[index].Width, image[index].Height), 
-                                                    image[index].Data, image[index].Pitch, props, &m_pBitmap);
+    hr = m_pRenderTarget->CreateBitmap(D2D1::SizeU(image.Width, image.Height), 
+                                                    image.Data, image.Pitch, props, &m_pBitmap);
 
     D2D1_SIZE_F rtSize = m_pRenderTarget->GetSize();
     D2D1_SIZE_F bmpSize = m_pBitmap->GetSize();
@@ -101,9 +109,9 @@ void Panda::TestGraphicsManager::DrawBitmap(const Image* image, int32_t index)
 	float dest_width = rtSize.height * aspect;
 
     D2D1_RECT_F dest_rect = D2D1::RectF(
-                     dest_width * index,
                      0,
-                     dest_width * (index + 1),
+                     0,
+                     dest_width,
                      dest_height 
                      );
 

@@ -5,7 +5,7 @@ namespace Panda
     std::ostream& operator<<(std::ostream& out, SceneObjectType type)
     {
         int32_t n = static_cast<int32_t> (type);
-        n = endian_net<int32_t>(n);
+        n = to_endian_net<int32_t>(n);
         char* c = reinterpret_cast<char*>(&n);
 
         for (size_t i = 0; i < sizeof (int32_t); ++i)
@@ -19,7 +19,7 @@ namespace Panda
     std::ostream& operator<<(std::ostream& out, IndexDataType type)
     {
         int32_t n = static_cast<int32_t>(type);
-        n = endian_net<int32_t>(n);
+        n = to_endian_net<int32_t>(n);
         char* c = reinterpret_cast<char*>(&n);
 
         for (size_t i = 0; i < sizeof(int32_t); ++i)
@@ -32,7 +32,7 @@ namespace Panda
     std::ostream& operator<<(std::ostream& out, VertexDataType type)
     {
         int32_t n = static_cast<int32_t>(type);
-        n = endian_net<int32_t> (n);
+        n = to_endian_net<int32_t> (n);
         char* c = reinterpret_cast<char*>(&n);
 
         for (size_t i = 0; i < sizeof(int32_t); ++i)
@@ -46,7 +46,7 @@ namespace Panda
     std::ostream& operator<<(std::ostream&out, PrimitiveType type)
     {
         int32_t n = static_cast<int32_t>(type);
-        n = endian_net<int32_t>(n);
+        n = to_endian_net<int32_t>(n);
         char* c = reinterpret_cast<char*>(&n);
 
         for(size_t i = 0; i < sizeof(int32_t); ++i)

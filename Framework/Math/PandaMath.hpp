@@ -1,5 +1,6 @@
 #pragma once
 
+#include "MathUtility.hpp"
 #include "Vector2D.hpp"
 #include "Vector3D.hpp"
 #include "Vector4D.hpp"
@@ -7,14 +8,7 @@
 #include "Matrix4.hpp"
 #include <math.h>
 #include "Utility.hpp"
-
-#ifndef PI
-#define PI 3.14159265358979323846f
-#endif
-
-#ifndef TWO_PI
-#define TWO_PI 3.14159265358979323846f * 2.0f
-#endif
+#include "DCT.hpp"
 
 namespace Panda
 {

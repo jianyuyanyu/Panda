@@ -203,7 +203,7 @@ HRESULT Panda::D3D12GraphicsManager::CreateVertexBuffer(const Buffer& buffer)
     D3D12_RESOURCE_DESC resourceDesc = {};
     resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
     resourceDesc.Alignment = 0;
-    resourceDesc.Width = buffer.m_Size;
+    resourceDesc.Width = buffer.GetDataSize();
     resourceDesc.Height = 1;
     resourceDesc.DepthOrArraySize = 1;
     resourceDesc.MipLevels = 1;
@@ -239,7 +239,7 @@ HRESULT Panda::D3D12GraphicsManager::CreateIndexBuffer(const Buffer& buffer)
     D3D12_RESOURCE_DESC resourceDesc = {};
     resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
     resourceDesc.Alignment = 0;
-    resourceDesc.Width = buffer.m_Size;
+    resourceDesc.Width = buffer.GetDataSize();
     resourceDesc.Height = 1;
     resourceDesc.DepthOrArraySize = 1;
     resourceDesc.MipLevels = 1;

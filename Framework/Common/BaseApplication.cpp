@@ -22,6 +22,12 @@ void Panda::BaseApplication::Finalize() {
 void Panda::BaseApplication::Tick() {
 }
 
+void Panda::BaseApplication::SetCommandLineParameters(int argc, char** argv)
+{
+	m_ArgC = argc;
+	m_ppArgV = argv;
+}
+
 bool Panda::BaseApplication::IsQuit() {
   return m_Quit;
 }

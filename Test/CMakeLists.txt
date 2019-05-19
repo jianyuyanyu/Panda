@@ -38,3 +38,13 @@ add_executable(SceneLoadingTest SceneLoadingTest.cpp)
 target_link_libraries(SceneLoadingTest Common ${OPENGEX_LIBRARY} ${OPENDDL_LIBRARY} ${XG_LIBRARY})
 __add_xg_platform_dependencies(SceneLoadingTest)
 add_test(NAME TEST_SceneLoading COMMAND SceneLoadingTest)
+
+# color space conversion
+add_executable(ColorSpaceConversionTest ColorSpaceConversionTest.cpp)
+target_link_libraries(ColorSpaceConversionTest PandaMath)
+add_test(NAME Test_ColorSpaceConversion COMMAND ColorSpaceConversionTest)
+
+# Jpeg parser test
+add_executable(JpegParserTest JpegParserTest.cpp)
+target_link_libraries(JpegParserTest Common)
+add_test(NAME TEST_JpegParser COMMAND JpegParserTest)
