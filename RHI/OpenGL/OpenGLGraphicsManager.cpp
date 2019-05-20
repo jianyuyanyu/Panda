@@ -6,8 +6,8 @@
 #include "Utility.hpp"
 #include "SceneManager.hpp"
 
-const char VS_SHADER_SOURCE_FILE[] = "Shaders/basic.vs";
-const char PS_SHADER_SOURCE_FILE[] = "Shaders/basic.ps";
+const char VS_SHADER_SOURCE_FILE[] = "Shaders/basic_vs.glsl";
+const char PS_SHADER_SOURCE_FILE[] = "Shaders/basic_ps.glsl";
 
 using namespace Panda;
 
@@ -148,7 +148,13 @@ namespace Panda
             glDeleteBuffers(1, &buf);
         }
 
+        for(auto texture : m_Textures)
+        {
+            glDeleteTextures(1, &texture);
+        }
+
         m_Buffers.clear();
+        m_Textures.clear();
 
         // Detach the vertex and fragment shaders from the program.
         glDetachShader(m_ShaderProgram, m_VertexShader);
@@ -216,16 +222,62 @@ namespace Panda
         glUniform4fv(location, 1, m_DrawFrameContext.LightColor.GetAddressOf());
     }
 
-    bool OpenGLGraphicsManager::SetPerBatchShaderParameters(const char* paramName, float* param)
+    bool OpenGLGraphicsManager::SetPerBatchShaderParameters(const char* paramName, const Matrix4f& param)
     {
         unsigned int location;
 
         location = glGetUniformLocation(m_ShaderProgram, paramName);
         if (location == -1)
             return false;
-        glUniformMatrix4fv(location, 1, false, param);
+        glUniformMatrix4fv(location, 1, false, param.GetAddressOf());
 
         return true;
+    }
+
+    bool OpenGLGraphicsManager::SetPerBatchShaderParameters(const char* paramName, const float param)
+    {
+        unsigned int location;
+
+        location = glGetUniformLocation(m_ShaderProgram, paramName);
+        if(location == -1)
+        {
+            return false;
+        }
+        glUniform1f(location, param);
+
+        return true;
+    }
+
+    bool OpenGLGraphicsManager::SetPerBatchShaderParameters(const char* paramName, const Vector3Df& param)
+    {
+        unsigned int location;
+
+        location = glGetUniformLocation(m_ShaderProgram, paramName);
+        if(location == -1)
+        {
+            return false;
+        }
+        glUniform3fv(location, 1, param.GetAddressOf());
+
+        return true;   
+    }
+
+    bool OpenGLGraphicsManager::SetPerBatchShaderParameters(const char* paramName, const GLint textureIndex)
+    {
+        unsigned int location;
+
+        location = glGetUniformLocation(m_ShaderProgram, paramName);
+        if(location == -1)
+        {
+            return false;
+        }
+        
+        if (textureIndex < GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS)
+        {
+            glUniform1i(location, textureIndex);
+        }
+
+        return true;   
     }
     // bool OpenGLGraphicsManager::SetShaderParameters(const Matrix4f& worldMatrix, const Matrix4f& viewMatrix, const Matrix4f& projectionMatrix)
     // {
@@ -275,7 +327,7 @@ namespace Panda
 				auto pGeometry = scene.GetGeometry(pGeometryNode->GetSceneObjectRef());
 				assert(pGeometry);
 				auto pMesh = pGeometry->GetMesh().lock();
-				if (!pMesh) return;
+				if (!pMesh) continue;
 
 				// Set the number of vertex properties.
 				auto vertexPropertiesCount = pMesh->GetVertexPropertiesCount();
@@ -406,12 +458,42 @@ namespace Panda
 
                     m_Buffers.push_back(buffer_id);
 
-                    DrawBatchContext dbc;
+                    size_t materialIndex = indexArray.GetMaterialIndex();
+                    std::string materialKey = pGeometryNode->GetMaterialRef(materialIndex);
+                    auto material = scene.GetMaterial(materialKey);
+                    if (material)
+                    {
+                        auto color = material->GetBaseColor();
+                        if (color.ValueMap)
+                        {
+                            auto texture = color.ValueMap->GetTextureImage();
+                            auto it = m_TextureIndex.find(materialKey);
+                            if (it == m_TextureIndex.end())
+                            {
+                                GLuint textureID;
+                                glGenTextures(1, &textureID);
+                                glActiveTexture(GL_TEXTURE0 + textureID);
+                                glBindTexture(GL_TEXTURE_2D, textureID);
+                                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture.Width, texture.Height,
+                                    0, GL_RGBA, GL_UNSIGNED_BYTE, texture.Data);
+                                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+                                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+                                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+                                m_TextureIndex[color.ValueMap->GetName()] = textureID;
+                                m_Textures.push_back(textureID);
+                            }
+                        }
+                    }
+
+                    DrawBatchContext& dbc = *(new DrawBatchContext);
                     dbc.vao = vao;
                     dbc.mode = mode;
                     dbc.type = type;
-                    dbc.counts.push_back(indexCount);
+                    dbc.count = indexCount;
                     dbc.transform = pGeometryNode->GetCalclulatedTrasform();
+                    dbc.material = material;
                     m_DrawBatchContext.push_back(std::move(dbc));
                 }
 			}
@@ -443,16 +525,41 @@ namespace Panda
         {
             // Set the color shader as the current shader program and set the matrices that it will use for rendering.
             glUseProgram(m_ShaderProgram);
-            SetPerBatchShaderParameters("modelMatrix", (*dbc.transform).GetAddressOf());
-
+            SetPerBatchShaderParameters("modelMatrix", *dbc.transform);
             glBindVertexArray(dbc.vao);
 
-            size_t indexBufferCount = dbc.counts.size();
-            const GLvoid** pIndices = new const GLvoid* [indexBufferCount];
-            memset(pIndices, 0x00, sizeof(GLvoid*) * indexBufferCount);
-            // Render the vertex buffer using the index buffer
-            glMultiDrawElements(dbc.mode, dbc.counts.data(), dbc.type, pIndices, indexBufferCount);
-            delete[] pIndices;
+            /*
+                Well, we have different materials for each index buffer, so we can not draw them together.
+                In feature, we need to group indices according to its material and draw them together.
+                auto indexBufferCount = dbc.counts.size();
+                const GLvoid ** pIndicies = new const GLvoid*[indexBufferCount];
+                memset(pIndicies, 0x00, sizeof(GLvoid*) * indexBufferCount);
+                // Render the vertex buffer using the index buffer.
+                glMultiDrawElements(dbc.mode, dbc.counts.data(), dbc.type, pIndicies, indexBufferCount);
+                delete[] pIndicies;
+            */
+
+            if (dbc.material)
+            {
+                Color color = dbc.material->GetBaseColor();
+                if (color.ValueMap)
+                {
+                    SetPerBatchShaderParameters("defaultSampler", m_TextureIndex[color.ValueMap->GetName()]);
+                    SetPerBatchShaderParameters("diffuseColor", Vector3Df(-1.0f));
+                }
+                else 
+                {
+                    SetPerBatchShaderParameters("diffuseColor", color.Value.GetRGB());
+                }
+
+                color = dbc.material->GetSpecularColor();
+                SetPerBatchShaderParameters("specularColor", color.Value.GetRGB());
+
+                Parameter param = dbc.material->GetSpecularPower();
+                SetPerBatchShaderParameters("specularPower", param.Value);
+            }
+
+            glDrawElements(dbc.mode, dbc.count, dbc.type, 0x00);
         }
 
         return;
@@ -571,6 +678,7 @@ namespace Panda
         // Bind the shader input variables.
 		glBindAttribLocation(m_ShaderProgram, 0, "inputPosition");
 		glBindAttribLocation(m_ShaderProgram, 1, "inputNormal");
+        glBindAttribLocation(m_ShaderProgram, 2, "inputUV");
 
         // Link the shader program.
         glLinkProgram(m_ShaderProgram);

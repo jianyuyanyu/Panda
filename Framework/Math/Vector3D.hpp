@@ -119,7 +119,7 @@ namespace Panda
             z /= len;
         }
 
-        FORCEINLINE T* GetAddressOf()
+        FORCEINLINE const T* GetAddressOf() const
         {
             return &data[0];
         }

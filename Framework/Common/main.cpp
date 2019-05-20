@@ -42,7 +42,7 @@ int main(int argc, char **argv)
 		return ret;
 	}
 
-	std::string sceneFileName = "Scene/aili_cycle.ogex";
+	std::string sceneFileName = "Scene/aili.ogex";
 	if (argc > 1)
 		sceneFileName = argv[1];
 	if ((ret = g_pSceneManager->LoadScene(sceneFileName.c_str())) != 0)

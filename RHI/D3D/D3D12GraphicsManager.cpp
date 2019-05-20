@@ -1,7 +1,9 @@
+#include <iostream>
 #include <objbase.h>
-#include <d3dcompiler.h>
 #include "D3D12GraphicsManager.hpp"
 #include "WindowsApplication.hpp"
+#include "SceneManager.hpp"
+#include "AssetLoader.hpp"
 
 using namespace Panda;
 
@@ -413,19 +415,246 @@ HRESULT Panda::D3D12GraphicsManager::CreateGraphicsResources()
 
     m_FrameIndex = m_pSwapChain->GetCurrentBackBufferIndex();
     
+    std::cout << "Creating Descriptor Heaps...";
     if (FAILED(hr = CreateDescriptorHeaps()))
     {
         return hr;
     }
+    std::cout << "Done!" << std::endl;
 
+    std::cout << "Creating Render Targets...";
     if (FAILED(hr = CreateRenderTarget()))
     {
         return hr;
     }
+    std::cout << "Done!" << std::endl;
 
+    std::cout << "Create Depth Specil Buffers...";
     if (FAILED(hr = CreateDepthStencil()))
     {
         return hr;
+    }
+    std::cout << "Done!" << std::endl;
+
+    std::cout << "Creating Root Signatures...";
+    if (FAILED(hr = CreateRootSignature()))
+    {
+        return hr;
+    }
+    std::cout << "Done!" << std::endl;
+
+    std::cout << "Loading shaders...";
+    if (FAILED(hr = InitializeShader("Shaders/simple.hlsl.vs", "Shaders/simple.hlsl.ps")))
+    {
+        return hr;
+    }
+    std::cout << "Done!" << std::endl;
+
+    return hr;
+}
+
+HRESULT Panda::D3D12GraphicsManager::CreateRootSignature()
+{
+    HRESULT hr = S_OK;
+
+    D3D12_FEATURE_DATA_ROOT_SIGNATURE featureData = {};
+
+    // This is the highest version the sample supports. If CheckFeatureSupport succeeds, the HighestVersion returned will not be greater than this.
+    featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
+
+    if (FAILED(m_pDev->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &featureData, sizeof(featureData))))
+    {
+        featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
+    }
+
+    D3D12_DESCRIPTOR_RANGE1 ranges[3] = {
+        {D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC},
+        {D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, 1, 0},
+        {D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 6, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC}
+    };
+
+    D3D12_ROOT_PARAMETER1 rootParameters[3] = {
+        {D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE, {1, &ranges[0]}, D3D12_SHADER_VISIBILITY_PIXEL},
+        {D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE, {1, &ranges[1]}, D3D12_SHADER_VISIBILITY_PIXEL},
+        {D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE, {1, &ranges[2]}, D3D12_SHADER_VISIBILITY_ALL}
+    };
+
+    // Allow input layout and deny unecessary access to certain pipeline stages.
+    D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags =
+        D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
+        D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
+        D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
+        D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
+
+    D3D12_ROOT_SIGNATURE_DESC1 rootSignatureDesc = {
+        _countof(rootParameters), rootParameters, 0, nullptr, rootSignatureFlags
+    };
+
+    D3D12_VERSIONED_ROOT_SIGNATURE_DESC versionedRootSignatureDesc = {
+        D3D_ROOT_SIGNATURE_VERSION_1_1
+    };
+
+    versionedRootSignatureDesc.Desc_1_1 = rootSignatureDesc;
+
+    ID3DBlob* signature = nullptr;
+    ID3DBlob* error = nullptr;
+    if (SUCCEEDED(hr == D3D12SerializeVersionedRootSignature(&versionedRootSignatureDesc, &signature, &error)))
+    {
+        hr = m_pDev->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&m_pRootSignature));
+    }
+
+    if (signature) signature->Release();
+    if (error) error->Release();
+
+    return hr;
+}
+
+// This is the function that loads and prepares the shaders.
+HRESULT Panda::D3D12GraphicsManager::InitializeShader(const char* vsFilename, const char* fsFilename)
+{
+    HRESULT hr = S_OK;
+
+    // load the shaders
+    #if defined(_DEBUG_SHADER)
+    // Enable better shader debugging with the graphics debugging tools.
+    UINT compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+    #else
+    UINT compileFlags = 0;
+    #endif
+    Buffer vertexShader = g_pAssetLoader->SyncOpenAndReadBinary(vsFilename);
+    Buffer pixelShader = g_pAssetLoader->SyncOpenAndReadBinary(fsFilename);
+
+    D3D12_SHADER_BYTECODE vertexShaderByteCode;
+    vertexShaderByteCode.pShaderBytecode = vertexShader.GetData();
+    vertexShaderByteCode.BytecodeLength = vertexShader.GetDataSize();
+
+    D3D12_SHADER_BYTECODE pixelShaderByteCode;
+    pixelShaderByteCode.pShaderBytecode = pixelShader.GetData();
+    pixelShaderByteCode.BytecodeLength = pixelShader.GetDataSize();
+
+    // create the input layout object
+    D3D12_INPUT_ELEMENT_DESC ied[] = 
+    {
+        {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
+        {"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
+        {"TANGENT", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 24, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
+        {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 40, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0}
+    };
+
+    D3D12_RASTERIZER_DESC rsd = {
+        D3D12_FILL_MODE_SOLID, D3D12_CULL_MODE_BACK, FALSE, D3D12_DEFAULT_DEPTH_BIAS, D3D12_DEFAULT_DEPTH_BIAS_CLAMP,
+        TRUE, FALSE, FALSE, 0, D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF
+    };
+    const D3D12_RENDER_TARGET_BLEND_DESC defaultRenderTargetBlend = {
+        FALSE, FALSE, 
+        D3D12_BLEND_ONE, D3D12_BLEND_ZERO, D3D12_BLEND_OP_ADD,
+        D3D12_BLEND_ONE, D3D12_BLEND_ZERO, D3D12_BLEND_OP_ADD,
+        D3D12_LOGIC_OP_NOOP,
+        D3D12_COLOR_WRITE_ENABLE_ALL
+    };
+
+    D3D12_BLEND_DESC bld = {
+        FALSE, FALSE,
+        {
+            defaultRenderTargetBlend,
+            defaultRenderTargetBlend,
+            defaultRenderTargetBlend,
+            defaultRenderTargetBlend,
+            defaultRenderTargetBlend,
+            defaultRenderTargetBlend,
+            defaultRenderTargetBlend
+        }
+    };
+
+    const D3D12_DEPTH_STENCILOP_DESC defaultStencilOp = {
+        D3D12_STENCIL_OP_KEEP,D3D12_STENCIL_OP_KEEP, D3D12_STENCIL_OP_KEEP, D3D12_COMPARISON_FUNC_ALWAYS
+    };
+    D3D12_DEPTH_STENCIL_DESC dsd = {
+        TRUE,
+        D3D12_DEPTH_WRITE_MASK_ALL,
+        D3D12_COMPARISON_FUNC_LESS,
+        FALSE,
+        D3D12_DEFAULT_STENCIL_READ_MASK,
+        D3D12_DEFAULT_STENCIL_WRITE_MASK,
+        defaultStencilOp, defaultStencilOp
+    };
+    
+
+    // describe and create the graphics pipeline state object(PSO)
+    D3D12_GRAPHICS_PIPELINE_STATE_DESC psod = {};
+    psod.InputLayout = {ied, _countof(ied)};
+    psod.pRootSignature = m_pRootSignature;
+    psod.VS = vertexShaderByteCode;
+    psod.PS = pixelShaderByteCode;
+    psod.RasterizerState = rsd;
+    psod.BlendState = bld;
+    psod.SampleMask = UINT_MAX;
+    psod.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+    psod.NumRenderTargets = 1;
+    psod.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+    psod.SampleDesc.Count = 1;
+
+    if (FAILED(hr = m_pDev->CreateGraphicsPipelineState(&psod, IID_PPV_ARGS(&m_pPipelineState))))
+    {
+        return hr;
+    }
+
+    hr = m_pDev->CreateCommandList(0,
+        D3D12_COMMAND_LIST_TYPE_DIRECT,
+        m_pCommandAllocator,
+        m_pPipelineState,
+        IID_PPV_ARGS(&m_pCommandList));
+
+    return hr;
+}
+
+HRESULT Panda::D3D12GraphicsManager::InitializeBuffers()
+{
+    HRESULT hr = S_OK;
+
+    auto& scene = g_pSceneManager->GetScene();
+    auto pGeometryNode = scene.GetFirstGeometryNode();
+    while(pGeometryNode)
+    {
+        if (pGeometryNode->Visible())
+        {
+            auto pGeometry = scene.GetGeometry(pGeometryNode->GetSceneObjectRef());
+            assert(pGeometry);
+            auto pMesh = pGeometry->GetMesh().lock();
+            if (!pMesh) continue;
+
+            // Set the number of vertex properties.
+            size_t vertexPropertiesCount = pMesh->GetVertexPropertiesCount();
+
+            // Set the number of vertices in the vertex array.
+            auto vertexCount = pMesh->GetVertexCount();
+
+            Buffer buff;
+
+            for (size_t i = 0; i < vertexPropertiesCount; ++i)
+            {
+                CreateVertexBuffer(buff);
+            }
+
+            size_t indexGroupCount = pMesh->GetIndexGroupCount();
+
+            for (size_t i = 0; i < indexGroupCount; ++i)
+            {
+                CreateIndexBuffer(buff);
+            }
+
+            int textureCount = 0;
+            Image image;
+
+            for (decltype(textureCount) i = 0; i < textureCount; ++i)
+            {
+                CreateTextureBuffer(image);
+                CreateSamplerBuffer();
+            }
+
+            CreateConstantBuffer(buff);
+        }
+        pGeometryNode = scene.GetNextGeometryNode();
     }
 
     return hr;
@@ -459,4 +688,14 @@ void Panda::D3D12GraphicsManager::Finalize()
     }
 	SafeRelease(&m_pSwapChain);
 	SafeRelease(&m_pDev);
+}
+
+void Panda::D3D12GraphicsManager::Clear()
+{
+
+}
+
+void Panda::D3D12GraphicsManager::Draw()
+{
+
 }

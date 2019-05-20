@@ -3,9 +3,11 @@
 #include "PandaMath.hpp"
 #include <unordered_map>
 #include <vector>
+#include <map>
 #include <string>
 #include <memory>
 #include "glad/glad.h"
+#include "SceneObject.hpp"
 
 namespace Panda {
     class OpenGLGraphicsManager : public GraphicsManager
@@ -19,7 +21,10 @@ namespace Panda {
             virtual void Clear();
             virtual void Draw();
         private:
-            bool SetPerBatchShaderParameters(const char* paramName, float* param);
+            bool SetPerBatchShaderParameters(const char* paramName, const Matrix4f& param);
+            bool SetPerBatchShaderParameters(const char* paramName, float param);
+            bool SetPerBatchShaderParameters(const char* paramName, const Vector3Df& param);
+            bool SetPerBatchShaderParameters(const char* paramName, const GLint textureIndex);
             bool SetPerFrameShaderParameters();
             
             //bool SetShaderParameters(const Matrix4f& worldMatrix, const Matrix4f& viewMatrix, const Matrix4f& projectionMatrix);
@@ -34,6 +39,7 @@ namespace Panda {
             unsigned int m_VertexShader;
             unsigned int m_FragmentShader;
             unsigned int m_ShaderProgram;
+            std::map<std::string, GLint> m_TextureIndex;
 
             struct DrawFrameContext
             {
@@ -52,12 +58,14 @@ namespace Panda {
                 GLuint vao;
                 GLenum mode;
                 GLenum type;
-                std::vector<GLsizei> counts;
+                GLsizei count;
                 std::shared_ptr<Matrix4f> transform;
+                std::shared_ptr<SceneObjectMaterial> material;
             };
 
             DrawFrameContext m_DrawFrameContext;
             std::vector<DrawBatchContext> m_DrawBatchContext;
             std::vector<GLuint> m_Buffers;
+            std::vector<GLuint> m_Textures;
     };
 }

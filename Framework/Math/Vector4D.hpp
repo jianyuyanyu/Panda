@@ -122,6 +122,16 @@ namespace Panda
             return &data[0];
         }
 
+        FORCEINLINE Vector3D<T> GetRGB()
+        {
+            return Vector3D<T>(r, g, b);
+        }
+        
+        FORCEINLINE Vector3D<T> GetVector3D()
+        {
+            return Vector3D<T>(x, y, z);
+        }
+
         friend std::ostream& operator<< (std::ostream& out, const Vector4D<T>& vec)
         {
 			out << "(";

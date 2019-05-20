@@ -16,24 +16,16 @@ namespace Panda
     class Scene
     {
         public:
+            Scene() {
+                m_pDefaultMaterial = std::make_shared<SceneObjectMaterial>("default");
+            }
+
             Scene(const char* sceneName) :
                 SceneGraph(new BaseSceneNode(sceneName))
             {
             }
 
             ~Scene() = default;
-
-        public:
-            std::shared_ptr<BaseSceneNode> SceneGraph;
-
-            std::unordered_map<std::string, std::shared_ptr<SceneCameraNode>>       CameraNodes;
-            std::unordered_map<std::string, std::shared_ptr<SceneLightNode>>        LightNodes;
-            std::unordered_map<std::string, std::shared_ptr<SceneGeometryNode>>     GeometryNodes;
-            
-            std::unordered_map<std::string, std::shared_ptr<SceneObjectCamera>>     Cameras;
-            std::unordered_map<std::string, std::shared_ptr<SceneObjectLight>>      Lights;
-            std::unordered_map<std::string, std::shared_ptr<SceneObjectMaterial>>   Materials;
-            std::unordered_map<std::string, std::shared_ptr<SceneObjectGeometry>>   Geometries;
 
             const std::shared_ptr<SceneObjectCamera> GetCamera(std::string key) const;
             const std::shared_ptr<SceneCameraNode> GetFirstCameraNode() const;
@@ -56,5 +48,21 @@ namespace Panda
             const std::shared_ptr<SceneGeometryNode> GetNextGeometryNode() const;
             // const std::shared_ptr<SceneObjectGeometry> GetFirstGeometry() const;
             // const std::shared_ptr<SceneObjectGeometry> GetNextGeometry() const;
+
+            void LoadResource();
+        public:
+            std::shared_ptr<BaseSceneNode> SceneGraph;
+
+            std::unordered_map<std::string, std::shared_ptr<SceneCameraNode>>       CameraNodes;
+            std::unordered_map<std::string, std::shared_ptr<SceneLightNode>>        LightNodes;
+            std::unordered_map<std::string, std::shared_ptr<SceneGeometryNode>>     GeometryNodes;
+            
+            std::unordered_map<std::string, std::shared_ptr<SceneObjectCamera>>     Cameras;
+            std::unordered_map<std::string, std::shared_ptr<SceneObjectLight>>      Lights;
+            std::unordered_map<std::string, std::shared_ptr<SceneObjectMaterial>>   Materials;
+            std::unordered_map<std::string, std::shared_ptr<SceneObjectGeometry>>   Geometries;
+
+        private:
+           std::shared_ptr<SceneObjectMaterial> m_pDefaultMaterial;
     };
 }

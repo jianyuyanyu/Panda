@@ -15,6 +15,10 @@ namespace Panda {
 
 	    virtual void Tick();
 
+        virtual void Clear();
+
+        virtual void Draw();
+
     private:
         HRESULT CreateDescriptorHeaps();
         HRESULT CreateRenderTarget();
@@ -25,6 +29,9 @@ namespace Panda {
         HRESULT CreateIndexBuffer(const Buffer& buffer);
         HRESULT CreateVertexBuffer(const Buffer& buffer);
         HRESULT CreateTextureBuffer(const Image& image);
+        HRESULT CreateRootSignature();
+        HRESULT InitializeShader(const char* vsFilename, const char* fsFilename);
+        HRESULT InitializeBuffers();
 
     private:
         static const uint32_t           k_FrameCount  = 2;

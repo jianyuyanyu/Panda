@@ -22,7 +22,7 @@ namespace Panda
          -179.456f,  135.458816f, -226.816f,    0.0f,
     };
 
-    YCbCrf ConvertRGB2YCbCr(const RGBf& rgb)
+    inline YCbCrf ConvertRGB2YCbCr(const RGBf& rgb)
     {
         Vector4Df result(rgb.r, rgb.g, rgb.b, 1.0f);
         TransformCoord(result, RGB2YCbCr);
@@ -31,7 +31,7 @@ namespace Panda
                       std::clamp<float>(result.b + 0.5f, 0.0f, 255.0f));
     }
 
-    RGBf ConvertYCbCr2RGB(const YCbCrf& ycbcr)
+    inline RGBf ConvertYCbCr2RGB(const YCbCrf& ycbcr)
     {
         Vector4Df result(ycbcr.r, ycbcr.g, ycbcr.b, 1.0f);
         TransformCoord(result, YCbCr2RGB);
