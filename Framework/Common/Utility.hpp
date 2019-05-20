@@ -2,6 +2,8 @@
 #include "portable.hpp"
 
 namespace Panda {
+//#define DUMP_DETAILS 1
+
 	template<class T>
 	inline void SafeRelease(T **ppInterfaceToRelease)
 	{

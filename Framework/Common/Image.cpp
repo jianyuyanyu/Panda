@@ -11,7 +11,7 @@ namespace Panda
         out << "Bit Count: " << image.BitCount << std::endl;
         out << "Pitch: " << image.Pitch << std::endl;
         out << "Data Size: " << image.DataSize << std::endl;
-
+#if DUMP_DETAILS
         int byteCount = image.BitCount >> 3;
 
         for (uint32_t i = 0; i < image.Height; ++i)
@@ -26,6 +26,7 @@ namespace Panda
             }
             std::cout << std::endl;
         }
+#endif
         return out;
     }
 }

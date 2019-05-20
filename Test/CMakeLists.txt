@@ -15,7 +15,7 @@ add_test(NAME TEST_PandaMath COMMAND PandaMathTest)
 # texture load test
 IF(${WIN32})
 	add_executable(TextureLoadTest TextureLoadTest.cpp)
-    target_link_libraries(TextureLoadTest WindowsApplication Common ${OPENGEX_LIBRARY} ${OPENDDL_LIBRARY} ${XG_LIBRARY} D2DRHI d2d1)
+    target_link_libraries(TextureLoadTest WindowsApplication Common ${OPENGEX_LIBRARY} ${OPENDDL_LIBRARY} ${XG_LIBRARY} ${ZLIB_LIBRARY} D2DRHI d2d1)
     __add_xg_platform_dependencies(TextureLoadTest)
     add_test(NAME TEST_TextureLoad COMMAND TextureLoadTest)
 ENDIF(${WIN32})
@@ -48,3 +48,8 @@ add_test(NAME Test_ColorSpaceConversion COMMAND ColorSpaceConversionTest)
 add_executable(JpegParserTest JpegParserTest.cpp)
 target_link_libraries(JpegParserTest Common)
 add_test(NAME TEST_JpegParser COMMAND JpegParserTest)
+
+# Png parser test
+add_executable(PngParserTest PngParserTest.cpp)
+target_link_libraries(PngParserTest Common ${ZLIB_LIBRARY})
+add_test(NAME TEST_PngParser COMMAND PngParserTest)

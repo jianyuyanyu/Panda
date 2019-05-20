@@ -22,7 +22,7 @@ namespace Panda {
             virtual void Draw();
         private:
             bool SetPerBatchShaderParameters(const char* paramName, const Matrix4f& param);
-            bool SetPerBatchShaderParameters(const char* paramName, float param);
+            bool SetPerBatchShaderParameters(const char* paramName, const float param);
             bool SetPerBatchShaderParameters(const char* paramName, const Vector3Df& param);
             bool SetPerBatchShaderParameters(const char* paramName, const GLint textureIndex);
             bool SetPerFrameShaderParameters();

@@ -8,6 +8,7 @@
 #include "Utility.hpp"
 #include "BMP.hpp"
 #include "JPEG.hpp"
+#include "PNG.hpp"
 
 using namespace Panda;
 using namespace std;
@@ -57,17 +58,17 @@ int Panda::TestApplication::Initialize()
     if (result == 0) {
         Buffer buf;
 
-        JfifParser jfifParser;
+        PngParser pngParser;
         if(m_ArgC > 1)
         {
             buf = g_pAssetLoader->SyncOpenAndReadBinary(m_ppArgV[1]);
         }
         else 
         {
-            buf = g_pAssetLoader->SyncOpenAndReadBinary("Texture/jpeg_decoder_test.jpg");
+            buf = g_pAssetLoader->SyncOpenAndReadBinary("Textures/eye.png");
         }
 
-        m_Image = jfifParser.Parse(buf);
+        m_Image = pngParser.Parse(buf);
     }
 
     return result;

@@ -11,9 +11,6 @@
 #include "HuffmanTree.hpp"
 #include "ColorSpaceConversion.hpp"
 
-// Enable this to print out very detailed decode imformation
-//#define DUMP_DETAILS 1
-
 namespace Panda
 {
 #pragma pack(push, 1)
@@ -152,7 +149,6 @@ namespace Panda
             {
                 std::vector<uint8_t> scanData;
                 size_t scanLength = 0;
-                bool isLastRestartSegment = true;
 
                 {
                     const uint8_t* p = pScanData;
@@ -185,7 +181,6 @@ namespace Panda
 #if DUMP_DETAILS
                         std::cout << "Found RST while scan the ECS." << std::endl;
 #endif
-                        isLastRestartSegment = false;
                     }
 
 #if DUMP_DETAILS
@@ -466,8 +461,6 @@ namespace Panda
 
                     while(pData < pDataEnd)
                     {
-                        bool foundStartOfScan = false;
-                        bool foundRestartOfScan = false;
                         size_t scanLength = 0;
 
                         const JPEG_SEGMENT_HEADER* pSegmentHeader = reinterpret_cast<const JPEG_SEGMENT_HEADER*>(pData);
@@ -630,7 +623,6 @@ namespace Panda
 								std::cout << "======================" << std::endl;
 #endif
 								std::cout << "Segment Length: " << to_endian_native(pSegmentHeader->Length) << " bytes" << std::endl;
-                                foundStartOfScan = true;
                                 std::cout << "Start Of Scan" << std::endl;
                                 std::cout << "----------------------" << std::endl;
 
@@ -661,7 +653,6 @@ namespace Panda
 								std::cout << "======================" << std::endl;
 #endif
 								std::cout << "Segment Length: " << to_endian_native(pSegmentHeader->Length) << " bytes" << std::endl;
-                                foundRestartOfScan = true;
                                 #if DUMP_DETAILS
                                 std::cout << "Restart of Scan" << std::endl;
                                 std::cout << "----------------------" << std::endl;
@@ -678,7 +669,6 @@ namespace Panda
 #if DUMP_DETAILS
 								std::cout << "======================" << std::endl;
 #endif
-                                foundStartOfScan = false;
                                 std::cout << "End of Scan" << std::endl;
 								std::cout << "------------------------" << std::endl;
 								std::cout << std::endl;
