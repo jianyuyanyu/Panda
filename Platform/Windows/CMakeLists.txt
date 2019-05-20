@@ -7,7 +7,7 @@ add_executable (PandaD3D12
 target_link_libraries (PandaD3D12 
 	WindowsApplication
 	Common
-	${OPENGEX_LIBRARY} ${OPENDDL_LIBRARY} ${XG_LIBRARY}
+	${OPENGEX_LIBRARY} ${OPENDDL_LIBRARY} ${XG_LIBRARY} ${ZLIB_LIBRARY}
 	D3DRHI
 	d3d12
 	dxgi
@@ -24,7 +24,7 @@ add_executable(PandaOpenGL
 target_link_libraries(PandaOpenGL
 	WindowsApplication
 	Common
-	${OPENGEX_LIBRARY} ${OPENDDL_LIBRARY} ${XG_LIBRARY}
+	${OPENGEX_LIBRARY} ${OPENDDL_LIBRARY} ${XG_LIBRARY} ${ZLIB_LIBRARY}
 	OpenGLRHI
 	${OPENGL_LIBRARIES}
 	)

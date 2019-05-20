@@ -525,7 +525,8 @@ namespace Panda
         {
             // Set the color shader as the current shader program and set the matrices that it will use for rendering.
             glUseProgram(m_ShaderProgram);
-            SetPerBatchShaderParameters("modelMatrix", *dbc.transform);
+			Matrix4f mat;
+            SetPerBatchShaderParameters("modelMatrix", mat * (*dbc.transform));
             glBindVertexArray(dbc.vao);
 
             /*

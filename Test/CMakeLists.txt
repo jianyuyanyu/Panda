@@ -29,13 +29,13 @@ ENDIF(${WIN32})
 
 # scene parser test
 add_executable(OgexParserTest OgexParserTest.cpp)
-target_link_libraries(OgexParserTest Common ${OPENGEX_LIBRARY} ${OPENDDL_LIBRARY} ${XG_LIBRARY})
+target_link_libraries(OgexParserTest Common ${OPENGEX_LIBRARY} ${OPENDDL_LIBRARY} ${ZLIB_LIBRARY} ${XG_LIBRARY})
 __add_xg_platform_dependencies(OgexParserTest)
 add_test(NAME TEST_OgexParser COMMAND OgexParserTest)
 
 # scene loading test
 add_executable(SceneLoadingTest SceneLoadingTest.cpp)
-target_link_libraries(SceneLoadingTest Common ${OPENGEX_LIBRARY} ${OPENDDL_LIBRARY} ${XG_LIBRARY})
+target_link_libraries(SceneLoadingTest Common ${OPENGEX_LIBRARY} ${OPENDDL_LIBRARY} ${ZLIB_LIBRARY} ${XG_LIBRARY})
 __add_xg_platform_dependencies(SceneLoadingTest)
 add_test(NAME TEST_SceneLoading COMMAND SceneLoadingTest)
 

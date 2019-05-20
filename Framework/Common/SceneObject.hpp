@@ -10,6 +10,8 @@
 #include "PandaMath.hpp"
 #include "AssetLoader.hpp"
 #include "JPEG.hpp"
+#include "PNG.hpp"
+#include "BMP.hpp"
 
 namespace Panda
 {
@@ -322,8 +324,22 @@ namespace Panda
                     // we should lookup if the texture has been loaded already to prevent
                     // duplicate load. This could be done in Asset Loader Manager.
                     Buffer buf = g_pAssetLoader->SyncOpenAndReadBinary(m_Name.c_str());
-                    JfifParser jfifParser;
-                    m_pImage = std::make_shared<Image>(jfifParser.Parse(buf));
+                    std::string ext = m_Name.substr(m_Name.find_last_of("."));
+                    if (ext == ".jpg" || ext == "jpeg")
+                    {
+                        JfifParser jfifParser;
+                        m_pImage = std::make_shared<Image>(jfifParser.Parse(buf));                        
+                    }
+                    else if (ext == ".png")
+                    {
+                        PngParser pngParser;
+                        m_pImage = std::make_shared<Image>(pngParser.Parse(buf));
+                    }
+                    else if (ext == ".bmp")
+                    {
+                        BmpParser bmpParser;
+                        m_pImage = std::make_shared<Image>(bmpParser.Parse(buf));
+                    }
                 }
             }
 
@@ -331,9 +347,7 @@ namespace Panda
             {
                 if (!m_pImage)
                 {
-                    Buffer buf = g_pAssetLoader->SyncOpenAndReadBinary(m_Name.c_str());
-                    JfifParser jfifParser;
-                    m_pImage = std::make_shared<Image>(jfifParser.Parse(buf));
+                    LoadTexture();
                 }
 
                 return *m_pImage;
