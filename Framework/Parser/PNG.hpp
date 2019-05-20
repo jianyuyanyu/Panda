@@ -114,8 +114,7 @@ namespace Panda
 
                 const PNG_FILEHEADER* pFileHeader = reinterpret_cast<const PNG_FILEHEADER*>(pData);
                 pData += sizeof(PNG_FILEHEADER);
-				uint64_t x = to_endian_net((uint64_t)0x89504E470D0A1A0A);
-                if (pFileHeader->Signature == x)
+                if (pFileHeader->Signature == to_endian_net((uint64_t)0x89504E470D0A1A0A))
                 {
                     std::cout << "Asset is PNG file" << std::endl;
 
