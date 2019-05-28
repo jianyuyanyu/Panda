@@ -17,6 +17,7 @@ namespace Panda
 
             int LoadScene(const char* sceneFileName);
 
+            bool IsSceneChanged();
             const Scene& GetScene();
 
         protected:
@@ -24,6 +25,7 @@ namespace Panda
 
         protected:
             std::unique_ptr<Scene> m_pScene;
+            bool m_DirtyFlag = false;
     };
 
     extern SceneManager* g_pSceneManager;

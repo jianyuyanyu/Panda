@@ -1,11 +1,12 @@
 #pragma once
-#include "GraphicsManager.hpp"
-#include "PandaMath.hpp"
+
 #include <unordered_map>
 #include <vector>
 #include <map>
 #include <string>
 #include <memory>
+#include "GraphicsManager.hpp"
+#include "PandaMath.hpp"
 #include "glad/glad.h"
 #include "SceneObject.hpp"
 
@@ -16,23 +17,20 @@ namespace Panda {
             virtual int Initialize();
             virtual void Finalize();
 
-            virtual void Tick();
-
             virtual void Clear();
             virtual void Draw();
-        private:
+
+        protected:
             bool SetPerBatchShaderParameters(const char* paramName, const Matrix4f& param);
             bool SetPerBatchShaderParameters(const char* paramName, const float param);
             bool SetPerBatchShaderParameters(const char* paramName, const Vector3Df& param);
-            bool SetPerBatchShaderParameters(const char* paramName, const GLint textureIndex);
+            bool SetPerBatchShaderParameters(const char* paramName, const int param);
             bool SetPerFrameShaderParameters();
             
             //bool SetShaderParameters(const Matrix4f& worldMatrix, const Matrix4f& viewMatrix, const Matrix4f& projectionMatrix);
 
             void InitializeBuffers();
             void RenderBuffers();
-            void CalculateCameraMatrix();
-            void CalculateLights();
             bool InitializeShader(const char* vsFileName, const char* fsFileName);
 
         private:
@@ -40,18 +38,6 @@ namespace Panda {
             unsigned int m_FragmentShader;
             unsigned int m_ShaderProgram;
             std::map<std::string, GLint> m_TextureIndex;
-
-            struct DrawFrameContext
-            {
-                Matrix4f    WorldMatrix;
-                Matrix4f    ViewMatrix;
-                Matrix4f    ProjectionMatrix;
-                Vector3Df   LightPosition;
-                Vector4Df   LightColor;
-            };
-            const bool VSYNC_ENABLED = true;
-            const float k_ScreenFar = 1000.f;
-            const float k_ScreenNear = 0.1f;
 
             struct DrawBatchContext
             {
@@ -61,9 +47,26 @@ namespace Panda {
                 GLsizei count;
                 std::shared_ptr<Matrix4f> transform;
                 std::shared_ptr<SceneObjectMaterial> material;
+
+				friend std::ostream& operator<<(std::ostream& out, DrawBatchContext context)
+				{
+					out << std::endl;
+					out << "------------------" << std::endl;
+					out << "vao = " << context.vao << std::endl;
+					out << "mode = " << context.mode << std::endl;
+					out << "type = " << context.type << std::endl;
+					out << "count = " << context.count << std::endl;
+					out << "transform = " << *context.transform << std::endl;
+					if (context.material)
+						out << "material = " << *context.material << std::endl;
+					else
+						out << "material = nullptr" << std::endl;
+					out << "------------------" << std::endl;
+					out << std::endl;
+					return out;
+				}
             };
 
-            DrawFrameContext m_DrawFrameContext;
             std::vector<DrawBatchContext> m_DrawBatchContext;
             std::vector<GLuint> m_Buffers;
             std::vector<GLuint> m_Textures;

@@ -53,3 +53,8 @@ add_test(NAME TEST_JpegParser COMMAND JpegParserTest)
 add_executable(PngParserTest PngParserTest.cpp)
 target_link_libraries(PngParserTest Common ${ZLIB_LIBRARY})
 add_test(NAME TEST_PngParser COMMAND PngParserTest)
+
+# tga parser test
+add_executable(TgaParserTest TgaParserTest.cpp)
+target_link_libraries(TgaParserTest Common)
+add_test(NAME TEST_TgaParser COMMAND TgaParserTest)

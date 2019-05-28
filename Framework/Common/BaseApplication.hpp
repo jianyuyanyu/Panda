@@ -4,6 +4,7 @@
 #include "MemoryManager.hpp"
 #include "AssetLoader.hpp"
 #include "SceneManager.hpp"
+#include "InputManager.hpp"
 
 namespace Panda {
   class BaseApplication : implements IApplication {
@@ -21,6 +22,7 @@ namespace Panda {
 		
 		inline GfxConfiguration& GetConfiguration() {return m_Config;}
 
+		virtual int LoadScene();
 		virtual void OnDraw() {}
 
     protected:

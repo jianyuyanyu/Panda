@@ -12,6 +12,7 @@
 #include "JPEG.hpp"
 #include "PNG.hpp"
 #include "BMP.hpp"
+#include "TGA.hpp"
 
 namespace Panda
 {
@@ -339,6 +340,11 @@ namespace Panda
                     {
                         BmpParser bmpParser;
                         m_pImage = std::make_shared<Image>(bmpParser.Parse(buf));
+                    }
+                    else if (ext == ".tga")
+                    {
+                        TgaParser tgaParser;
+                        m_pImage = std::make_shared<Image>(tgaParser.Parse(buf));
                     }
                 }
             }

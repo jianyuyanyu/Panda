@@ -151,7 +151,7 @@ namespace Panda
         out << static_cast<const BaseSceneObject&>(obj) << std::endl;
         out << "Name: " << obj.m_Name << std::endl;
         out << "Albedo: " << obj.m_BaseColor << std::endl;
-        out << "Metallic: " << obj.m_BaseColor << std::endl;
+        out << "Metallic: " << obj.m_Metallic << std::endl;
         out << "Roughness: " << obj.m_Roughness << std::endl;
         out << "Normal: " << obj.m_Normal << std::endl;
         out << "Specular: " << obj.m_Specular << std::endl;

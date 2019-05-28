@@ -1,3 +1,7 @@
+////////////////////////////////////////////////////////////////////////////////
+// Filename: basic.vs
+////////////////////////////////////////////////////////////////////////////////
+
 #version 150
 
 /////////////////////
@@ -30,15 +34,14 @@ uniform mat4 projectionMatrix;
 ////////////////////////////////////////////////////////////////////////////////
 void main(void)
 {
-	mat4 transformMatrix = worldMatrix * modelMatrix;
+    mat4 transformMatrix = worldMatrix * modelMatrix;
 	// Calculate the position of the vertex against the world, view, and projection matrices.
 	v = transformMatrix * vec4(inputPosition, 1.0f);
 	v = viewMatrix * v;
 	gl_Position = projectionMatrix * v;
 
-	// Store the input color for the pixel shader to use.
-	normal = transformMatrix * vec4(inputNormal, 0.0f);
-	normal = viewMatrix * normal;
-	uv = inputUV;
+    normal = transformMatrix * vec4(inputNormal, 0.0f);
+    normal = viewMatrix * normal;
+    uv = inputUV;
 }
 

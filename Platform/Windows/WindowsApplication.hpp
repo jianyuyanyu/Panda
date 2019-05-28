@@ -22,6 +22,9 @@ namespace Panda
 											LPARAM lParam);
 											
 		HWND GetMainWindow() {return m_hWnd;}
+
+	protected:
+		void CreateMainWindow();
 	
 	protected:
 		HWND m_hWnd;

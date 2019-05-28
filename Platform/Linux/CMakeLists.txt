@@ -1,4 +1,7 @@
-add_executable(PandaOpenGL XcbApplication.cpp OpenGLApplication.cpp
+add_executable(PandaOpenGL 
+    XcbApplication.cpp 
+    OpenGLApplication.cpp
+    OpenGLApplicationConfig.cpp
 	${PROJECT_SOURCE_DIR}/External/src/glad/src/glad_glx.c
     )
 

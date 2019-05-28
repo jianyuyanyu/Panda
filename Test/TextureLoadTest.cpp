@@ -47,6 +47,7 @@ namespace Panda {
     MemoryManager*   g_pMemoryManager   = static_cast<MemoryManager*>(new MemoryManager);
     AssetLoader* g_pAssetLoader = static_cast<AssetLoader*>(new AssetLoader);
     SceneManager* g_pSceneManager = static_cast<SceneManager*>(new SceneManager);
+    InputManager*    g_pInputManager    = static_cast<InputManager*>(new InputManager);
 }
 
 int Panda::TestApplication::Initialize()
