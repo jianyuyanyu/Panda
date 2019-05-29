@@ -8,7 +8,7 @@
 #include "GraphicsManager.hpp"
 #include "PandaMath.hpp"
 #include "glad/glad.h"
-#include "SceneObject.hpp"
+#include "SceneManager.hpp"
 
 namespace Panda {
     class OpenGLGraphicsManager : public GraphicsManager
@@ -45,7 +45,7 @@ namespace Panda {
                 GLenum mode;
                 GLenum type;
                 GLsizei count;
-                std::shared_ptr<Matrix4f> transform;
+                std::shared_ptr<SceneGeometryNode> node;
                 std::shared_ptr<SceneObjectMaterial> material;
 
 				friend std::ostream& operator<<(std::ostream& out, DrawBatchContext context)
@@ -56,7 +56,7 @@ namespace Panda {
 					out << "mode = " << context.mode << std::endl;
 					out << "type = " << context.type << std::endl;
 					out << "count = " << context.count << std::endl;
-					out << "transform = " << *context.transform << std::endl;
+					//out << "node = " << *node << std::endl;
 					if (context.material)
 						out << "material = " << *context.material << std::endl;
 					else

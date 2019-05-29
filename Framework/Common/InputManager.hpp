@@ -18,6 +18,9 @@ namespace Panda
             void LeftArrowKeyUp();
             void RightArrowKeyDown();
             void RightArrowKeyUp();
+
+            void ResetKeyDown();
+            void ResetKeyUp();
     };
 
     extern InputManager* g_pInputManager;

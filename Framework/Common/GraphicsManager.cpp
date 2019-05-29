@@ -23,11 +23,15 @@ namespace Panda
 			std::cout << "Detected Scene Change, reinitialize Graphics Manger ..." << std::endl;
 			Finalize();
 			Initialize();
+			g_pSceneManager->NotifySceneIsRenderingQueued();
 		}
 
 		// Generate the view matrix based on the camera's position.
 		CalculateCameraMatrix();
 		CalculateLights();
+
+		Clear();
+		Draw();
 		//std::cout << m_DrawFrameContext;
 	}
 
@@ -159,19 +163,5 @@ namespace Panda
 	void GraphicsManager::RenderBuffers()
 	{
 		std::cout << "[RHI] GraphcisManager::RenderBuffers()" << std::endl;
-	}
-
-	void GraphicsManager::WorldRotateX(float radians)
-	{
-		Matrix4f rotationMatrix;
-		MatrixRotationX(rotationMatrix, radians);
-		m_DrawFrameContext.WorldMatrix = m_DrawFrameContext.WorldMatrix * rotationMatrix;
-	}
-
-	void GraphicsManager::WorldRotateY(float radians)
-	{
-		Matrix4f rotationMatrix;
-		MatrixRotationY(rotationMatrix, radians);
-		m_DrawFrameContext.WorldMatrix = m_DrawFrameContext.WorldMatrix * rotationMatrix;
 	}
 }

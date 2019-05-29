@@ -123,6 +123,9 @@ namespace Panda
                         case VK_DOWN:
                             g_pInputManager->DownArrowKeyDown();
                             break;
+                        case 0x52: // R key
+                            g_pInputManager->ResetKeyDown();
+                            break;
                         default:
                             break;
                     }
@@ -144,6 +147,11 @@ namespace Panda
                         break;
                     case VK_DOWN:
                         g_pInputManager->DownArrowKeyUp();
+                        break;
+                    case 0x52: // R key
+                        g_pInputManager->ResetKeyUp();
+                        break;
+                    default:
                         break;
                 }
                 break;

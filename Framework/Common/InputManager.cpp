@@ -1,6 +1,7 @@
 #include <iostream>
 #include "InputManager.hpp"
 #include "GraphicsManager.hpp"
+#include "SceneManager.hpp"
 #include "PandaMath.hpp"
 
 namespace Panda
@@ -25,7 +26,7 @@ namespace Panda
         #ifdef DEBUG
         std::cerr << "[InputManager] Up Arrow Key Donw!" << std::endl;
         #endif
-        g_pGraphicsManager->WorldRotateX(PI / 60.0f);
+        //g_pGraphicsManager->WorldRotateX(PI / 60.0f);
     }
 
     void InputManager::UpArrowKeyUp()
@@ -40,7 +41,7 @@ namespace Panda
         #ifdef DEBUG
         std::cerr << "[InputManager] Down Arrow Key Down!" << std::endl;
         #endif
-        g_pGraphicsManager->WorldRotateX(-PI / 60.0f);
+        //g_pGraphicsManager->WorldRotateX(-PI / 60.0f);
     }
 
     void InputManager::DownArrowKeyUp()
@@ -55,7 +56,7 @@ namespace Panda
         #ifdef DEBUG
         std::cerr << "[InputManager] Left Arrow Key Down!" << std::endl;
         #endif
-        g_pGraphicsManager->WorldRotateY(-PI / 60.0f);
+        //g_pGraphicsManager->WorldRotateY(-PI / 60.0f);
     }
 
     void InputManager::LeftArrowKeyUp()
@@ -70,13 +71,28 @@ namespace Panda
         #ifdef DEBUG
         std::cerr << "[InputManager] Right Arrow Key Down!" << std::endl;
         #endif
-        g_pGraphicsManager->WorldRotateY(PI / 60.0f);
+        //g_pGraphicsManager->WorldRotateY(PI / 60.0f);
     }
 
     void InputManager::RightArrowKeyUp()
     {
         #ifdef DEBUG
         std::cerr << "[InputManager] Right Arrow Key Up!" << std::endl;
+        #endif
+    }
+
+    void InputManager::ResetKeyDown()
+    {
+        #ifdef DEBUG
+        std::cerr << "[InputManager] Reset Key Down!" << std::endl;
+        #endif
+        g_pSceneManager->ResetScene();
+    }
+
+    void InputManager::ResetKeyUp()
+    {
+        #ifdef DEBUG
+        std::cerr << "[InputManager] Reset Key Up!" << std::endl;
         #endif
     }
 }

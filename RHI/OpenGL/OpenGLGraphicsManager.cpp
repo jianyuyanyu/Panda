@@ -5,6 +5,7 @@
 #include "IApplication.hpp"
 #include "Utility.hpp"
 #include "SceneManager.hpp"
+#include "PhysicsManager.hpp"
 
 const char VS_SHADER_SOURCE_FILE[] = "Shaders/basic_vs.glsl";
 const char PS_SHADER_SOURCE_FILE[] = "Shaders/basic_ps.glsl";
@@ -324,107 +325,109 @@ namespace Panda
     void OpenGLGraphicsManager::InitializeBuffers()
     {
         auto& scene = g_pSceneManager->GetScene();
-        auto pGeometryNode = scene.GetFirstGeometryNode();
-        while (pGeometryNode)
+
+        // Geometries
+        for (auto _it : scene.GeometryNodes)
         {
-			if (pGeometryNode->Visible())
-			{
-				std::string str = pGeometryNode->GetSceneObjectRef();
-				auto pGeometry = scene.GetGeometry(pGeometryNode->GetSceneObjectRef());
-				assert(pGeometry);
-				auto pMesh = pGeometry->GetMesh().lock();
-				if (!pMesh) continue;
+			auto pGeometryNode = _it.second;
+            if (pGeometryNode->Visible())
+            {
+                std::string str = pGeometryNode->GetSceneObjectRef();
+                auto pGeometry = scene.GetGeometry(pGeometryNode->GetSceneObjectRef());
+                assert(pGeometry);
+                auto pMesh = pGeometry->GetMesh().lock();
+                if (!pMesh) continue;
 
-				// Set the number of vertex properties.
-				auto vertexPropertiesCount = pMesh->GetVertexPropertiesCount();
+                // Set the number of vertex properties.
+                auto vertexPropertiesCount = pMesh->GetVertexPropertiesCount();
 
-				// Set the number of vertices in the vertex array.
-				auto vertexCount = pMesh->GetVertexCount();
+                // Set the number of vertices in the vertex array.
+                auto vertexCount = pMesh->GetVertexCount();
 
-				// Allocate an OpenGL vertex array object.
-				GLuint vao;
-				glGenVertexArrays(1, &vao);
+                // Allocate an OpenGL vertex array object.
+                GLuint vao;
+                glGenVertexArrays(1, &vao);
 
-				// Bind the vertex array object to store all the buffers and vertex attributes we create here.
-				glBindVertexArray(vao);
+                // Bind the vertex array object to store all the buffers and vertex attributes we create here.
+                glBindVertexArray(vao);
 
-				GLuint buffer_id;
-				for (size_t i = 0; i < vertexPropertiesCount; ++i)
-				{
-					const SceneObjectVertexArray& v_property_array = pMesh->GetVertexPropertyArray(i);
-					auto v_property_array_data_size = v_property_array.GetDataSize();
-					auto v_property_array_data = v_property_array.GetData();
+                GLuint buffer_id;
+                for (size_t i = 0; i < vertexPropertiesCount; ++i)
+                {
+                    const SceneObjectVertexArray& v_property_array = pMesh->GetVertexPropertyArray(i);
+                    auto v_property_array_data_size = v_property_array.GetDataSize();
+                    auto v_property_array_data = v_property_array.GetData();
 
-					// Generated an ID for the vertex buffer
-					glGenBuffers(1, &buffer_id);
+                    // Generated an ID for the vertex buffer
+                    glGenBuffers(1, &buffer_id);
 
-					// Bind the vertex buffer and load the vertex (position and color) data into the vertex buffer
-					glBindBuffer(GL_ARRAY_BUFFER, buffer_id);
-					glBufferData(GL_ARRAY_BUFFER, v_property_array_data_size, v_property_array_data, GL_STATIC_DRAW);
+                    // Bind the vertex buffer and load the vertex (position and color) data into the vertex buffer
+                    glBindBuffer(GL_ARRAY_BUFFER, buffer_id);
+                    glBufferData(GL_ARRAY_BUFFER, v_property_array_data_size, v_property_array_data, GL_STATIC_DRAW);
 
-					glEnableVertexAttribArray(i);
+                    glEnableVertexAttribArray(i);
 
-					glBindBuffer(GL_ARRAY_BUFFER, buffer_id);
-					switch(v_property_array.GetDataType())
-					{
-						case VertexDataType::kVertexDataTypeFloat1:
-							glVertexAttribPointer(i, 1, GL_FLOAT, false, 0, 0);
-							break;
-						case VertexDataType::kVertexDataTypeFloat2:
-							glVertexAttribPointer(i, 2, GL_FLOAT, false, 0, 0);
-							break;
-						case VertexDataType::kVertexDataTypeFloat3:
-							glVertexAttribPointer(i, 3, GL_FLOAT, false, 0, 0);
-							break;
-						case VertexDataType::kVertexDataTypeFloat4:
-							glVertexAttribPointer(i, 4, GL_FLOAT, false, 0, 0);
-							break;
-						case VertexDataType::kVertexDataTypeDouble1:
-							glVertexAttribPointer(i, 1, GL_DOUBLE, false, 0, 0);
-							break;
-						case VertexDataType::kVertexDataTypeDouble2:
-							glVertexAttribPointer(i, 2, GL_DOUBLE, false, 0, 0);
-							break;
-						case VertexDataType::kVertexDataTypeDouble3:
-							glVertexAttribPointer(i, 3, GL_DOUBLE, false, 0, 0);
-							break;
-						case VertexDataType::kVertexDataTypeDouble4:
-							glVertexAttribPointer(i, 4, GL_DOUBLE, false, 0, 0);
-							break;
-						default:
-							assert(0);
-							break;
-					}
+                    glBindBuffer(GL_ARRAY_BUFFER, buffer_id);
+                    switch(v_property_array.GetDataType())
+                    {
+                        case VertexDataType::kVertexDataTypeFloat1:
+                            glVertexAttribPointer(i, 1, GL_FLOAT, false, 0, 0);
+                            break;
+                        case VertexDataType::kVertexDataTypeFloat2:
+                            glVertexAttribPointer(i, 2, GL_FLOAT, false, 0, 0);
+                            break;
+                        case VertexDataType::kVertexDataTypeFloat3:
+                            glVertexAttribPointer(i, 3, GL_FLOAT, false, 0, 0);
+                            break;
+                        case VertexDataType::kVertexDataTypeFloat4:
+                            glVertexAttribPointer(i, 4, GL_FLOAT, false, 0, 0);
+                            break;
+                        case VertexDataType::kVertexDataTypeDouble1:
+                            glVertexAttribPointer(i, 1, GL_DOUBLE, false, 0, 0);
+                            break;
+                        case VertexDataType::kVertexDataTypeDouble2:
+                            glVertexAttribPointer(i, 2, GL_DOUBLE, false, 0, 0);
+                            break;
+                        case VertexDataType::kVertexDataTypeDouble3:
+                            glVertexAttribPointer(i, 3, GL_DOUBLE, false, 0, 0);
+                            break;
+                        case VertexDataType::kVertexDataTypeDouble4:
+                            glVertexAttribPointer(i, 4, GL_DOUBLE, false, 0, 0);
+                            break;
+                        default:
+                            assert(0);
+                            break;
+                    }
 
-					m_Buffers.push_back(buffer_id);
-				}
+                    m_Buffers.push_back(buffer_id);
+                }
 
-				size_t indexGroupCount = pMesh->GetIndexGroupCount();
-				GLenum mode;
-				switch(pMesh->GetPrimitiveType())
-				{
-					case PrimitiveType::kPrimitiveTypePointList:
-						mode = GL_POINTS;
-						break;
-					case PrimitiveType::kPrimitiveTypeLineList:
-						mode = GL_LINES;
-						break;
-					case PrimitiveType::kPrimitiveTypeLineStrip:
-						mode = GL_LINE_STRIP;
-						break;
-					case PrimitiveType::kPrimitiveTypeTriList:
-						mode = GL_TRIANGLES;
-						break;
-					case PrimitiveType::kPrimitiveTypeTriStrip:
-						mode = GL_TRIANGLE_STRIP;
-						break;
-					case PrimitiveType::kPrimitiveTypeTriFan:
-						mode = GL_TRIANGLE_FAN;
-						break;
-					default:
-						// ignore
-						continue;
-				}
+                size_t indexGroupCount = pMesh->GetIndexGroupCount();
+                GLenum mode;
+                switch(pMesh->GetPrimitiveType())
+                {
+                    case PrimitiveType::kPrimitiveTypePointList:
+                        mode = GL_POINTS;
+                        break;
+                    case PrimitiveType::kPrimitiveTypeLineList:
+                        mode = GL_LINES;
+                        break;
+                    case PrimitiveType::kPrimitiveTypeLineStrip:
+                        mode = GL_LINE_STRIP;
+                        break;
+                    case PrimitiveType::kPrimitiveTypeTriList:
+                        mode = GL_TRIANGLES;
+                        break;
+                    case PrimitiveType::kPrimitiveTypeTriStrip:
+                        mode = GL_TRIANGLE_STRIP;
+                        break;
+                    case PrimitiveType::kPrimitiveTypeTriFan:
+                        mode = GL_TRIANGLE_FAN;
+                        break;
+                    default:
+                        // ignore
+                        continue;
+                }
 
                 for (size_t i = 0; i < indexGroupCount; ++i)
                 {
@@ -498,15 +501,14 @@ namespace Panda
                     dbc.mode = mode;
                     dbc.type = type;
                     dbc.count = indexCount;
-                    dbc.transform = pGeometryNode->GetCalclulatedTrasform();
+                    dbc.node = pGeometryNode;
                     dbc.material = material;
-					//std::cout << dbc;
+                    //std::cout << dbc;
                     m_DrawBatchContext.push_back(std::move(dbc));
                 }
-			}
-
-            pGeometryNode = scene.GetNextGeometryNode();
+            }
         }
+
 
         return;
     }
@@ -519,7 +521,29 @@ namespace Panda
         {
             // Set the color shader as the current shader program and set the matrices that it will use for rendering.
             glUseProgram(m_ShaderProgram);
-            SetPerBatchShaderParameters("modelMatrix", *dbc.transform);
+
+            Matrix4f trans = *dbc.node ->GetCalclulatedTrasform();
+
+            if (void* pRigidBody = dbc.node->RigidBody())
+            {
+                // the geometry has rigid body bounded, we blend the simulation result here.
+                Matrix4f simulatedResult = g_pPhysicsManager->GetRigidBodyTransform(pRigidBody);
+
+                // reset the translation part of the matrix
+                memcpy(trans.m[3], Vector3Df(0.0f, 0.0f, 0.0f).GetAddressOf(), sizeof(float) * 3);
+
+                // apply the rotation part of the simulation result
+                Matrix4f rotation;
+                rotation.SetIdentity();
+                memcpy(rotation.m[0], simulatedResult.m[0], sizeof(float) * 3);
+                memcpy(rotation.m[1], simulatedResult.m[1], sizeof(float) * 3);
+                memcpy(rotation.m[2], simulatedResult.m[2], sizeof(float) * 3);
+                trans = trans * rotation;
+
+                // replace the translation part of the matirx with simulation result directly
+                memcpy(trans.m[3], simulatedResult.m[3], sizeof(float) * 3);
+            }
+            SetPerBatchShaderParameters("modelMatrix", trans);
             glBindVertexArray(dbc.vao);
 
             /*

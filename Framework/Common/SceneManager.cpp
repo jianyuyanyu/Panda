@@ -13,7 +13,7 @@ namespace Panda
 	{
 		int result = 0;
 
-		m_pScene = std::make_unique<Scene>();
+		m_pScene = std::make_shared<Scene>();
 		return result;
 	}
 
@@ -42,6 +42,11 @@ namespace Panda
 		}
 	}
 
+	void SceneManager::ResetScene()
+	{
+		m_DirtyFlag = true;
+	}
+
 	bool SceneManager::LoadOgexScene(const char* ogexSceneFileName)
 	{
 		std::string ogexText = g_pAssetLoader->SyncOpenAndReadFileToString(ogexSceneFileName);
@@ -63,12 +68,16 @@ namespace Panda
 
 	const Scene& SceneManager::GetScene()
 	{
-		m_DirtyFlag = false;
 		return *m_pScene;
 	}
 
 	bool SceneManager::IsSceneChanged()
 	{
 		return m_DirtyFlag;
+	}
+
+	void SceneManager::NotifySceneIsRenderingQueued()
+	{
+		m_DirtyFlag = false;
 	}
 }

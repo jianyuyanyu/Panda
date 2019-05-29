@@ -16,10 +16,6 @@ namespace Panda {
 			virtual void Clear();
 			virtual void Draw();
 
-			// temporary. It should be moved to scene manager and script engine(policy engine)
-			void WorldRotateX(float radians);
-			void WorldRotateY(float radians);
-
 		protected:
 			bool SetPerFrameShaderParameters();
 			bool SetPerBatchShaderParameters(const char* paramName, const Matrix4f& param);

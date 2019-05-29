@@ -986,10 +986,12 @@ namespace Panda {
         }
 
         auto& scene = g_pSceneManager->GetScene();
-        auto pGeometryNode = scene.GetFirstGeometryNode();
+
+
         int32_t n = 0;
-        while(pGeometryNode)
+        for (auto _it : scene.GeometryNodes)
         {
+			auto pGeometryNode = _it.second;
             if (pGeometryNode->Visible())
             {
                 auto pGeometry = scene.GetGeometry(pGeometryNode->GetSceneObjectRef());
@@ -1022,7 +1024,6 @@ namespace Panda {
                 SetPerBatchShaderParameters(n);
                 ++n;
             }
-            pGeometryNode = scene.GetNextGeometryNode();
         }
 
         if (SUCCEEDED(hr = m_pCommandList->Close()))

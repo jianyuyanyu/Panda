@@ -30,6 +30,22 @@ namespace Panda
         kSceneObjectTypeGeometry = "GEOM"_i32,
     };
 
+    ENUM(SceneObjectCollisionType)
+    {
+        kSceneObjectCollisionTypeNone = "CNON"_i32,
+        kSceneObjectCollisionTypeSphere = "CSPH"_i32,
+        kSceneObjectCollisionTypeBox = "CBOX"_i32,
+        kSceneObjectCollisionTypeCylinder = "CCYL"_i32,
+        kSceneObjectCollisionTypeCapsule = "CCAP"_i32,
+        kSceneObjectCollisionTypeCone = "CCON"_i32,
+        kSceneObjectCollisionTypeMultiSphere = "CMUL"_i32,
+        kSceneObjectCollisionTypeConvexHull = "CCVH"_i32,
+        kSceneObjectCollisionTypeConvexMesh = "CCVM"_i32,
+        kSceneObjectCollisionTypeBvhMesh = "CBVM"_i32,
+        kSceneObjectCollisionTypeHeightfield = "CHIG"_i32,
+        kSceneObjectCollisionTypePlane = "CPLN"_i32,
+    };
+
     std::ostream& operator<<(std::ostream& out, SceneObjectType type);
 
     using namespace xg;
@@ -264,22 +280,15 @@ namespace Panda
         std::vector<SceneObjectVertexArray> m_VertexArray;
         PrimitiveType m_PrimitiveType;
 
-        bool    m_IsVisible;
-        bool    m_IsShadow;
-        bool    m_IsMotionBlur;
-
     public:
         SceneObjectMesh(bool visible = true, bool shadow = true, bool motion_blur = true) : 
-            BaseSceneObject(SceneObjectType::kSceneObjectTypeMesh), m_IsVisible(visible), m_IsShadow(shadow), m_IsMotionBlur(motion_blur)
+            BaseSceneObject(SceneObjectType::kSceneObjectTypeMesh)
         {}
         SceneObjectMesh(SceneObjectMesh&& mesh) :
             BaseSceneObject(SceneObjectType::kSceneObjectTypeMesh),
             m_IndexArray(std::move(mesh.m_IndexArray)),
             m_VertexArray(std::move(mesh.m_VertexArray)),
-            m_PrimitiveType(mesh.m_PrimitiveType),
-            m_IsVisible(mesh.m_IsVisible),
-            m_IsShadow(mesh.m_IsShadow),
-            m_IsMotionBlur(mesh.m_IsMotionBlur)
+            m_PrimitiveType(mesh.m_PrimitiveType)
             {}
         void AddIndexArray(SceneObjectIndexArray&& array) { m_IndexArray.push_back(std::move(array));}
         void AddVertexArray(SceneObjectVertexArray&& array) {m_VertexArray.push_back(std::move(array));}
@@ -540,9 +549,10 @@ namespace Panda
             bool        m_IsVisible;
             bool        m_IsShadow;
             bool        m_IsMotionBlur;
+            SceneObjectCollisionType m_CollisionType;
 
         public:
-            SceneObjectGeometry() : BaseSceneObject(SceneObjectType::kSceneObjectTypeGeometry) {}
+            SceneObjectGeometry() : BaseSceneObject(SceneObjectType::kSceneObjectTypeGeometry), m_CollisionType(SceneObjectCollisionType::kSceneObjectCollisionTypeNone) {}
 
             void SetVisibility(bool visible) {m_IsVisible = visible;}
             const bool Visible() {return m_IsVisible;}
@@ -550,6 +560,8 @@ namespace Panda
             const bool CastShadow() {return m_IsShadow;}
             void SetIfMotionBlur(bool motionBlur) {m_IsMotionBlur = motionBlur;}
             const bool MotionBlur() {return m_IsMotionBlur;}
+            void SetCollisionType(SceneObjectCollisionType collisionType) {m_CollisionType = collisionType;}
+            const SceneObjectCollisionType CollisionType() const {return m_CollisionType;}
 
             void AddMesh(std::shared_ptr<SceneObjectMesh>& mesh) {m_Mesh.push_back(std::move(mesh));}
             const std::weak_ptr<SceneObjectMesh> GetMesh() {return m_Mesh.empty()? nullptr : m_Mesh[0];}

@@ -123,6 +123,9 @@ namespace Panda
                     case 116:
                         g_pInputManager->DownArrowKeyDown();
                         break;
+                    case 27:
+                        g_pInputManager->ResetKeyDown();
+                        break;
                 }
             }
             break;
@@ -144,6 +147,9 @@ namespace Panda
                         break;
                     case 116:
                         g_pInputManager->DownArrowKeyUp();
+                        break;
+                    case 27:
+                        g_pInputManager->ResetKeyUp();
                         break;
                 }
             }

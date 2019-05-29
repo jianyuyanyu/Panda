@@ -115,6 +115,7 @@ namespace Panda
             bool    m_IsShadow;
             bool    m_IsMotionBlur;
             std::vector<std::string> m_Materials;
+            void*   m_pRigidBody = nullptr;
 
         protected:
             virtual void Dump(std::ostream& out)
@@ -149,6 +150,21 @@ namespace Panda
                 else 
                     return std::string("default");
             }
+
+            void LinkRigidBody(void* pRigidBody)
+            {
+                m_pRigidBody = pRigidBody;
+            }
+
+            void* UnlinkRigidBody()
+            {
+                void* pRigidBody = m_pRigidBody;
+                m_pRigidBody = nullptr;
+
+                return pRigidBody;
+            }
+
+            void* RigidBody() {return m_pRigidBody;}
     };
     
     class SceneLightNode : public SceneNode<SceneObjectLight>

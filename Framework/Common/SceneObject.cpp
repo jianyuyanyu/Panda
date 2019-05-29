@@ -128,9 +128,6 @@ namespace Panda
         {
             out << obj.m_IndexArray[i] << std::endl;
         }
-        out << "Visible: " << obj.m_IsVisible << std::endl;
-        out << "Shadow: " << obj.m_IsVisible << std::endl;
-        out << "Motion Blur: " << obj.m_IsMotionBlur << std::endl;
 
         return out;
     }

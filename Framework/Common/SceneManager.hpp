@@ -18,13 +18,15 @@ namespace Panda
             int LoadScene(const char* sceneFileName);
 
             bool IsSceneChanged();
+            void NotifySceneIsRenderingQueued();
             const Scene& GetScene();
+            void ResetScene();
 
         protected:
             bool LoadOgexScene(const char* ogexSceneFileName);
 
         protected:
-            std::unique_ptr<Scene> m_pScene;
+            std::shared_ptr<Scene> m_pScene;
             bool m_DirtyFlag = false;
     };
 
