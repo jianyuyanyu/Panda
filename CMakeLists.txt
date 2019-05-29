@@ -73,6 +73,7 @@ add_subdirectory(Framework)		# sub directory, must have CMakeLists.txt in it
 add_subdirectory(Platform)
 add_subdirectory(RHI)
 add_subdirectory(Test)
+add_subdirectory(Game)
 
 #IF (${UNIX})	# Unix platform compile configuration.
 #	set (CMAKE_C_COMPILER				"gcc")

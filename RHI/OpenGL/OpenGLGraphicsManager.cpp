@@ -475,7 +475,7 @@ namespace Panda
                         auto color = material->GetBaseColor();
                         if (color.ValueMap)
                         {
-                            auto texture = color.ValueMap->GetTextureImage();
+                            Image texture = color.ValueMap->GetTextureImage();
                             auto it = m_TextureIndex.find(materialKey);
                             if (it == m_TextureIndex.end())
                             {
@@ -483,8 +483,16 @@ namespace Panda
                                 glGenTextures(1, &textureID);
                                 glActiveTexture(GL_TEXTURE0 + textureID);
                                 glBindTexture(GL_TEXTURE_2D, textureID);
-                                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture.Width, texture.Height,
-                                    0, GL_RGBA, GL_UNSIGNED_BYTE, texture.Data);
+                                if (texture.BitCount == 24)
+                                {
+                                    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texture.Width, texture.Height,
+                                        0, GL_RGB, GL_UNSIGNED_BYTE, texture.Data);
+                                }
+                                else 
+                                {
+                                    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture.Width, texture.Height,
+                                        0, GL_RGBA, GL_UNSIGNED_BYTE, texture.Data);
+                                }
                                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
                                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
                                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -522,7 +530,7 @@ namespace Panda
             // Set the color shader as the current shader program and set the matrices that it will use for rendering.
             glUseProgram(m_ShaderProgram);
 
-            Matrix4f trans = *dbc.node ->GetCalclulatedTrasform();
+            Matrix4f trans = *dbc.node ->GetCalculatedTransform();
 
             if (void* pRigidBody = dbc.node->RigidBody())
             {

@@ -15,8 +15,8 @@ add_test(NAME TEST_PandaMath COMMAND PandaMathTest)
 # texture load test
 IF(${WIN32})
 	add_executable(TextureLoadTest TextureLoadTest.cpp)
-    target_link_libraries(TextureLoadTest WindowsApplication Common ${OPENGEX_LIBRARY} ${OPENDDL_LIBRARY} ${XG_LIBRARY} ${ZLIB_LIBRARY} D2DRHI d2d1)
-    __add_xg_platform_dependencies(TextureLoadTest)
+    target_link_libraries(TextureLoadTest 
+        PandaGameEngine)
     add_test(NAME TEST_TextureLoad COMMAND TextureLoadTest)
 ENDIF(${WIN32})
 

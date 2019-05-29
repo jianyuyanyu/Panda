@@ -34,7 +34,7 @@ namespace Panda
     class BmpParser : implements ImageParser
     {
     public:
-        virtual Image Parse(const Buffer& buf)
+        virtual Image Parse(Buffer& buf)
         {
             Image img;
             const BITMAP_FILEHEADER* pFileHeader = reinterpret_cast<const BITMAP_FILEHEADER*>(buf.GetData());

@@ -23,6 +23,8 @@ namespace Panda
 
             Matrix4f GetRigidBodyTransform(void* rigidBody);
 
+            void ApplyCentralForce(void* rigidBody, Vector3Df force);
+
         protected:
 
         protected:
@@ -30,7 +32,7 @@ namespace Panda
             btDefaultCollisionConfiguration*        m_pCollisionConfiguration;
             btCollisionDispatcher*                  m_pDispatcher;
             btSequentialImpulseConstraintSolver*    m_pSolver;
-            btDiscreteDynamicsWorld*                m_pDynamicWorld;
+            btDiscreteDynamicsWorld*                m_pDynamicsWorld;
 
             std::vector<btCollisionShape*>          m_pCollisionShapes;
     };

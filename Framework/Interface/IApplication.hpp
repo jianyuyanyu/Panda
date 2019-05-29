@@ -19,8 +19,6 @@ namespace Panda {
 
       virtual bool IsQuit() = 0;
 
-      virtual int LoadScene() = 0;
-
       virtual void OnDraw() = 0;
 	  
 	  virtual GfxConfiguration& GetConfiguration() = 0;

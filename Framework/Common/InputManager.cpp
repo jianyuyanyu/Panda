@@ -2,6 +2,7 @@
 #include "InputManager.hpp"
 #include "GraphicsManager.hpp"
 #include "SceneManager.hpp"
+#include "GameLogic.hpp"
 #include "PandaMath.hpp"
 
 namespace Panda
@@ -26,7 +27,12 @@ namespace Panda
         #ifdef DEBUG
         std::cerr << "[InputManager] Up Arrow Key Donw!" << std::endl;
         #endif
-        //g_pGraphicsManager->WorldRotateX(PI / 60.0f);
+        g_pGameLogic->OnUpKeyDown();
+        if (!m_IsUpKeyPressed)
+        {
+            g_pGameLogic->OnUpKey();
+            m_IsUpKeyPressed = true;
+        }
     }
 
     void InputManager::UpArrowKeyUp()
@@ -34,6 +40,8 @@ namespace Panda
         #ifdef DEBUG
         std::cerr << "[InputManager] Up Arrow Key Up!" << std::endl;
         #endif
+        g_pGameLogic->OnUpKeyUp();
+        m_IsUpKeyPressed = false;
     }
 
     void InputManager::DownArrowKeyDown()
@@ -41,7 +49,12 @@ namespace Panda
         #ifdef DEBUG
         std::cerr << "[InputManager] Down Arrow Key Down!" << std::endl;
         #endif
-        //g_pGraphicsManager->WorldRotateX(-PI / 60.0f);
+        g_pGameLogic->OnDownKeyDown();
+        if (!m_IsDownKeyPressed)
+        {
+            g_pGameLogic->OnDownKey();
+            m_IsDownKeyPressed = true;
+        }
     }
 
     void InputManager::DownArrowKeyUp()
@@ -49,6 +62,8 @@ namespace Panda
         #ifdef DEBUG
         std::cerr << "[InputManager] Down Arrow Key Up!" << std::endl;
         #endif
+        g_pGameLogic->OnDownKeyUp();
+        m_IsDownKeyPressed = false;
     }
 
     void InputManager::LeftArrowKeyDown()
@@ -56,7 +71,12 @@ namespace Panda
         #ifdef DEBUG
         std::cerr << "[InputManager] Left Arrow Key Down!" << std::endl;
         #endif
-        //g_pGraphicsManager->WorldRotateY(-PI / 60.0f);
+        g_pGameLogic->OnLeftKeyDown();
+        if (!m_IsLeftKeyPressed)
+        {
+            g_pGameLogic->OnLeftKey();
+            m_IsLeftKeyPressed = true;
+        }
     }
 
     void InputManager::LeftArrowKeyUp()
@@ -64,6 +84,8 @@ namespace Panda
         #ifdef DEBUG
         std::cerr << "[InputManager] Left Arrow Key Up!" << std::endl;
         #endif
+        g_pGameLogic->OnLeftKeyUp();
+        m_IsLeftKeyPressed = false;
     }
 
     void InputManager::RightArrowKeyDown()
@@ -71,7 +93,12 @@ namespace Panda
         #ifdef DEBUG
         std::cerr << "[InputManager] Right Arrow Key Down!" << std::endl;
         #endif
-        //g_pGraphicsManager->WorldRotateY(PI / 60.0f);
+        g_pGameLogic->OnRightKeyDown();
+        if (!m_IsRightKeyPressed)
+        {
+            g_pGameLogic->OnRightKey();
+            m_IsRightKeyPressed = true;
+        }
     }
 
     void InputManager::RightArrowKeyUp()
@@ -79,6 +106,8 @@ namespace Panda
         #ifdef DEBUG
         std::cerr << "[InputManager] Right Arrow Key Up!" << std::endl;
         #endif
+        g_pGameLogic->OnRightKeyUp();
+        m_IsRightKeyPressed = false;
     }
 
     void InputManager::ResetKeyDown()

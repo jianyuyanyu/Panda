@@ -62,6 +62,14 @@ namespace Panda
 		}
 		std::cerr << "Success" << std::endl;
 
+		std::cerr << "Initialize Game Logic:";
+		if ((ret = g_pGameLogic->Initialize()) != 0)
+		{
+			std::cerr << "Failed. err = " << ret;
+			return ret;
+		}
+		std::cerr << "Success" << std::endl;
+
 		return ret;
 	}
 
@@ -95,25 +103,25 @@ namespace Panda
 		return m_Quit;
 	}
 
-	int BaseApplication::LoadScene()
-	{
-		int ret;
+	// int BaseApplication::LoadScene()
+	// {
+	// 	int ret;
 
-		std::string sceneFileName = "Scene/test.ogex";
-		if (m_ArgC > 1)
-		{
-			sceneFileName = m_ppArgV[1];
-		}
+	// 	std::string sceneFileName = "Scene/test.ogex";
+	// 	if (m_ArgC > 1)
+	// 	{
+	// 		sceneFileName = m_ppArgV[1];
+	// 	}
 
-		std::cerr << "Load Scene(" << sceneFileName << "):";
-		if ((ret = g_pSceneManager->LoadScene(sceneFileName.c_str())) != 0)
-		{
-			std::cerr << "Failed. err = " << ret;
-			return ret;
-		}
-		std::cerr << "Success" << std::endl;
+	// 	std::cerr << "Load Scene(" << sceneFileName << "):";
+	// 	if ((ret = g_pSceneManager->LoadScene(sceneFileName.c_str())) != 0)
+	// 	{
+	// 		std::cerr << "Failed. err = " << ret;
+	// 		return ret;
+	// 	}
+	// 	std::cerr << "Success" << std::endl;
 
-		return 0;
-	}
+	// 	return 0;
+	// }
 }
 

@@ -24,7 +24,7 @@ namespace Panda
     class TgaParser : implements ImageParser
     {
         public:
-            virtual Image Parse(const Buffer& buf)
+            virtual Image Parse(Buffer& buf)
             {
                 Image img;
                 const uint8_t* pData = buf.GetData();

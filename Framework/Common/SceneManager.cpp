@@ -80,4 +80,18 @@ namespace Panda
 	{
 		m_DirtyFlag = false;
 	}
+
+	std::weak_ptr<SceneGeometryNode> SceneManager::GetSceneGeometryNode(std::string name)
+	{
+		auto it = m_pScene->LUTNameGeometryNode.find(name);
+		if (it != m_pScene->LUTNameGeometryNode.end())
+			return it->second;
+		else 
+			return std::weak_ptr<SceneGeometryNode>();
+	}
+
+	std::weak_ptr<SceneObjectGeometry> SceneManager::GetSceneGeometryObject(std::string key)
+	{
+		return m_pScene->Geometries.find(key)->second;
+	}
 }

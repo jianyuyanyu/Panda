@@ -56,6 +56,8 @@ namespace Panda
             std::unordered_map<std::string, std::shared_ptr<SceneObjectMaterial>>   Materials;
             std::unordered_map<std::string, std::shared_ptr<SceneObjectGeometry>>   Geometries;
 
+            std::unordered_map<std::string, std::weak_ptr<SceneGeometryNode>>   LUTNameGeometryNode;
+
         private:
            std::shared_ptr<SceneObjectMaterial> m_pDefaultMaterial;
     };

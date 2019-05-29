@@ -38,17 +38,8 @@ namespace Panda {
 }
 
 namespace Panda {
-	Handness g_ViewHandness = Handness::kHandnessRight;
-	DepthClipSpace g_DepthClipSpace = DepthClipSpace::kDepthClipNegativeOneToOne;
-
-    GfxConfiguration config(8, 8, 8, 8, 24, 8, 0, 1024, 512, "Texture Load Test (Windows)");
-	IApplication* g_pApp                = static_cast<IApplication*>(new TestApplication(config));
-    GraphicsManager* g_pGraphicsManager = static_cast<GraphicsManager*>(new TestGraphicsManager);
-    MemoryManager*   g_pMemoryManager   = static_cast<MemoryManager*>(new MemoryManager);
-    AssetLoader* g_pAssetLoader = static_cast<AssetLoader*>(new AssetLoader);
-    SceneManager* g_pSceneManager = static_cast<SceneManager*>(new SceneManager);
-    InputManager*    g_pInputManager    = static_cast<InputManager*>(new InputManager);
-    PhysicsManager*  g_pPhysicsManager  = static_cast<PhysicsManager*>(new PhysicsManager);
+	GfxConfiguration config(8, 8, 8, 8, 32, 0, 0, 1024, 512, "Texture Load Test (Windows)");
+    GameLogic* g_pGameLogic = static_cast<GameLogic*>(new GameLogic);
 }
 
 int Panda::TestApplication::Initialize()
@@ -71,6 +62,33 @@ int Panda::TestApplication::Initialize()
         }
 
         m_Image = pngParser.Parse(buf);
+    }
+
+    if (m_Image.BitCount == 24)
+    {
+        // DXGI does not have 24 bit formats so we have to extend it to 32bit
+        uint32_t newPitch = m_Image.Pitch / 3 * 4;
+        size_t dataSize = newPitch * m_Image.Height;
+        void* data = g_pMemoryManager->Allocate(dataSize);
+        uint8_t* buf = reinterpret_cast<uint8_t*>(data);
+        uint8_t* src = reinterpret_cast<uint8_t*>(m_Image.Data);
+        for (auto row = 0; row < m_Image.Height; ++row)
+        {
+            buf = reinterpret_cast<uint8_t*>(data) + row * newPitch;
+            src = reinterpret_cast<uint8_t*>(m_Image.Data) + row * m_Image.Pitch;
+            for (auto col = 0; col < m_Image.Pitch; ++col)
+            {
+                *(uint32_t*)buf = *(uint32_t*)src;
+                buf[3] = 0; // set alpha to 0
+                buf += 4;
+                src += 3;
+            }
+        }
+
+        g_pMemoryManager->Free(m_Image.Data, m_Image.DataSize);
+        m_Image.Data = data;
+        m_Image.DataSize = dataSize;
+        m_Image.Pitch = newPitch;
     }
 
     return result;

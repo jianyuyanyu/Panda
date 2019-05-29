@@ -24,6 +24,8 @@ namespace Panda
             BaseSceneNode(const std::string& name) {m_Name = name;}
             virtual ~BaseSceneNode() {}
 
+            const std::string GetName() const {return m_Name;}
+
 			void AppendChild(const std::shared_ptr<BaseSceneNode>& node)
 			{
 				m_Children.push_back(node);
@@ -44,7 +46,7 @@ namespace Panda
                 m_Transforms.push_back(std::move(transform));
             }
 
-            const std::shared_ptr<Matrix4f> GetCalclulatedTrasform() const
+            const std::shared_ptr<Matrix4f> GetCalculatedTransform() const
             {
                 std::shared_ptr<Matrix4f> result (new Matrix4f);
                 result->SetIdentity();

@@ -16,8 +16,8 @@ namespace Panda
         m_pSolver = new btSequentialImpulseConstraintSolver();
 
         // The world
-        m_pDynamicWorld = new btDiscreteDynamicsWorld(m_pDispatcher, m_pBroadphase, m_pSolver, m_pCollisionConfiguration);
-        m_pDynamicWorld->setGravity(btVector3(0.0f, 0.0f, -9.8f));
+        m_pDynamicsWorld = new btDiscreteDynamicsWorld(m_pDispatcher, m_pBroadphase, m_pSolver, m_pCollisionConfiguration);
+        m_pDynamicsWorld->setGravity(btVector3(0.0f, 0.0f, -9.8f));
 
         return 0;
     }
@@ -27,7 +27,7 @@ namespace Panda
         // Clean up
         ClearRigidBodies();
 
-        delete m_pDynamicWorld;
+        delete m_pDynamicsWorld;
         delete m_pSolver;
         delete m_pDispatcher;
         delete m_pCollisionConfiguration;
@@ -42,21 +42,23 @@ namespace Panda
             g_pPhysicsManager->CreateRigidBodies();
         }
 
-        m_pDynamicWorld->stepSimulation(1.0f / 60.0f, 10);
+        m_pDynamicsWorld->stepSimulation(1.0f / 60.0f, 10);
     }
 
     void PhysicsManager::CreateRigidBody(SceneGeometryNode& node, const SceneObjectGeometry& geometry)
     {
         btRigidBody* pRigidBody = nullptr;
 
+        const float* param = geometry.CollisionParameters();
+
         switch(geometry.CollisionType())
         {
             case SceneObjectCollisionType::kSceneObjectCollisionTypeSphere:
             {
-                btSphereShape* sphere = new btSphereShape(1.0f);
+                btSphereShape* sphere = new btSphereShape(param[0]);
                 m_pCollisionShapes.push_back(sphere);
 
-                const auto trans = node.GetCalclulatedTrasform();
+                const auto trans = node.GetCalculatedTransform();
                 btTransform startTransform;
                 startTransform.setIdentity();
                 startTransform.setOrigin(btVector3(trans->m[3][0], trans->m[3][1], trans->m[3][2]));
@@ -67,15 +69,15 @@ namespace Panda
                 btRigidBody::btRigidBodyConstructionInfo rigidBodyCI(mass, motionState, sphere, fallInertia);
                 pRigidBody = new btRigidBody(rigidBodyCI);
 
-                m_pDynamicWorld->addRigidBody(pRigidBody);
+                m_pDynamicsWorld->addRigidBody(pRigidBody);
                 break;
             }
             case SceneObjectCollisionType::kSceneObjectCollisionTypeBox:
             {
-                btBoxShape* box = new btBoxShape(btVector3(5.0f, 5.0f, 0.01f));
+                btBoxShape* box = new btBoxShape(btVector3(param[0], param[1], param[2]));
                 m_pCollisionShapes.push_back(box);
 
-                const auto trans = node.GetCalclulatedTrasform();
+                const auto trans = node.GetCalculatedTransform();
                 btTransform startTransform;
                 startTransform.setIdentity();
                 startTransform.setOrigin(btVector3(trans->m[3][0], trans->m[3][1], trans->m[3][2]));
@@ -83,10 +85,30 @@ namespace Panda
                 btScalar mass = 0.0f;
                 btRigidBody::btRigidBodyConstructionInfo rigidBodyCI(mass, motionState, box, btVector3(0.0f, 0.0f, 0.0f));
                 pRigidBody = new btRigidBody(rigidBodyCI);
-                m_pDynamicWorld->addRigidBody(pRigidBody);
+                m_pDynamicsWorld->addRigidBody(pRigidBody);
 
                 break;
             }
+            case SceneObjectCollisionType::kSceneObjectCollisionTypePlane:
+                {
+                    btStaticPlaneShape* plane = new btStaticPlaneShape(btVector3(param[0], param[1], param[2]), param[3]);
+                    m_pCollisionShapes.push_back(plane);
+
+                    const auto trans = node.GetCalculatedTransform();
+                    btTransform startTransform;
+                    startTransform.setIdentity();
+                    startTransform.setOrigin(btVector3(trans->m[3][0], trans->m[3][1], trans->m[3][2]));
+                    btDefaultMotionState* motionState = 
+                        new btDefaultMotionState(
+                                    startTransform
+                                );
+                    btScalar mass = 0.0f;
+                    btRigidBody::btRigidBodyConstructionInfo
+                        rigidBodyCI(mass, motionState, plane, btVector3(0.0f, 0.0f, 0.0f));
+                    pRigidBody = new btRigidBody(rigidBodyCI);
+                    m_pDynamicsWorld->addRigidBody(pRigidBody);
+                }
+                break;
             default:
                 break;
         }
@@ -99,7 +121,7 @@ namespace Panda
         btRigidBody* pRigidBody = reinterpret_cast<btRigidBody*>(node.UnlinkRigidBody());
         if (pRigidBody)
         {
-            m_pDynamicWorld->removeRigidBody(pRigidBody);
+            m_pDynamicsWorld->removeRigidBody(pRigidBody);
             if (auto motionState = pRigidBody->getMotionState())
                 delete motionState;
             delete pRigidBody;
@@ -165,5 +187,13 @@ namespace Panda
         result.m[3][2] = origin.getZ();
 
         return result;
+    }
+    
+    void PhysicsManager::ApplyCentralForce(void* rigidBody, Vector3Df force)
+    {
+        btRigidBody* _rigidBody = reinterpret_cast<btRigidBody*>(rigidBody);
+        btVector3 _force(force.x, force.y, force.z);
+        _rigidBody->activate(true);
+        _rigidBody->applyCentralForce(_force);
     }
 }

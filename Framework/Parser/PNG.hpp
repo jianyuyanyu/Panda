@@ -105,12 +105,17 @@ namespace Panda
             uint8_t  m_BytesPerPixel;
 
         public:
-            virtual Image Parse(const Buffer& buf)
+            virtual Image Parse(Buffer& buf)
             {
                 Image img;
 
-                const uint8_t* pData = buf.GetData();
-                const uint8_t* pDataEnd = buf.GetData() + buf.GetDataSize();
+                uint8_t* pData = buf.GetData();
+                uint8_t* pDataEnd = buf.GetData() + buf.GetDataSize();
+
+                bool imageDataStarted = false;
+                bool imageDataEnded =false;
+                uint8_t* imageDataStartPos = nullptr;
+                uint8_t* imageDataEndPos = nullptr;
 
                 const PNG_FILEHEADER* pFileHeader = reinterpret_cast<const PNG_FILEHEADER*>(pData);
                 pData += sizeof(PNG_FILEHEADER);
@@ -122,6 +127,7 @@ namespace Panda
                     {
                         const PNG_CHUNK_HEADER* pChunkHeader = reinterpret_cast<const PNG_CHUNK_HEADER*>(pData);
                         PNG_CHUNK_TYPE type = static_cast<PNG_CHUNK_TYPE>(to_endian_native(static_cast<uint32_t>(pChunkHeader->Type)));
+                        uint32_t chunkDataSize = to_endian_native(pChunkHeader->Length);
 
                         std::cout << "======================" << std::endl;
 
@@ -144,15 +150,21 @@ namespace Panda
                                 {
                                     case 0: // gray scale
                                         m_BytesPerPixel = (m_BitDepth + 7) >> 3;
+                                        std::cout << "Color Type 0 is not supported yet! " << std::endl;
+                                        assert(0);
                                         break;
                                     case 2: // rgb true color
                                         m_BytesPerPixel = (m_BitDepth * 3) >> 3;
                                         break;
                                     case 3: // indexed
                                         m_BytesPerPixel = (m_BitDepth + 7) >> 3;
+                                        std::cout << "Color Type 3 is not supported yet! " << std::endl;
+                                        assert(0);
                                         break;
                                     case 4: // grayscale with alpha
                                         m_BytesPerPixel = (m_BitDepth * 2) >> 3;
+                                        std::cout << "Color Type 4 is not supported yet! " << std::endl;
+                                        assert(0);
                                         break;
                                     case 6:
                                         m_BytesPerPixel = (m_BitDepth * 4) >> 3;
@@ -166,7 +178,10 @@ namespace Panda
 
                                 img.Width = m_Width;
                                 img.Height = m_Height;
-                                img.BitCount = 32; // currently we fixed at RGBA for rendering
+                                if (m_ColorType == 2)
+                                    img.BitCount = 24;
+                                else
+                                    img.BitCount = 32;
                                 img.Pitch = (img.Width * (img.BitCount >> 3) + 3) & ~3u;    // for GPU address alignment
                                 img.DataSize = img.Pitch * img.Height;
                                 img.Data = g_pMemoryManager->Allocate(img.DataSize);
@@ -185,7 +200,7 @@ namespace Panda
                                 std::cout << "PLTE (Palette)" << std::endl;
                                 std::cout << "-------------------------" << std::endl;
                                 const PNG_PLTE_HEADER* pPLTEHeader = reinterpret_cast<const PNG_PLTE_HEADER*>(pData);
-                                size_t maxCount = to_endian_native(pPLTEHeader->Length) / sizeof(*pPLTEHeader->pEntries);
+                                size_t maxCount = chunkDataSize / sizeof(*pPLTEHeader->pEntries);
                                 for (size_t i = 0; i < maxCount; ++i)
                                 {
 #if DUMP_DETAILS
@@ -199,9 +214,44 @@ namespace Panda
                                 std::cout << "IDAT (Image Data Start)" << std::endl;
                                 std::cout << "--------------------------" << std::endl;
 
-                                size_t compressedDataSize = to_endian_native(pChunkHeader->Length);
+                                std::cout << "Compressed Data Length: " << chunkDataSize << std::endl;
 
-                                std::cout << "Compressed Data Length: " << compressedDataSize << std::endl;
+                                if (imageDataEnded)
+                                {
+                                    std::cout << "PNG file looks corrupted. Found IDAT after IEND." << std::endl;
+                                    break;
+                                }
+
+                                if (!imageDataStarted)
+                                {
+                                    imageDataStarted = true;
+                                    imageDataStartPos = pData + sizeof(PNG_CHUNK_HEADER);
+                                    imageDataEndPos = imageDataStartPos + chunkDataSize;
+                                }
+                                else 
+                                {
+                                    // concat the IDAT blocks
+                                    memcpy(imageDataEndPos, pData + sizeof(PNG_CHUNK_HEADER), chunkDataSize);
+                                    imageDataEndPos += chunkDataSize;
+                                }
+                            }
+                            break;
+                            case PNG_CHUNK_TYPE::IEND:
+                            {
+                                std::cout << "IEND (Image Data End) " << std::endl;
+                                std::cout << "---------------------------" << std::endl;
+
+                                size_t compressedDataSize = imageDataEndPos - imageDataStartPos;
+
+                                if (!imageDataStarted)
+                                {
+                                    std::cout << "PNG file looks corrupted. Found IEND before IDAT." << std::endl;
+                                    break;
+                                }
+                                else
+                                {
+                                    imageDataEnded = true;
+                                }
 
                                 const size_t kChunkSize = 256 * 1024;
                                 z_stream strm;
@@ -218,7 +268,7 @@ namespace Panda
                                     break;
                                 }
 
-                                const uint8_t* pIn = pData + sizeof(PNG_CHUNK_HEADER); // point to the start of the input data buffer
+                                const uint8_t* pIn = imageDataStartPos; // point to the start of the input data buffer
                                 uint8_t* pOut = reinterpret_cast<uint8_t*>(img.Data); // point to the start of the input data buffer
                                 uint8_t* pDecompressedBuffer = new uint8_t[kChunkSize];
                                 uint8_t filterType = 0;
@@ -227,7 +277,7 @@ namespace Panda
 
                                 do 
                                 {
-                                    size_t nextInSize = (compressedDataSize > kChunkSize)? kChunkSize : compressedDataSize;
+                                    size_t nextInSize = (compressedDataSize > kChunkSize)? kChunkSize : (size_t)compressedDataSize;
                                     if (nextInSize == 0) break;
                                     compressedDataSize -= nextInSize;
                                     strm.next_in = const_cast<Bytef*>(pIn);
@@ -244,85 +294,80 @@ namespace Panda
                                             case Z_DATA_ERROR:
                                             case Z_MEM_ERROR:
                                                 zerr(ret);
-                                                (void)inflateEnd(&strm);
-                                                strm.avail_out = 0;
                                                 ret = Z_STREAM_END;
-                                                assert(0);
                                             default:
-                                                ;
-                                        }
-
-                                        // now we de-filter the data into image
-                                        uint8_t* p = pDecompressedBuffer;
-                                        while(p - pDecompressedBuffer < (kChunkSize - strm.avail_out))
-                                        {
-                                            if (currentCol == -1)
-                                            {
-                                                // we are at start of scan line, get the filter type and advance the pointer
-                                                filterType = *p;
-                                            }
-                                            else 
-                                            {
-                                                // prediction filter
-                                                // X is current value
-                                                //
-                                                // C B D
-                                                // A X
-                                                uint8_t A, B, C;
-                                                if (currentRow == 0)
+                                                // now we de-filter the data into image
+                                                uint8_t* p = pDecompressedBuffer;
+                                                while(p - pDecompressedBuffer < (kChunkSize - strm.avail_out))
                                                 {
-                                                    B = C = 0;
-                                                }
-                                                else 
-                                                {
-                                                    B = *(pOut + img.Pitch * (currentRow - 1) + currentCol);
-                                                    C = (currentCol < m_BytesPerPixel)? 0 : *(pOut + img.Pitch * (currentRow - 1) + currentCol - m_BytesPerPixel);
-                                                }
-
-                                                A = (currentCol < m_BytesPerPixel)? 0 : *(pOut + img.Pitch * currentRow + currentCol - m_BytesPerPixel);
-
-                                                switch(filterType)
-                                                {
-                                                    case 0:
-                                                        *(pOut + img.Pitch * currentRow + currentCol) = *p;
-                                                        break;
-                                                    case 1:
-                                                        *(pOut + img.Pitch * currentRow + currentCol) = *p + A;
-                                                        break;
-                                                    case 2:
-                                                        *(pOut + img.Pitch * currentRow + currentCol) = *p + B;
-                                                        break;
-                                                    case 3:
-                                                        *(pOut + img.Pitch * currentRow + currentCol) = *p + (A + B) / 2;
-                                                        break;
-                                                    case 4:
+                                                    if (currentCol == -1)
+                                                    {
+                                                        // we are at start of scan line, get the filter type and advance the pointer
+                                                        filterType = *p;
+                                                    }
+                                                    else 
+                                                    {
+                                                        // prediction filter
+                                                        // X is current value
+                                                        //
+                                                        // C B D
+                                                        // A X
+                                                        uint8_t A, B, C;
+                                                        if (currentRow == 0)
                                                         {
-                                                            int _p = A + B - C;
-                                                            int pa = abs(_p - A);
-                                                            int pb = abs(_p - B);
-                                                            int pc = abs(_p - C);
-                                                            if (pa <= pb && pa <= pc)
-                                                                *(pOut + img.Pitch * currentRow + currentCol) = *p + A;
-                                                            else if (pb <= pc)
-                                                                *(pOut + img.Pitch * currentRow + currentCol) = *p + B;
-                                                            else 
-                                                                *(pOut + img.Pitch * currentRow + currentCol) = *p + C;
+                                                            B = C = 0;
                                                         }
-                                                        break;
-                                                    default:
-                                                        std::cout << "[Error] Unknown Filter type!" << std::endl;
-                                                        assert(0);
+                                                        else 
+                                                        {
+                                                            B = *(pOut + img.Pitch * (currentRow - 1) + currentCol);
+                                                            C = (currentCol < m_BytesPerPixel)? 0 : *(pOut + img.Pitch * (currentRow - 1) + currentCol - m_BytesPerPixel);
+                                                        }
+
+                                                        A = (currentCol < m_BytesPerPixel)? 0 : *(pOut + img.Pitch * currentRow + currentCol - m_BytesPerPixel);
+
+                                                        switch(filterType)
+                                                        {
+                                                            case 0:
+                                                                *(pOut + img.Pitch * currentRow + currentCol) = *p;
+                                                                break;
+                                                            case 1:
+                                                                *(pOut + img.Pitch * currentRow + currentCol) = *p + A;
+                                                                break;
+                                                            case 2:
+                                                                *(pOut + img.Pitch * currentRow + currentCol) = *p + B;
+                                                                break;
+                                                            case 3:
+                                                                *(pOut + img.Pitch * currentRow + currentCol) = *p + (A + B) / 2;
+                                                                break;
+                                                            case 4:
+                                                                {
+                                                                    int _p = A + B - C;
+                                                                    int pa = abs(_p - A);
+                                                                    int pb = abs(_p - B);
+                                                                    int pc = abs(_p - C);
+                                                                    if (pa <= pb && pa <= pc)
+                                                                        *(pOut + img.Pitch * currentRow + currentCol) = *p + A;
+                                                                    else if (pb <= pc)
+                                                                        *(pOut + img.Pitch * currentRow + currentCol) = *p + B;
+                                                                    else 
+                                                                        *(pOut + img.Pitch * currentRow + currentCol) = *p + C;
+                                                                }
+                                                                break;
+                                                            default:
+                                                                std::cout << "[Error] Unknown Filter type!" << std::endl;
+                                                                assert(0);
+                                                        }
+                                                    }
+
+                                                    ++currentCol;
+                                                    if (currentCol == m_ScanLineSize)
+                                                    {
+                                                        currentCol = -1;
+                                                        ++currentRow;
+                                                    }
+
+                                                    p++;
                                                 }
-                                            }
-
-                                            ++currentCol;
-                                            if (currentCol == m_ScanLineSize)
-                                            {
-                                                currentCol = -1;
-                                                ++currentRow;
-                                            }
-
-                                            p++;
                                         }
                                     } while (strm.avail_out == 0);
                                     
@@ -330,13 +375,7 @@ namespace Panda
                                 }while (ret != Z_STREAM_END);
 
                                 (void)inflateEnd(&strm);
-                                g_pMemoryManager->Free(pDecompressedBuffer, kChunkSize);
-                            }
-                            break;
-                            case PNG_CHUNK_TYPE::IEND:
-                            {
-                                std::cout << "IEND (Image Data End) " << std::endl;
-                                std::cout << "---------------------------" << std::endl;
+                                delete[] pDecompressedBuffer;
                             }
                             break;
                             default:
@@ -345,7 +384,7 @@ namespace Panda
                             }
                             break;
                         }
-                        pData += to_endian_native(pChunkHeader->Length) + sizeof(PNG_CHUNK_HEADER) + 4 /* length of CRC */;
+                        pData += chunkDataSize + sizeof(PNG_CHUNK_HEADER) + 4 /* length of CRC */;
                     }
                 }
                 else 

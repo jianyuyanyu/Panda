@@ -21,6 +21,12 @@ namespace Panda
 
             void ResetKeyDown();
             void ResetKeyUp();
+
+        protected:
+            bool m_IsUpKeyPressed = false;
+            bool m_IsDownKeyPressed = false;
+            bool m_IsLeftKeyPressed = false;
+            bool m_IsRightKeyPressed = false;
     };
 
     extern InputManager* g_pInputManager;

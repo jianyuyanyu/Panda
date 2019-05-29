@@ -102,7 +102,7 @@ namespace Panda
 		auto pCameraNode = scene.GetFirstCameraNode();
 		if (pCameraNode)
 		{
-			m_DrawFrameContext.ViewMatrix = *pCameraNode->GetCalclulatedTrasform();
+			m_DrawFrameContext.ViewMatrix = *pCameraNode->GetCalculatedTransform();
 			m_DrawFrameContext.ViewMatrix.SetInverse();
 		}
 		else 
@@ -139,7 +139,7 @@ namespace Panda
 		if (pLightNode)
 		{
 			m_DrawFrameContext.LightPosition = {0.0f, 0.0f, 0.0f};
-			TransformCoord(m_DrawFrameContext.LightPosition, *pLightNode->GetCalclulatedTrasform());
+			TransformCoord(m_DrawFrameContext.LightPosition, *pLightNode->GetCalculatedTransform());
 
 			auto pLight = scene.GetLight(pLightNode->GetSceneObjectRef());
 			if (pLight)

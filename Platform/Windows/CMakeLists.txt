@@ -1,45 +1,33 @@
-add_library(WindowsApplication WindowsApplication.cpp)
-
-add_executable (PandaD3D12 
-	D3D12Application.cpp
-	D3D12ApplicationConfig.cpp
-	)
-	
-target_link_libraries (PandaD3D12 
-	WindowsApplication
-	Common
-	${OPENGEX_LIBRARY} ${OPENDDL_LIBRARY} ${XG_LIBRARY} ${ZLIB_LIBRARY}
-	D3DRHI
-	d3d12
-	dxgi
-	d3dcompiler
-	)
-__add_xg_platform_dependencies(PandaD3D12)
-
-add_custom_command(TARGET PandaD3D12 POST_BUILD
-	COMMAND ${CMAKE_COMMAND} -E copy_if_different
-	"${PROJECT_SOURCE_DIR}/External/Windows/bin/zlib.dll"
-	$<TARGET_FILE_DIR:PandaD3D12>)
-
 find_package(OpenGL REQUIRED)
 
-add_executable(PandaOpenGL
+add_library(PlatformInterface
+	WindowsApplication.cpp
+	D3D12Application.cpp
 	OpenGLApplication.cpp
-	OpenGLApplicationConfig.cpp
-	${PROJECT_SOURCE_DIR}/External/src/glad/src/glad_wgl.c
-	)
-target_link_libraries(PandaOpenGL
-	WindowsApplication
-	Common
-	${OPENGEX_LIBRARY} ${OPENDDL_LIBRARY} ${XG_LIBRARY} ${ZLIB_LIBRARY}
-	OpenGLRHI
-	${OPENGL_LIBRARIES}
-	)
-target_include_directories(PandaOpenGL
-	PRIVATE "${PROJECT_SOURCE_DIR}/External/src/glad/include")
-__add_xg_platform_dependencies(PandaOpenGL)
+	${PROJECT_SOURCE_DIR}/External/src/glad/src/glad_wgl.c)
+target_link_libraries(PlatformInterface
+	d2d1
+	d3d12
+	dxgi
+	${OPENGL_LIBRARIES})
+target_include_directories(PlatformInterface 
+	PRIVATE
+	"${PROJECT_SOURCE_DIR}/External/src/glad/include")
 
-add_custom_command(TARGET PandaOpenGL POST_BUILD
-	COMMAND ${CMAKE_COMMAND} -E copy_if_different
-		"${PROJECT_SOURCE_DIR}/External/Windows/bin/zlib.dll"
-		$<TARGET_FILE_DIR:PandaOpenGL>)
+add_library(PandaGameEngineD3D12
+	D3D12ApplicationConfig.cpp)
+target_link_libraries(PandaGameEngineD3D12
+	Common
+	D3DRHI
+	PlatformInterface)
+
+add_library(PandaGameEngine
+	OpenGLApplicationConfig.cpp)
+target_link_libraries(PandaGameEngine
+	Common
+	OpenGLRHI
+	PlatformInterface
+)
+target_include_directories(PandaGameEngine
+	PRIVATE
+	"${PROJECT_SOURCE_DIR}/External/src/glad/include")
