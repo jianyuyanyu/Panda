@@ -1,3 +1,4 @@
 add_library(D2DRHI
-D2dGraphicsManager.cpp
+D2DGraphicsManager.cpp
+D2DGraphicsManager.hpp
 )

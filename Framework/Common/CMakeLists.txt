@@ -1,19 +1,21 @@
-# 编译成Common库
+# get all header files and source files
+FILE(GLOB COMMON_HEADERS ./*.hpp)
+FILE(GLOB INTERFACE_HEADERS ../Interface/*.hpp)
+FILE(GLOB PARSER_HEADERS ../Parser/*.hpp)
+FILE(GLOB COMMON_SOURCES ./*.cpp)
+
+# add to Common library
 add_library(Common
-  Allocator.cpp
-  AssetLoader.cpp
-  BaseApplication.cpp
-  DebugManager.cpp
-  GameLogic.cpp
-  GraphicsManager.cpp
-  InputManager.cpp
-  Image.cpp
-  MemoryManager.cpp
-  Scene.cpp
-  SceneManager.cpp
-  SceneObject.cpp
-  main.cpp
+	${COMMON_SOURCES}
+	${COMMON_HEADERS}
+	${INTERFACE_HEADERS}
+	${PARSER_HEADERS}
   )
+
+source_group("Source Files\\Common" FILES ${COMMON_SOURCES})
+source_group("Header Files\\Common" FILES ${COMMON_HEADERS})
+source_group("Header Files\\Interface" FILES ${INTERFACE_HEADERS})
+source_group("Header Files\\Parser" FILES ${PARSER_HEADERS})
 
 target_link_libraries(Common 
     PandaMath

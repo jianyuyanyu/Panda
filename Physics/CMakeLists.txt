@@ -1,2 +1,6 @@
+FILE(GLOB PHYSICS_HEADERS ./*.hpp)
+FILE(GLOB PHYSICS_SOURCES ./*.cpp)
+
 add_library(BulletPhysics 
-    PhysicsManager.cpp)
+    ${PHYSICS_SOURCES}
+    ${PHYSICS_HEADERS})

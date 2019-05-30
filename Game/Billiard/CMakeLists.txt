@@ -1,6 +1,9 @@
+FILE(GLOB BILLIARD_HEADERS ./*.hpp)
+FILE(GLOB BILLIARD_SOURCES ./*.cpp)
+
 add_executable(BilliardGame
-    BilliardGameLogic.cpp
-    BilliardGameConfig.cpp)
+    ${BILLIARD_SOURCES}
+    ${BILLIARD_HEADERS})
 
 target_link_libraries(BilliardGame
     BulletPhysics

@@ -4,7 +4,12 @@ add_library(PlatformInterface
 	WindowsApplication.cpp
 	D3D12Application.cpp
 	OpenGLApplication.cpp
-	${PROJECT_SOURCE_DIR}/External/src/glad/src/glad_wgl.c)
+	${PROJECT_SOURCE_DIR}/External/src/glad/src/glad_wgl.c
+	
+	WindowsApplication.hpp
+	D3D12Application.hpp
+	OpenGLApplication.hpp
+	)
 target_link_libraries(PlatformInterface
 	d2d1
 	d3d12

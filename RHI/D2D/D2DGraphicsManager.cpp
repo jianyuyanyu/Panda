@@ -1,5 +1,5 @@
 #include <objbase.h>
-#include "D2dGraphicsManager.hpp"
+#include "D2DGraphicsManager.hpp"
 #include "WindowsApplication.hpp"
 #include "Utility.hpp"
 

@@ -3,6 +3,7 @@
 
 namespace Panda {
 //#define DUMP_DETAILS 1
+//#define DEBUG
 
 	template<class T>
 	inline void SafeRelease(T **ppInterfaceToRelease)
