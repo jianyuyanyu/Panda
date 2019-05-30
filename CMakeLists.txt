@@ -22,6 +22,7 @@ include_directories("${PROJECT_SOURCE_DIR}/Framework/Parser/")       # include d
 include_directories("${PROJECT_SOURCE_DIR}/Framework/Common/")		# include directory:Common
 include_directories("${PROJECT_SOURCE_DIR}/Framework/Interface/")	# include directory:Interface
 include_directories("${PROJECT_SOURCE_DIR}/Framework/Math/")			# include directory: Math
+include_directories("${PROJECT_SOURCE_DIR}/Physics")
 include_directories("${PROJECT_SOURCE_DIR}/RHI/")
 include_directories("${PROJECT_SOURCE_DIR}/")
 IF(${UNIX})
@@ -74,6 +75,7 @@ add_subdirectory(Platform)
 add_subdirectory(RHI)
 add_subdirectory(Test)
 add_subdirectory(Game)
+add_subdirectory(Physics)
 
 #IF (${UNIX})	# Unix platform compile configuration.
 #	set (CMAKE_C_COMPILER				"gcc")

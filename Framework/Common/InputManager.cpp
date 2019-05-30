@@ -3,6 +3,7 @@
 #include "GraphicsManager.hpp"
 #include "SceneManager.hpp"
 #include "GameLogic.hpp"
+#include "DebugManager.hpp"
 #include "PandaMath.hpp"
 
 namespace Panda
@@ -124,4 +125,17 @@ namespace Panda
         std::cerr << "[InputManager] Reset Key Up!" << std::endl;
         #endif
     }
+
+    #ifdef DEBUG
+    void InputManager::DebugKeyDown()
+    {
+        std::cerr << "[InputManager] Debug Key Down!" << std::endl;
+        g_pDebugManager->ToggleDebugInfo();
+    }
+
+    void InputManager::DebugKeyUp()
+    {
+        std::cerr << "[InputManager] Debug Key Up!" << std::endl;
+    }
+    #endif
 }

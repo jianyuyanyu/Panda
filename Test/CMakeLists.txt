@@ -13,12 +13,12 @@ target_link_libraries(PandaMathTest
 add_test(NAME TEST_PandaMath COMMAND PandaMathTest)
 
 # texture load test
-IF(${WIN32})
-	add_executable(TextureLoadTest TextureLoadTest.cpp)
-    target_link_libraries(TextureLoadTest 
-        PandaGameEngine)
-    add_test(NAME TEST_TextureLoad COMMAND TextureLoadTest)
-ENDIF(${WIN32})
+#IF(${WIN32})
+#	add_executable(TextureLoadTest TextureLoadTest.cpp)
+#    target_link_libraries(TextureLoadTest 
+#        PandaGameEngine)
+#    add_test(NAME TEST_TextureLoad COMMAND TextureLoadTest)
+#ENDIF(${WIN32})
 
 # scene object test
 #include(PlatformDependencies)
@@ -53,6 +53,13 @@ add_test(NAME TEST_JpegParser COMMAND JpegParserTest)
 add_executable(PngParserTest PngParserTest.cpp)
 target_link_libraries(PngParserTest Common ${ZLIB_LIBRARY})
 add_test(NAME TEST_PngParser COMMAND PngParserTest)
+
+IF(WIN32)
+add_custom_command(TARGET PngParserTest POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${PROJECT_SOURCE_DIR}/External/Windows/bin/zlib.dll"
+        $<TARGET_FILE_DIR:PngParserTest>)
+ENDIF(WIN32)
 
 # tga parser test
 add_executable(TgaParserTest TgaParserTest.cpp)

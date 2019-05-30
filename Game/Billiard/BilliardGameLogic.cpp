@@ -1,7 +1,8 @@
 #include <iostream>
 #include "BilliardGameLogic.hpp"
+#include "GraphicsManager.hpp"
 #include "SceneManager.hpp"
-#include "PhysicsManager.hpp"
+#include "IPhysicsManager.hpp"
 
 namespace Panda
 {
@@ -9,8 +10,8 @@ namespace Panda
     {
         int result;
 
-        std::cout << "Billiard Game Logic Initialize" << std::endl;
-        std::cout << "Start Loading Game Scene" << std::endl;
+        std::cout << "[BilliardGameLogic] Billiard Game Logic Initialize" << std::endl;
+        std::cout << "[BilliardGameLogic] Start Loading Game Scene" << std::endl;
         result = g_pSceneManager->LoadScene("Scene/billiard.ogex");
 
         return result;

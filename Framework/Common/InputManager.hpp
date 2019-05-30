@@ -22,6 +22,11 @@ namespace Panda
             void ResetKeyDown();
             void ResetKeyUp();
 
+            #ifdef DEBUG
+            void DebugKeyDown();
+            void DebugKeyUp();
+            #endif
+
         protected:
             bool m_IsUpKeyPressed = false;
             bool m_IsDownKeyPressed = false;

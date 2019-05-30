@@ -20,23 +20,38 @@ namespace Panda {
             virtual void Clear();
             virtual void Draw();
 
+            #ifdef DEBUG
+            void ClearDebugBuffers();
+            #endif
+
         protected:
-            bool SetPerBatchShaderParameters(const char* paramName, const Matrix4f& param);
-            bool SetPerBatchShaderParameters(const char* paramName, const float param);
-            bool SetPerBatchShaderParameters(const char* paramName, const Vector3Df& param);
-            bool SetPerBatchShaderParameters(const char* paramName, const int param);
-            bool SetPerFrameShaderParameters();
+            bool SetPerBatchShaderParameters(GLuint shader, const char* paramName, const Matrix4f& param);
+            bool SetPerBatchShaderParameters(GLuint shader, const char* paramName, const float param);
+            bool SetPerBatchShaderParameters(GLuint shader, const char* paramName, const Vector3Df& param);
+            bool SetPerBatchShaderParameters(GLuint shader, const char* paramName, const int param);
+            bool SetPerFrameShaderParameters(GLuint shader );
             
             //bool SetShaderParameters(const Matrix4f& worldMatrix, const Matrix4f& viewMatrix, const Matrix4f& projectionMatrix);
 
-            void InitializeBuffers();
+            // void InitializeBuffers();
+            // void RenderBuffers();
+            // bool InitializeShader(const char* vsFileName, const char* fsFileName);
+
+            void InitializeBuffers(const Scene& scene);
+            void ClearBuffers();
+            bool InitializeShaders();
             void RenderBuffers();
-            bool InitializeShader(const char* vsFileName, const char* fsFileName);
 
         private:
-            unsigned int m_VertexShader;
-            unsigned int m_FragmentShader;
-            unsigned int m_ShaderProgram;
+            GLuint m_VertexShader;
+            GLuint m_FragmentShader;
+            GLuint m_ShaderProgram;
+
+#ifdef DEBUG
+            GLuint m_debugVertexShader;
+            GLuint m_debugFragmentShader;
+            GLuint m_debugShaderProgram;
+#endif
             std::map<std::string, GLint> m_TextureIndex;
 
             struct DrawBatchContext
@@ -67,8 +82,22 @@ namespace Panda {
 				}
             };
 
+#ifdef DEBUG
+            struct DebugDrawBatchContext {
+                GLuint  vao;
+                GLenum  mode;
+                GLsizei count;
+                Vector3f color;
+            };
+#endif
+
             std::vector<DrawBatchContext> m_DrawBatchContext;
             std::vector<GLuint> m_Buffers;
             std::vector<GLuint> m_Textures;
+
+#ifdef DEBUG
+            std::vector<DebugDrawBatchContext> m_DebugDrawBatchContext;
+            std::vector<GLuint> m_DebugBuffers;
+#endif
     };
 }

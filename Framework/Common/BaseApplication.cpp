@@ -14,61 +14,55 @@ namespace Panda
 		int ret = 0;
 		std::cout << m_Config;
 
-		std::cerr << "Initialize Memory Manager:";
 		if((ret = g_pMemoryManager->Initialize()) != 0)
 		{
 			std::cerr << "Fialed. err = " << ret;
 			return ret;
 		}
-		std::cerr << "Success" << std::endl;
 
-		std::cerr << "Initialize Asset Loader: ";
 		if ((ret = g_pAssetLoader->Initialize() != 0) != 0)
 		{
 			std::cerr << "Failed. err = " << ret;
 			return ret;
 		}
-		std::cerr << "Success" << std::endl;
 
-		std::cerr << "Initialize Scene Manager:";
 		if ((ret = g_pSceneManager->Initialize()) != 0)
 		{
 			std::cerr << "Failed. err = " << ret;
 			return ret;
 		}
-		std::cerr << "Success" << std::endl;
 
-		std::cerr << "Initialize Graphics Manager:";
 		if ((ret = g_pGraphicsManager->Initialize()) != 0)
 		{
 			std::cerr << "Failed. err = " << ret;
 			return ret;
 		}
-		std::cerr << "Success" << std::endl;
 
-		std::cerr << "Initialize Input Manager:";
 		if ((ret = g_pInputManager->Initialize()) != 0)
 		{
 			std::cerr << "Failed. err = " << ret;
 			return ret;
 		}
-		std::cerr << "Success" << std::endl;
 
-		std::cerr << "Initialize Physics Manager:";
 		if ((ret = g_pPhysicsManager->Initialize()) != 0)
 		{
 			std::cerr << "Failed. err = " << ret;
 			return ret;
 		}
-		std::cerr << "Success" << std::endl;
 
-		std::cerr << "Initialize Game Logic:";
 		if ((ret = g_pGameLogic->Initialize()) != 0)
 		{
 			std::cerr << "Failed. err = " << ret;
 			return ret;
 		}
-		std::cerr << "Success" << std::endl;
+
+		#ifdef DEBUG
+		if ((ret = g_pDebugManager->Initialize()) != 0)
+		{
+			std::cerr << "Failed. err = " << ret;
+			return ret;
+		}
+		#endif
 
 		return ret;
 	}
@@ -91,6 +85,9 @@ namespace Panda
 		g_pInputManager->Tick();
 		g_pPhysicsManager->Tick();
 		g_pGraphicsManager->Tick();
+		#ifdef DEBUG
+		g_pDebugManager->Tick();
+		#endif
 	}
 
 	void BaseApplication::SetCommandLineParameters(int argc, char** argv)

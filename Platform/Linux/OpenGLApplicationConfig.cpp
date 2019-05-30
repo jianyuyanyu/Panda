@@ -2,8 +2,7 @@
 #include "OpenGL/OpenGLGraphicsManager.hpp"
 
 namespace Panda {
-	// match with articles
-	Handness g_ViewHandness = Handness::kHandnessLeft;
+	Handness g_ViewHandness = Handness::kHandnessRight;
 	DepthClipSpace g_DepthClipSpace = DepthClipSpace::kDepthClipZeroToOne;
 
     extern GfxConfiguration config;

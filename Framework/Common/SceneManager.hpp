@@ -19,9 +19,13 @@ namespace Panda
 
             bool IsSceneChanged();
             void NotifySceneIsRenderingQueued();
+            void NotifySceneIsPhysicalSimulationQueued();
+
             const Scene& GetScene();
+            const Scene& GetSceneForPhysicalSimulation();
             void ResetScene();
 
+            std::weak_ptr<BaseSceneNode> GetRootNode();
             std::weak_ptr<SceneGeometryNode> GetSceneGeometryNode(std::string name);
             std::weak_ptr<SceneObjectGeometry> GetSceneGeometryObject(std::string key);
 
@@ -30,6 +34,8 @@ namespace Panda
 
         protected:
             std::shared_ptr<Scene> m_pScene;
+            bool m_IsRenderingQueued = false;
+            bool m_IsPhysicalSimulationQueued = false;
             bool m_DirtyFlag = false;
     };
 

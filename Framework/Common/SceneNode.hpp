@@ -14,14 +14,14 @@ namespace Panda
             std::string m_Name;
             std::list<std::shared_ptr<BaseSceneNode>> m_Children;
             std::list<std::shared_ptr<SceneObjectTransform>> m_Transforms;
-			std::vector<std::shared_ptr<SceneObjectTransform>> m_Trans;
+			Matrix4f m_RuntimeTransform;
 
         protected:
             virtual void Dump(std::ostream& out) const {}
 
         public:
-            BaseSceneNode() {}
-            BaseSceneNode(const std::string& name) {m_Name = name;}
+            BaseSceneNode() {m_RuntimeTransform.SetIdentity();}
+            BaseSceneNode(const std::string& name) {m_Name = name; m_RuntimeTransform.SetIdentity();}
             virtual ~BaseSceneNode() {}
 
             const std::string GetName() const {return m_Name;}
@@ -57,9 +57,18 @@ namespace Panda
                     *result = *result * static_cast<Matrix4f>(*trans);
                 }
 
+                // apply runtime transforms
+                *result = *result * m_RuntimeTransform;
+
                 return result;
             }
 
+            void RotateBy(float rotationAngleX, float rotationAngleY, float rotationAngleZ)
+            {
+                Matrix4f rotate;
+                MatrixRotationYawPitchRoll(rotate, rotationAngleX, rotationAngleY, rotationAngleZ);
+                m_RuntimeTransform = m_RuntimeTransform * rotate;
+            }
 
             friend std::ostream& operator<<(std::ostream& out, const BaseSceneNode& node)
             {

@@ -4,6 +4,7 @@
 #include <memory>
 #include <vector>
 #include <string>
+#include <functional>
 #include "Guid.hpp"
 #include "Image.hpp"
 #include "portable.hpp"
@@ -577,8 +578,8 @@ namespace Panda
             friend std::ostream& operator<<(std::ostream& out, const SceneObjectGeometry& obj);
     };
 
-    typedef float (*AttenFunc) (float /* Intensity */, float /* Distance */);
-
+    typedef std::function<float(float /* Intensity */, float /* Distance */)> AttenFunc;
+    
     float DefaultAttenFunc (float intensity, float distance);
 
     class SceneObjectLight : public BaseSceneObject

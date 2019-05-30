@@ -3,18 +3,16 @@ add_library(Common
   Allocator.cpp
   AssetLoader.cpp
   BaseApplication.cpp
+  DebugManager.cpp
   GameLogic.cpp
   GraphicsManager.cpp
   InputManager.cpp
   Image.cpp
   MemoryManager.cpp
-  PhysicsManager.cpp
   Scene.cpp
   SceneManager.cpp
   SceneObject.cpp
   main.cpp
-
-  PhysicsManager.hpp
   )
 
 target_link_libraries(Common 

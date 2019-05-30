@@ -40,6 +40,7 @@ namespace Panda
         {
             g_pPhysicsManager->ClearRigidBodies();
             g_pPhysicsManager->CreateRigidBodies();
+            g_pSceneManager->NotifySceneIsPhysicalSimulationQueued();
         }
 
         m_pDynamicsWorld->stepSimulation(1.0f / 60.0f, 10);
@@ -62,6 +63,9 @@ namespace Panda
                 btTransform startTransform;
                 startTransform.setIdentity();
                 startTransform.setOrigin(btVector3(trans->m[3][0], trans->m[3][1], trans->m[3][2]));
+                startTransform.setBasis(btMatrix3x3(trans->m[0][0], trans->m[1][0], trans->m[2][0],
+                                            trans->m[0][1], trans->m[1][1], trans->m[2][1],
+                                            trans->m[0][2], trans->m[1][2], trans->m[2][2]));
                 btDefaultMotionState* motionState = new btDefaultMotionState(startTransform);
                 btScalar mass = 1.0f;
                 btVector3 fallInertia(0.0f, 0.0f, 0.0f);
@@ -81,6 +85,9 @@ namespace Panda
                 btTransform startTransform;
                 startTransform.setIdentity();
                 startTransform.setOrigin(btVector3(trans->m[3][0], trans->m[3][1], trans->m[3][2]));
+                startTransform.setBasis(btMatrix3x3(trans->m[0][0], trans->m[1][0], trans->m[2][0],
+                                            trans->m[0][1], trans->m[1][1], trans->m[2][1],
+                                            trans->m[0][2], trans->m[1][2], trans->m[2][2]));
                 btDefaultMotionState* motionState = new btDefaultMotionState(startTransform);
                 btScalar mass = 0.0f;
                 btRigidBody::btRigidBodyConstructionInfo rigidBodyCI(mass, motionState, box, btVector3(0.0f, 0.0f, 0.0f));
@@ -98,6 +105,9 @@ namespace Panda
                     btTransform startTransform;
                     startTransform.setIdentity();
                     startTransform.setOrigin(btVector3(trans->m[3][0], trans->m[3][1], trans->m[3][2]));
+                    startTransform.setBasis(btMatrix3x3(trans->m[0][0], trans->m[1][0], trans->m[2][0],
+                                                trans->m[0][1], trans->m[1][1], trans->m[2][1],
+                                                trans->m[0][2], trans->m[1][2], trans->m[2][2]));
                     btDefaultMotionState* motionState = 
                         new btDefaultMotionState(
                                     startTransform
@@ -114,6 +124,19 @@ namespace Panda
         }
 
         node.LinkRigidBody(pRigidBody);
+    }
+    void PhysicsManager::UpdateRigidBodyTransform(SceneGeometryNode& node)
+    {
+        const auto trans = node.GetCalculatedTransform();
+        auto rigidBody = node.RigidBody();
+        auto motionState = reinterpret_cast<btRigidBody*>(rigidBody)->getMotionState();
+        btTransform _trans;
+        _trans.setIdentity();
+        _trans.setOrigin(btVector3(trans->m[3][0], trans->m[3][1], trans->m[3][2]));
+        _trans.setBasis(btMatrix3x3(trans->m[0][0], trans->m[1][0], trans->m[2][0],
+                                    trans->m[0][1], trans->m[1][1], trans->m[2][1],
+                                    trans->m[0][2], trans->m[1][2], trans->m[2][2]));
+        motionState->setWorldTransform(_trans);
     }
 
     void PhysicsManager::DeleteRigidBody(SceneGeometryNode& node)

@@ -1,7 +1,9 @@
 #pragma once
+
+#include "IRuntimeModule.hpp"
 #include "PandaMath.hpp"
 #include "Image.hpp"
-#include "IRuntimeModule.hpp"
+#include "Scene.hpp"
 
 namespace Panda {
 	class GraphicsManager : implements IRuntimeModule {
@@ -16,19 +18,32 @@ namespace Panda {
 			virtual void Clear();
 			virtual void Draw();
 
-		protected:
-			bool SetPerFrameShaderParameters();
-			bool SetPerBatchShaderParameters(const char* paramName, const Matrix4f& param);
-			bool SetPerBatchShaderParameters(const char* paramName, const Vector3Df& param);
-			bool SetPerBatchShaderParameters(const char* paramName, const float param);
-			bool SetPerBatchShaderParameters(const char* paramName, const int param);
+			#ifdef DEBUG
+			virtual void ClearDebugBuffers();
+			#endif
 
-			void InitConstants();
-			bool InitializeShader(const char* vsFilename, const char* psFilename);
-			void InitializeBuffers();
-			void CalculateCameraMatrix();
-			void CalculateLights();
-			void RenderBuffers();
+		protected:
+			// bool SetPerFrameShaderParameters();
+			// bool SetPerBatchShaderParameters(const char* paramName, const Matrix4f& param);
+			// bool SetPerBatchShaderParameters(const char* paramName, const Vector3Df& param);
+			// bool SetPerBatchShaderParameters(const char* paramName, const float param);
+			// bool SetPerBatchShaderParameters(const char* paramName, const int param);
+
+			// void InitConstants();
+			// bool InitializeShader(const char* vsFilename, const char* psFilename);
+			// void InitializeBuffers();
+			// void CalculateCameraMatrix();
+			// void CalculateLights();
+			// void RenderBuffers();
+			virtual bool InitializeShaders();
+			virtual void ClearShaders();
+			virtual void InitializeBuffers(const Scene& scene);
+			virtual void ClearBuffers();
+
+			virtual void InitConstants();
+			virtual void CalculateCameraMatrix();
+			virtual void CalculateLights();
+			virtual void RenderBuffers();
 
 		protected:
 			struct DrawFrameContext

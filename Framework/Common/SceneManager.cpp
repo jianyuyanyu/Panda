@@ -34,6 +34,8 @@ namespace Panda
 		{
 			m_pScene->LoadResource();
 			m_DirtyFlag = true;
+			m_IsRenderingQueued = false;
+			m_IsPhysicalSimulationQueued = false;
 			return 0;
 		}
 		else
@@ -71,6 +73,12 @@ namespace Panda
 		return *m_pScene;
 	}
 
+	const Scene& SceneManager::GetSceneForPhysicalSimulation()
+	{
+		// TODO: we should perform CPU scene crop at here
+		return *m_pScene;
+	}
+
 	bool SceneManager::IsSceneChanged()
 	{
 		return m_DirtyFlag;
@@ -78,7 +86,22 @@ namespace Panda
 
 	void SceneManager::NotifySceneIsRenderingQueued()
 	{
-		m_DirtyFlag = false;
+		m_IsRenderingQueued = true;
+
+		if (m_IsPhysicalSimulationQueued)
+		{
+			m_DirtyFlag = false;
+		}
+	}
+
+	void SceneManager::NotifySceneIsPhysicalSimulationQueued()
+	{
+		m_IsPhysicalSimulationQueued = true;
+
+		if (m_IsRenderingQueued)
+		{
+			m_DirtyFlag = false;
+		}
 	}
 
 	std::weak_ptr<SceneGeometryNode> SceneManager::GetSceneGeometryNode(std::string name)
@@ -93,5 +116,10 @@ namespace Panda
 	std::weak_ptr<SceneObjectGeometry> SceneManager::GetSceneGeometryObject(std::string key)
 	{
 		return m_pScene->Geometries.find(key)->second;
+	}
+
+	std::weak_ptr<BaseSceneNode> SceneManager::GetRootNode()
+	{
+		return m_pScene->SceneGraph;
 	}
 }

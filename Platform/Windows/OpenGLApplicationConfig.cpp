@@ -2,7 +2,6 @@
 #include "OpenGL/OpenGLGraphicsManager.hpp"
 
 namespace Panda {
-	// match with articles
 	Handness g_ViewHandness = Handness::kHandnessRight;
 	DepthClipSpace g_DepthClipSpace = DepthClipSpace::kDepthClipZeroToOne;
 
@@ -13,5 +12,7 @@ namespace Panda {
     AssetLoader*     g_pAssetLoader     = static_cast<AssetLoader*>(new AssetLoader);
     SceneManager*    g_pSceneManager    = static_cast<SceneManager*>(new SceneManager);
     InputManager*    g_pInputManager    = static_cast<InputManager*>(new InputManager);
-    PhysicsManager*  g_pPhysicsManager  = static_cast<PhysicsManager*>(new PhysicsManager);
+#ifdef DEBUG
+    DebugManager*    g_pDebugManager    = static_cast<DebugManager*>(new DebugManager);
+#endif
 }

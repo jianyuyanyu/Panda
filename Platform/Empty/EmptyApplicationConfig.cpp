@@ -2,6 +2,9 @@
 
 namespace Panda
 {
+	Handness g_ViewHandness = Handness::kHandnessRight;
+	DepthClipSpace g_DepthClipSpace = DepthClipSpace::kDepthClipZeroToOne;
+
     extern GfxConfiguration config;
 	IApplication*    g_pApp             = static_cast<IApplication*>(new BaseApplication(config));
     GraphicsManager* g_pGraphicsManager = static_cast<GraphicsManager*>(new GraphicsManager);

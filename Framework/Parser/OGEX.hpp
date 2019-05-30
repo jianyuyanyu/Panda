@@ -330,6 +330,8 @@ namespace Panda
                             matrix = data;
                             if (!m_UpIsYAxis)
                             {
+                                // commented out due to camera is in same coordinations
+                                // so no need to exchange.
                                 // TODO: EXCHANGE y and z
                                 // ExchangeYandZ(matrix)
                             }
@@ -337,6 +339,25 @@ namespace Panda
                             baseNode->AppendTransform(std::move(transform));
 							//baseNode->AppendTransform(transform);
                         }
+                        return;
+                    }
+                    case OGEX::kStructureTranslation:
+                    {
+                        const OGEX::TranslationStructure& _structure = dynamic_cast<const OGEX::TranslationStructure&>(structure);
+                        bool objectFlag = _structure.GetObjectFlag();
+                        std::shared_ptr<SceneObjectTranslation> translation;
+
+                        auto kind = _structure.GetTranslationKind();
+                        auto data = _structure.GetTranslation();
+                        if (kind == "xyz")
+                        {
+                            translation = std::make_shared<SceneObjectTranslation>(data[0], data[1], data[2]);
+                        }
+                        else 
+                        {
+                            translation = std::make_shared<SceneObjectTranslation>(kind[0], data[0]);
+                        }
+                        baseNode->AppendTransform(std::move(translation));
                         return;
                     }
                     case OGEX::kStructureMaterial:

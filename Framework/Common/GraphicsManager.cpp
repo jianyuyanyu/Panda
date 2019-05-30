@@ -20,9 +20,13 @@ namespace Panda
 	{
 		if (g_pSceneManager->IsSceneChanged())
 		{
-			std::cout << "Detected Scene Change, reinitialize Graphics Manger ..." << std::endl;
-			Finalize();
-			Initialize();
+			std::cout << "[GraphicsManager] Detected Scene Change, reinitialize buffers ..." << std::endl;
+			ClearBuffers();
+			ClearShaders();
+
+			const Scene& scene = g_pSceneManager->GetScene();
+			InitializeShaders();
+			InitializeBuffers(scene);
 			g_pSceneManager->NotifySceneIsRenderingQueued();
 		}
 
@@ -44,6 +48,7 @@ namespace Panda
 	{
 	}
 
+/*
 	bool GraphicsManager::SetPerFrameShaderParameters()
 	{
 		std::cout << "[RHI] GraphicsManager::SetPerFrameShaderParameters(void)" << std::endl;
@@ -81,6 +86,7 @@ namespace Panda
 		std::cout << "param = " << param << std::endl;
 		return true;
 	}
+*/
 
 	void GraphicsManager::InitConstants()
 	{
@@ -88,12 +94,15 @@ namespace Panda
 		m_DrawFrameContext.WorldMatrix.SetIdentity();
 	}
 
-	bool GraphicsManager::InitializeShader(const char* vsFilename, const char* psFilename)
+	bool GraphicsManager::InitializeShaders()
 	{
-		std::cout << "[RHI] GraphicsManager::InitializeShader(const char* vsFilename, const char* psFilename)" << std::endl;
-		std::cout << "VS Filename: " << vsFilename << std::endl;
-		std::cout << "PS Filename: " << psFilename << std::endl;
+		std::cout << "[GraphicsManager] GraphicsManager::InitializeShaders()" << std::endl;
 		return true;
+	}
+
+	void GraphicsManager::ClearShaders()
+	{
+		std::cout << "[GraphicsManager] GraphicsManager::ClearShaders()" << std::endl;
 	}
 
 	void GraphicsManager::CalculateCameraMatrix()
@@ -155,13 +164,25 @@ namespace Panda
 		}
 	}
 
-	void GraphicsManager::InitializeBuffers()
+	void GraphicsManager::InitializeBuffers(const Scene& scene)
 	{
-
+		std::cout << "[GraphicsManager] GraphicsManager::InitializeBuffers()" << std::endl;
+	}
+	
+	void GraphicsManager::ClearBuffers()
+	{
+		std::cout << "[GraphicsManager] GraphicsManager::ClearBuffers()" << std::endl;
 	}
 
 	void GraphicsManager::RenderBuffers()
 	{
 		std::cout << "[RHI] GraphcisManager::RenderBuffers()" << std::endl;
 	}
+
+	#ifdef DEBUG
+	void GraphicsManager::ClearDebugBuffers()
+	{
+		std::cout << "[GraphicsManager] GraphicsManager::ClearDebugBuffers(void)" << std::endl;
+	}
+	#endif
 }

@@ -786,26 +786,36 @@ namespace Panda {
         }
         std::cout << "Done!" << std::endl;
 
-        std::cout << "Creating Root Signatures...";
-        if (FAILED(hr = CreateRootSignature()))
-        {
+		std::cout << "Creating Depth Stencil Buffer ...";
+        if (FAILED(hr = CreateDepthStencil())) {
             return hr;
         }
-        std::cout << "Done!" << std::endl;
+		std::cout << "Done!" << std::endl;
 
-        std::cout << "Loading shaders...";
-        if (FAILED(hr = InitializeShader("Shaders/simple.hlsl.vs", "Shaders/simple.hlsl.ps")))
-        {
+		std::cout << "Creating Constant Buffer ...";
+        if (FAILED(hr = CreateConstantBuffer())) {
             return hr;
         }
-        std::cout << "Done!" << std::endl;
+		std::cout << "Done!" << std::endl;
 
-        std::cout << "Initialize Buffers ...";
-        if (FAILED(hr == InitializeBuffers()))
-        {
+		std::cout << "Creating Texture Buffer ...";
+        if (FAILED(hr = CreateTextureBuffer())) {
             return hr;
         }
-        std::cout << std::endl;
+		std::cout << "Done!" << std::endl;
+
+		std::cout << "Creating Sampler Buffer ...";
+        if (FAILED(hr = CreateSamplerBuffer())) {
+            return hr;
+        }
+		std::cout << "Done!" << std::endl;
+
+		std::cout << "Creating Root Signatures ...";
+        if (FAILED(hr = CreateRootSignature())) {
+            return hr;
+        }
+		std::cout << "Done!" << std::endl;
+
 
         return hr;
     }
@@ -867,9 +877,12 @@ namespace Panda {
     }
 
     // This is the function that loads and prepares the shaders.
-    HRESULT D3D12GraphicsManager::InitializeShader(const char* vsFilename, const char* fsFilename)
+    bool D3D12GraphicsManager::InitializeShaders()
     {
         HRESULT hr = S_OK;
+
+        const char* vsFilename = "Shaders/simple.hlsl.vs"; 
+        const char* fsFilename = "Shaders/simple.hlsl.ps";
 
         Buffer vertexShader = g_pAssetLoader->SyncOpenAndReadBinary(vsFilename);
         Buffer pixelShader = g_pAssetLoader->SyncOpenAndReadBinary(fsFilename);
@@ -949,44 +962,24 @@ namespace Panda {
 
         if (FAILED(hr = m_pDev->CreateGraphicsPipelineState(&psod, IID_PPV_ARGS(&m_pPipelineState))))
         {
-            return hr;
+            return false;
         }
 
-        hr = m_pDev->CreateCommandList(0,
+        if (FAILED(hr = m_pDev->CreateCommandList(0,
             D3D12_COMMAND_LIST_TYPE_DIRECT,
             m_pCommandAllocator,
             m_pPipelineState,
-            IID_PPV_ARGS(&m_pCommandList));
+            IID_PPV_ARGS(&m_pCommandList))))
+        {
+            return false;
+        }
 
-        return hr;
+        return true;
     }
 
-    HRESULT D3D12GraphicsManager::InitializeBuffers()
+    void D3D12GraphicsManager::InitializeBuffers(const Scene& scene)
     {
         HRESULT hr = S_OK;
-
-        if (FAILED(hr = CreateDepthStencil()))
-        {
-            return hr;
-        }
-
-        if (FAILED(hr = CreateConstantBuffer()))
-        {
-            return hr;
-        }
-
-        if (FAILED(hr = CreateTextureBuffer()))
-        {
-            return hr;
-        }
-
-        if (FAILED(hr = CreateSamplerBuffer()))
-        {
-            return hr;
-        }
-
-        auto& scene = g_pSceneManager->GetScene();
-
 
         int32_t n = 0;
         for (auto _it : scene.GeometryNodes)
@@ -1033,7 +1026,7 @@ namespace Panda {
 
             if (FAILED(hr = m_pDev->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_pFence))))
             {
-                return hr;
+                return ;
             }
 
             m_FenceValue = 1;
@@ -1043,13 +1036,13 @@ namespace Panda {
             {
                 hr = HRESULT_FROM_WIN32(GetLastError());
                 if (FAILED(hr))
-                    return hr;
+                    return ;
             }
 
             WaitForPreviousFrame();
         }
 
-        return hr;
+        return ;
     }
 
     int  D3D12GraphicsManager::Initialize()
@@ -1067,7 +1060,7 @@ namespace Panda {
         return result;
     }
 
-    void D3D12GraphicsManager::Finalize()
+    void D3D12GraphicsManager::ClearBuffers()
     {
         WaitForPreviousFrame();
 
@@ -1077,8 +1070,14 @@ namespace Panda {
             SafeRelease(&p);
         }
 		m_Buffers.clear();
-        SafeRelease(&m_pCommandList);
         SafeRelease(&m_pPipelineState);
+    }
+
+    void D3D12GraphicsManager::Finalize()
+    {
+        ClearBuffers();
+
+        SafeRelease(&m_pCommandList);
         SafeRelease(&m_pRtvHeap);
         SafeRelease(&m_pDsvHeap);
         SafeRelease(&m_pCbvHeap);
@@ -1208,7 +1207,7 @@ namespace Panda {
         return hr;
     }
 
-    HRESULT D3D12GraphicsManager::RenderBuffers()
+    VOID D3D12GraphicsManager::RenderBuffers()
     {
         HRESULT hr;
 
@@ -1219,7 +1218,7 @@ namespace Panda {
         // swap the back buffer and the front buffer
         hr = m_pSwapChain->Present(1, 0);
 
-        return hr;
+        return;
     }
 
     bool D3D12GraphicsManager::SetPerFrameShaderParameters()

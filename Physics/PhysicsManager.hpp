@@ -1,14 +1,14 @@
 #pragma once
 
 #include <vector>
+#include "IPhysicsManager.hpp"
 #define BT_USE_DOUBLE_PRECISION 1
 #include <btBulletDynamicsCommon.h>
-#include "IRuntimeModule.hpp"
-#include "SceneManager.hpp"
+
 
 namespace Panda
 {
-    class PhysicsManager : implements IRuntimeModule
+    class PhysicsManager : implements IPhysicsManager
     {
         public:
             virtual int Initialize();
@@ -22,6 +22,7 @@ namespace Panda
             virtual void ClearRigidBodies();
 
             Matrix4f GetRigidBodyTransform(void* rigidBody);
+            void UpdateRigidBodyTransform(SceneGeometryNode& node);
 
             void ApplyCentralForce(void* rigidBody, Vector3Df force);
 
@@ -36,6 +37,4 @@ namespace Panda
 
             std::vector<btCollisionShape*>          m_pCollisionShapes;
     };
-
-    extern PhysicsManager* g_pPhysicsManager;
 }

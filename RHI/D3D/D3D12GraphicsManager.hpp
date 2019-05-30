@@ -23,9 +23,15 @@ namespace Panda {
         bool SetPerFrameShaderParameters();
         bool SetPerBatchShaderParameters(int32_t index);
 
-        HRESULT InitializeBuffers();
-        HRESULT InitializeShader(const char* vsFilename, const char* psFilename);
-        HRESULT RenderBuffers();
+        // HRESULT InitializeBuffers();
+        // HRESULT InitializeShader(const char* vsFilename, const char* psFilename);
+        // HRESULT RenderBuffers();
+
+        void InitializeBuffers(const Scene& scene);
+        void ClearBuffers();
+        bool InitializeShaders();
+        void RenderBuffers();
+
     private:
         HRESULT CreateDescriptorHeaps();
         HRESULT CreateRenderTarget();

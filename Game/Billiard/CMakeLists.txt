@@ -3,6 +3,7 @@ add_executable(BilliardGame
     BilliardGameConfig.cpp)
 
 target_link_libraries(BilliardGame
+    BulletPhysics
     PandaGameEngine)
 
 IF(WIN32)

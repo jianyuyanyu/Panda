@@ -9,6 +9,9 @@ using namespace std;
 
 namespace Panda
 {
+	Handness g_ViewHandness = Handness::kHandnessRight;
+	DepthClipSpace g_DepthClipSpace = DepthClipSpace::kDepthClipZeroToOne;
+
     MemoryManager* g_pMemoryManager = new MemoryManager();
     AssetLoader* g_pAssetLoader = new AssetLoader();
 }
