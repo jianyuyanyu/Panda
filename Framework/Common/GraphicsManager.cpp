@@ -14,6 +14,11 @@ namespace Panda
 
 	void GraphicsManager::Finalize()
 	{
+		#ifdef DEBUG
+		ClearDebugBuffers();
+		#endif
+		ClearBuffers();
+		ClearShaders();
 	}
 
 	void GraphicsManager::Tick()
@@ -30,13 +35,18 @@ namespace Panda
 			g_pSceneManager->NotifySceneIsRenderingQueued();
 		}
 
-		// Generate the view matrix based on the camera's position.
-		CalculateCameraMatrix();
-		CalculateLights();
+		UpdateConstants();
 
 		Clear();
 		Draw();
 		//std::cout << m_DrawFrameContext;
+	}
+
+	void GraphicsManager::UpdateConstants()
+	{
+		// Generate teh view matrix based on the camera's position.
+		CalculateCameraMatrix();
+		CalculateLights();
 	}
 
 	void GraphicsManager::Clear()
@@ -46,6 +56,9 @@ namespace Panda
 
 	void GraphicsManager::Draw()
 	{
+		UpdateConstants();
+
+		RenderBuffers();
 	}
 
 /*

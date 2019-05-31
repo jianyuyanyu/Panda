@@ -40,6 +40,7 @@ namespace Panda {
             void InitializeBuffers(const Scene& scene);
             void ClearBuffers();
             bool InitializeShaders();
+            void ClearShaders();
             void RenderBuffers();
 
         private:

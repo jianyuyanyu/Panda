@@ -157,25 +157,25 @@ namespace Panda
 
         // m_Buffers.clear();
         // m_Textures.clear();
-        ClearBuffers();
+        // ClearBuffers();
 
-        if (m_ShaderProgram)
-        {
-            if (m_VertexShader)
-            {
-                glDetachShader(m_ShaderProgram, m_VertexShader);
-                glDeleteShader(m_VertexShader);
-            }
+        // if (m_ShaderProgram)
+        // {
+        //     if (m_VertexShader)
+        //     {
+        //         glDetachShader(m_ShaderProgram, m_VertexShader);
+        //         glDeleteShader(m_VertexShader);
+        //     }
 
-            if (m_FragmentShader)
-            {
-                glDetachShader(m_ShaderProgram, m_FragmentShader);
-                glDeleteShader(m_FragmentShader);
-            }
+        //     if (m_FragmentShader)
+        //     {
+        //         glDetachShader(m_ShaderProgram, m_FragmentShader);
+        //         glDeleteShader(m_FragmentShader);
+        //     }
 
-            // Delete the shader program.
-            glDeleteProgram(m_ShaderProgram);
-        }
+        //     // Delete the shader program.
+        //     glDeleteProgram(m_ShaderProgram);
+        // }
 
         GraphicsManager::Finalize();
     }
@@ -195,7 +195,7 @@ namespace Panda
         GraphicsManager::Draw();
 
         // Render the model using the color shader.
-        RenderBuffers();
+        //RenderBuffers();
 
         glFlush();
     }
@@ -305,9 +305,6 @@ namespace Panda
 
                 // Set the number of vertex properties.
                 auto vertexPropertiesCount = pMesh->GetVertexPropertiesCount();
-
-                // Set the number of vertices in the vertex array.
-                auto vertexCount = pMesh->GetVertexCount();
 
                 // Allocate an OpenGL vertex array object.
                 GLuint vao;
@@ -585,7 +582,7 @@ namespace Panda
 
         for (auto dbc : m_DebugDrawBatchContext)
         {
-            SetPerBatchShaderParameters(m_debugShaderProgram, "lineColor", dbc.color);
+            SetPerBatchShaderParameters(m_debugShaderProgram, "FrontColor", dbc.color);
 
             glBindVertexArray(dbc.vao);
             glDrawArrays(dbc.mode, 0x00, dbc.count);
@@ -748,6 +745,31 @@ namespace Panda
 #endif
 
         return true;
+    }
+
+    void OpenGLGraphicsManager::ClearShaders()
+    {
+        if (m_ShaderProgram)
+        {
+            if (m_VertexShader)
+            {
+                // Detach the vertex shaders from the program.
+                glDetachShader(m_ShaderProgram, m_VertexShader);
+                // Delete the vertex shaders.
+                glDeleteShader(m_VertexShader);
+            }
+
+            if (m_FragmentShader)
+            {
+                // Detach the fragment shaders from the program.
+                glDetachShader(m_ShaderProgram, m_FragmentShader);
+                // Delete the fragment shaders.
+                glDeleteShader(m_FragmentShader);
+            }
+
+            // Delete the shader Program.
+            glDeleteProgram(m_ShaderProgram);
+        }
     }
 
 #ifdef DEBUG

@@ -50,6 +50,8 @@ namespace Panda
 
         CreateMainWindow();
 
+        m_hDC = GetDC(m_hWnd);
+
         // first call base class initialization
         result = BaseApplication::Initialize();
 
@@ -61,12 +63,15 @@ namespace Panda
 
     void WindowsApplication::Finalize()
     {
+        ReleaseDC(m_hWnd, m_hDC);
+
         BaseApplication::Finalize();
     }
 
     void Panda::WindowsApplication::Tick()
     {
         BaseApplication::Tick();
+
         // Windows消息结构
         MSG msg;
 
@@ -77,12 +82,16 @@ namespace Panda
 
             DispatchMessage(&msg); 
         }
+		//else
+		//{
+		//	g_pApp->OnDraw();
+		//}
     }
 
     // 消息处理
     LRESULT CALLBACK WindowsApplication::WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     {
-    WindowsApplication* pThis;
+		WindowsApplication* pThis;
         if (message == WM_NCCREATE)
         {
             pThis = static_cast<WindowsApplication*>(reinterpret_cast<CREATESTRUCT*>(lParam)->lpCreateParams);
@@ -102,11 +111,11 @@ namespace Panda
         // sort through and find what code to run for the message given
         switch(message)
         {
-            case WM_PAINT:
-                {
-                    g_pApp->OnDraw();
-                }
-                break;
+            //case WM_PAINT:
+            //    {
+            //        g_pApp->OnDraw();
+            //    }
+            //    break;
             case WM_KEYDOWN:
                 {
                     switch(wParam)

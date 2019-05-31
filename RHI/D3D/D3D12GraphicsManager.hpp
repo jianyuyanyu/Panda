@@ -3,6 +3,7 @@
 #include <d3d12.h>
 #include <DXGI1_4.h>
 #include <vector>
+#include <map>
 #include "GraphicsManager.hpp"
 #include "Buffer.hpp"
 #include "Image.hpp"
@@ -27,9 +28,11 @@ namespace Panda {
         // HRESULT InitializeShader(const char* vsFilename, const char* psFilename);
         // HRESULT RenderBuffers();
 
+        void UpdateConstants();
         void InitializeBuffers(const Scene& scene);
         void ClearBuffers();
         bool InitializeShaders();
+        void ClearShaders();
         void RenderBuffers();
 
     private:
@@ -38,7 +41,7 @@ namespace Panda {
         HRESULT CreateDepthStencil();
         HRESULT CreateGraphicsResources();
         HRESULT CreateSamplerBuffer();
-        HRESULT CreateTextureBuffer();
+        HRESULT CreateTextureBuffer(SceneObjectTexture& texture);
         HRESULT CreateConstantBuffer();
         HRESULT CreateIndexBuffer(const SceneObjectIndexArray& indexArray);
         HRESULT CreateVertexBuffer(const SceneObjectVertexArray& vPropertyArray);
@@ -50,7 +53,7 @@ namespace Panda {
         static const uint32_t           k_FrameCount  = 2;
         static const uint32_t           k_MaxSceneObjectCount = 65535;
         static const uint32_t           k_MaxTextureCount = 2048;
-        static const uint32_t           k_TextureDescStartIndex = k_FrameCount * (1 + k_MaxSceneObjectCount);
+        static const uint32_t           k_TextureDescStartIndex = k_FrameCount * k_MaxSceneObjectCount * 2;
         ID3D12Device*                   m_pDev       = nullptr;             // the pointer to our Direct3D device interface
         D3D12_VIEWPORT                  m_ViewPort;                         // viewport structure
         D3D12_RECT                      m_ScissorRect;                      // scissor rect structure
@@ -73,14 +76,25 @@ namespace Panda {
         uint32_t                        m_CbvSrvDescriptorSize;
 
         std::vector<ID3D12Resource*>    m_Buffers;                          // the pointer to the vertex buffer
+        std::vector<ID3D12Resource*>    m_Textures;                         // the pointer to the vertex buffer
+        std::map<std::string, int32_t>  m_TextureIndex;
         std::vector<D3D12_VERTEX_BUFFER_VIEW>        m_VertexBufferView;                 // a view of the vertex buffer
         std::vector<D3D12_INDEX_BUFFER_VIEW>         m_IndexBufferView;                  // a view of the index buffer
         ID3D12Resource*                 m_pTextureBuffer = nullptr;         // the pointer to the texture buffer
 
+        struct PerBatchConstants
+        {
+            Matrix4f    objectMatrix;
+            Vector4Df   ambientColor;
+            Vector4Df   diffuseColor;
+            Vector4Df   specularColor;
+            float       specularPower;
+        };
+
         struct DrawBatchContext
         {
             int32_t count;
-            std::shared_ptr<Matrix4f> transform;
+            std::shared_ptr<SceneGeometryNode> node;
             std::shared_ptr<SceneObjectMaterial> material;
         };
 

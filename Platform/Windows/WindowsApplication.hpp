@@ -28,5 +28,6 @@ namespace Panda
 	
 	protected:
 		HWND m_hWnd;
+		HDC m_hDC;
 	};
 }

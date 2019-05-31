@@ -43,6 +43,7 @@ namespace Panda {
 			virtual void InitConstants();
 			virtual void CalculateCameraMatrix();
 			virtual void CalculateLights();
+			virtual void UpdateConstants();
 			virtual void RenderBuffers();
 
 		protected:
