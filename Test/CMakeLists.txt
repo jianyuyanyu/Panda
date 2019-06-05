@@ -70,3 +70,16 @@ add_test(NAME TEST_TgaParser COMMAND TgaParserTest)
 add_executable(BulletTest BulletTest.cpp)
 target_link_libraries(BulletTest ${BULLET_DYNAMICS_LIBRARY} ${BULLET_COLLISION_LIBRARY} ${BULLET_LINEARMATH_LIBRARY})
 add_test(NAME TEST_Bullet COMMAND BulletTest)
+
+# add D3D12 test
+add_executable(D3D12Cube WIN32 
+    D3D12Cube.cpp
+    
+    d3dx12.h)
+target_link_libraries(D3D12Cube 
+	d3d12
+	dxgi
+    d3dcompiler
+    PandaMath
+)
+add_test(NAME TEST_D3D12Cube COMMAND D3D12Cube)
