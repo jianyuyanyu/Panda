@@ -197,5 +197,26 @@ namespace Panda
 	{
 		std::cout << "[GraphicsManager] GraphicsManager::ClearDebugBuffers(void)" << std::endl;
 	}
+
+	void GraphicsManager::DrawLine(const Point& from, const Point& to, const Vector3Df& color)
+	{
+		std::cout << "[GraphicsManager] GraphicsManager::DrawLine(" << from << ", "
+			<< to << ", "
+			<< color << ")" << std::endl;
+	}
+
+	void GraphicsManager::DrawLine(const PointList& vertices, const Vector3Df& color)
+	{
+		std::cout << "[GraphicsManager] GraphicsManager::DrawLine(" << vertices.size() << ","
+			<< color << ")" << std::endl;
+	}
+
+	void GraphicsManager::DrawLine(const PointList& vertices, const Matrix4f& trans, const Vector3Df& color)
+	{
+		std::cout << "[GraphicsManager] GraphicsManager::DrawLine(" << vertices.size() << ","
+			<< trans << "," 
+			<< color << ")" << std::endl;
+	}
+
 	#endif
 }

@@ -91,7 +91,8 @@ namespace Panda
     {
         for (auto material : Materials)
         {
-            material.second->LoadTexture();
+            if (auto ptr = material.second)
+                ptr->LoadTexture();
         }
     }
 }

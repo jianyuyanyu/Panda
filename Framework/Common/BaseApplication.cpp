@@ -50,6 +50,12 @@ namespace Panda
 			return ret;
 		}
 
+		if ((ret = g_pAnimationManager->Initialize() != 0))
+		{
+			std::cerr << "Failed. err = " << ret;
+			return ret;
+		}
+
 		if ((ret = g_pGameLogic->Initialize()) != 0)
 		{
 			std::cerr << "Failed. err = " << ret;
@@ -69,6 +75,11 @@ namespace Panda
 
 
 	void BaseApplication::Finalize() {
+		#ifdef DEBUG
+		g_pDebugManager->Finalize();
+		#endif
+		g_pGameLogic->Finalize();
+		g_pAnimationManager->Finalize();
 		g_pInputManager->Finalize();
 		g_pGraphicsManager->Finalize();
 		g_pPhysicsManager->Finalize();
@@ -77,13 +88,14 @@ namespace Panda
 		g_pMemoryManager->Finalize();
 	}
 
-
 	void BaseApplication::Tick() {
 		g_pMemoryManager->Tick();
 		g_pAssetLoader->Tick();
 		g_pSceneManager->Tick();
 		g_pInputManager->Tick();
 		g_pPhysicsManager->Tick();
+		g_pAnimationManager->Tick();
+		g_pGameLogic->Tick();
 		g_pGraphicsManager->Tick();
 		#ifdef DEBUG
 		g_pDebugManager->Tick();
@@ -100,25 +112,5 @@ namespace Panda
 		return m_Quit;
 	}
 
-	// int BaseApplication::LoadScene()
-	// {
-	// 	int ret;
-
-	// 	std::string sceneFileName = "Scene/test.ogex";
-	// 	if (m_ArgC > 1)
-	// 	{
-	// 		sceneFileName = m_ppArgV[1];
-	// 	}
-
-	// 	std::cerr << "Load Scene(" << sceneFileName << "):";
-	// 	if ((ret = g_pSceneManager->LoadScene(sceneFileName.c_str())) != 0)
-	// 	{
-	// 		std::cerr << "Failed. err = " << ret;
-	// 		return ret;
-	// 	}
-	// 	std::cerr << "Success" << std::endl;
-
-	// 	return 0;
-	// }
 }
 

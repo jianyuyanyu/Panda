@@ -1,5 +1,6 @@
 #pragma once
 #include "IRuntimeModule.hpp"
+#include "portable.hpp"
 
 namespace Panda
 {

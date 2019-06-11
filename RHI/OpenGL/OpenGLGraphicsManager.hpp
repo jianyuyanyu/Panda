@@ -21,6 +21,9 @@ namespace Panda {
             virtual void Draw();
 
             #ifdef DEBUG
+            void DrawLine(const Point& from, const Point& to, const Vector3Df& color) final;
+            void DrawLine(const PointList& vertices, const Vector3Df& color) final;
+            void DrawLine(const PointList& vertices, const Matrix4f& trans, const Vector3Df& color) final;
             void ClearDebugBuffers();
             #endif
 
@@ -88,7 +91,8 @@ namespace Panda {
                 GLuint  vao;
                 GLenum  mode;
                 GLsizei count;
-                Vector3f color;
+                Vector3Df color;
+                Matrix4f trans;
             };
 #endif
 

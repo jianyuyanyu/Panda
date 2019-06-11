@@ -16,6 +16,9 @@ namespace Panda
             void DrawDebugInfo();
 
         protected:
+            void DrawAxis();
+            void DrawGrid();
+
             bool m_IsDrawDebugInfo = false;
     };
 

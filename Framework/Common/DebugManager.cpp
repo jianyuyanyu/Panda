@@ -20,19 +20,39 @@ namespace Panda
 
     }
 
+    void DebugManager::ToggleDebugInfo()
+    {
+        m_IsDrawDebugInfo = !m_IsDrawDebugInfo;
+    }
+
     void DebugManager::DrawDebugInfo()
     {
-        #ifdef DEBUG
-        m_IsDrawDebugInfo = !m_IsDrawDebugInfo;
-        if (m_IsDrawDebugInfo)
-        {
-            DrawDebugInfo();
-            g_pPhysicsManager->DrawDebugInfo();
-        }
-        else 
-        {
-            g_pGraphicsManager->ClearDebugBuffers();
-        }
-        #endif
+        DrawGrid();
+        DrawAxis();
+    }
+
+    void DebugManager::DrawAxis()
+    {
+        // x - axis
+        Vector3Df from(-1000.0f, 0.0f, 0.0f);
+        Vector3Df to(1000.0f, 0.0f, 0.0f);
+        Vector3Df color(1.0f, 0.0f, 0.0f);
+        g_pGraphicsManager->DrawLine(from, to, color);
+
+        // y - axis
+        from = {0.0f, -1000.0f, 0.0f};
+        to = {0.0f, 1000.0f, 0.0f};
+        color = {0.0f, 1.0f, 0.0f};
+        g_pGraphicsManager->DrawLine(from, to, color);
+
+        // z - axis
+        from = {0.0f, 0.0f, -1000.0f};
+        to = {0.0f, 0.0f, 1000.0f};
+        color = {0.0f, 0.0f, 1.0f};
+        g_pGraphicsManager->DrawLine(from, to, color);
+    }
+
+    void DebugManager::DrawGrid()
+    {
     }
 }

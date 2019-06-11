@@ -499,7 +499,7 @@ namespace Panda {
             srvDesc.Texture2D.MipLevels = -1;
             srvDesc.Texture2D.MostDetailedMip = 0;
             D3D12_CPU_DESCRIPTOR_HANDLE srvHandle;
-            int32_t textureID = m_TextureIndex.size();
+            size_t textureID = static_cast<uint32_t>(m_TextureIndex.size());
             srvHandle.ptr = m_pCbvHeap->GetCPUDescriptorHandleForHeapStart().ptr + (k_TextureDescStartIndex + textureID) * m_CbvSrvDescriptorSize;
             m_pDev->CreateShaderResourceView(pTextureBuffer, &srvDesc, srvHandle);
             m_TextureIndex[texture.GetName()] = textureID;
@@ -788,8 +788,8 @@ namespace Panda {
     {
         HRESULT hr = S_OK;
 
-        const char* vsFilename = "Shaders/simple.hlsl.vs"; 
-        const char* fsFilename = "Shaders/simple.hlsl.ps";
+        const char* vsFilename = "Shaders/basic_vs.cso"; 
+        const char* fsFilename = "Shaders/basic_ps.cso";
 
         Buffer vertexShader = g_pAssetLoader->SyncOpenAndReadBinary(vsFilename);
         Buffer pixelShader = g_pAssetLoader->SyncOpenAndReadBinary(fsFilename);
@@ -930,7 +930,7 @@ namespace Panda {
         for (auto _it : scene.GeometryNodes)
         {
 			auto pGeometryNode = _it.second;
-            if (pGeometryNode->Visible())
+            if (pGeometryNode && pGeometryNode->Visible())
             {
                 auto pGeometry = scene.GetGeometry(pGeometryNode->GetSceneObjectRef());
                 assert(pGeometry);
@@ -961,7 +961,8 @@ namespace Panda {
                 auto material = scene.GetMaterial(materialKey);
 
                 DrawBatchContext dbc;
-                dbc.count = (UINT)indexArray.GetIndexCount();
+                dbc.indexCount = (UINT)indexArray.GetIndexCount();
+                dbc.propertyCount = vertexPropertiesCount;
                 if (material)
                 {
                     dbc.material = material;
@@ -1125,6 +1126,7 @@ namespace Panda {
 
         // do 3D rendering on the back buffer here
         int32_t i = 0;
+        size_t vertexBufferViewOffset = 0;
         for (auto dbc : m_DrawBatchContext)
         {
             // CBV Per Batch
@@ -1135,9 +1137,10 @@ namespace Panda {
             m_pCommandList->SetGraphicsRootDescriptorTable(0, cbvSrvHandle);
 
             // select which vertex buffer(s) to use
-            m_pCommandList->IASetVertexBuffers(0, 1, &m_VertexBufferView[i * 3]);       // POSITION
-            m_pCommandList->IASetVertexBuffers(1, 1, &m_VertexBufferView[i * 3 + 1]);   // Normal
-            m_pCommandList->IASetVertexBuffers(2, 1, &m_VertexBufferView[i * 3 + 2]);   // UV
+            for (uint32_t j = 0; j < dbc.propertyCount; j++)
+            {
+                m_pCommandList->IASetVertexBuffers(j, 1, &m_VertexBufferView[vertexBufferViewOffset++]);
+            }
             // select which index buffer to use
             m_pCommandList->IASetIndexBuffer(&m_IndexBufferView[i]);
 
@@ -1154,7 +1157,7 @@ namespace Panda {
             }
 
             // draw the vertex buffer to the back buffer
-            m_pCommandList->DrawIndexedInstanced(dbc.count, 1, 0, 0, 0);
+            m_pCommandList->DrawIndexedInstanced(dbc.indexCount, 1, 0, 0, 0);
             i++;
         }
 
@@ -1239,11 +1242,12 @@ namespace Panda {
             Color color = m_DrawBatchContext[index].material->GetBaseColor();
             if (color.ValueMap)
             {
-                pbc.ambientColor = Vector4Df(-1.0f);
+                pbc.usingDiffuseMap = true;
             }
             else
             {
-                pbc.ambientColor = color.Value;
+                pbc.diffuseColor = color.Value;
+                pbc.usingDiffuseMap = false;
             }
             
             color = m_DrawBatchContext[index].material->GetSpecularColor();

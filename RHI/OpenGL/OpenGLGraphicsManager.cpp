@@ -295,7 +295,7 @@ namespace Panda
         for (auto _it : scene.GeometryNodes)
         {
 			auto pGeometryNode = _it.second;
-            if (pGeometryNode->Visible())
+            if (pGeometryNode && pGeometryNode->Visible())
             {
                 std::string str = pGeometryNode->GetSceneObjectRef();
                 auto pGeometry = scene.GetGeometry(pGeometryNode->GetSceneObjectRef());
@@ -556,16 +556,24 @@ namespace Panda
                 Color color = dbc.material->GetBaseColor();
                 if (color.ValueMap)
                 {
-                    SetPerBatchShaderParameters(m_ShaderProgram, "defaultSampler", m_TextureIndex[color.ValueMap->GetName()]);
-                    SetPerBatchShaderParameters(m_ShaderProgram, "diffuseColor", Vector3Df(-1.0f));
+                    SetPerBatchShaderParameters(m_ShaderProgram, "diffuseMap", m_TextureIndex[color.ValueMap->GetName()]);
+                    // set this to tell shader to use texture
+                    SetPerBatchShaderParameters(m_ShaderProgram, "usingDiffuseMap", true);
                 }
                 else 
                 {
-                    SetPerBatchShaderParameters(m_ShaderProgram, "diffuseColor", color.Value.GetRGB());
+                    SetPerBatchShaderParameters(m_ShaderProgram, "diffuseColor", Vector3Df(color.Value.data[0], color.Value.data[1], color.Value.data[2]));
+                }
+
+                Normal normal = dbc.material->GetNormal();
+                if (normal.ValueMap) {
+                    SetPerBatchShaderParameters(m_ShaderProgram, "normalMap", m_TextureIndex[normal.ValueMap->GetName()]);
+                    // set this to tell shader to use texture
+                    SetPerBatchShaderParameters(m_ShaderProgram, "usingNormalMap", true);
                 }
 
                 color = dbc.material->GetSpecularColor();
-                SetPerBatchShaderParameters(m_ShaderProgram, "specularColor", color.Value.GetRGB());
+                SetPerBatchShaderParameters(m_ShaderProgram, "specularColor", Vector3Df(color.Value.data[0], color.Value.data[1], color.Value.data[2]));
 
                 Parameter param = dbc.material->GetSpecularPower();
                 SetPerBatchShaderParameters(m_ShaderProgram, "specularPower", param.Value);
@@ -623,14 +631,14 @@ namespace Panda
         std::string debugFragmentShaderBuffer;
 
         // Load the fragment shader source file into a text buffer.
-        debugVertexShaderBuffer = g_pAssetLoader->SyncOpenAndReadTextFileToString(debugVsFilename);
+        debugVertexShaderBuffer = g_pAssetLoader->SyncOpenAndReadFileToString(debugVsFilename);
         if(debugVertexShaderBuffer.empty())
         {
                 return false;
         }
 
         // Load the fragment shader source file into a text buffer.
-        debugFragmentShaderBuffer = g_pAssetLoader->SyncOpenAndReadTextFileToString(debugFsFilename);
+        debugFragmentShaderBuffer = g_pAssetLoader->SyncOpenAndReadFileToString(debugFsFilename);
         if(debugFragmentShaderBuffer.empty())
         {
                 return false;
@@ -786,6 +794,68 @@ namespace Panda
         }
 
         m_DebugBuffers.clear();
+    }
+
+    void OpenGLGraphicsManager::DrawLine(const PointList& vertices, const Matrix4f& trans, const Vector3Df& color)
+    {
+        auto count = vertices.size();
+        GLfloat* _vertices = new GLfloat[3 * count];
+
+        for (auto i = 0; i < count; i++)
+        {
+            _vertices[3 * i] = vertices[i]->data[0];
+            _vertices[3 * i + 1] = vertices[i]->data[1];
+            _vertices[3 * i + 2] = vertices[i]->data[2];
+        }
+
+        GLuint vao;
+        glGenVertexArrays(1, &vao);
+
+        // Bind the vertex array object to store all the buffers and vertex attributes we create here.
+        glBindVertexArray(vao);
+
+        GLuint buffer_id;
+
+        // Generate an ID for the vertex buffer.
+        glGenBuffers(1, &buffer_id);
+
+        // Bind the vertex buffer and load the vertex (position and color) data into the vertex buffer.
+        glBindBuffer(GL_ARRAY_BUFFER, buffer_id);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3 * count, _vertices, GL_STATIC_DRAW);
+
+        delete[] _vertices;
+
+        glEnableVertexAttribArray(0);
+
+        glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
+
+        m_DebugBuffers.push_back(buffer_id);
+
+        DebugDrawBatchContext& dbc = *(new DebugDrawBatchContext);
+        dbc.vao     = vao;
+        dbc.mode    = GL_LINES;
+        dbc.count   = static_cast<GLsizei>(count);
+        dbc.color   = color;
+        dbc.trans   = trans;
+
+        m_DebugDrawBatchContext.push_back(std::move(dbc));
+    }
+
+    void OpenGLGraphicsManager::DrawLine(const PointList& vertices, const Vector3Df& color)
+    {
+        Matrix4f trans;
+        trans.SetIdentity();
+
+        DrawLine(vertices, trans, color);
+    }
+
+    void OpenGLGraphicsManager::DrawLine(const Point& from, const Point& to, const Vector3Df& color)
+    {
+        PointList point_list;
+        point_list.push_back(std::make_shared<Point>(from));
+        point_list.push_back(std::make_shared<Point>(to));
+
+        DrawLine(point_list, color);
     }
 #endif    
 }

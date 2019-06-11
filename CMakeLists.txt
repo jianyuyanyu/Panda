@@ -18,6 +18,7 @@ else()
     set(ARCH_BIT 32)
 endif()
 
+include_directories("${PROJECT_SOURCE_DIR}/Framework/Ability")      # include directory: Ability
 include_directories("${PROJECT_SOURCE_DIR}/Framework/Parser/")       # include directory:Parser
 include_directories("${PROJECT_SOURCE_DIR}/Framework/Common/")		# include directory:Common
 include_directories("${PROJECT_SOURCE_DIR}/Framework/Interface/")	# include directory:Interface
@@ -76,6 +77,7 @@ add_subdirectory(RHI)
 add_subdirectory(Test)
 add_subdirectory(Game)
 add_subdirectory(Physics)
+add_subdirectory(Editor)
 
 #IF (${UNIX})	# Unix platform compile configuration.
 #	set (CMAKE_C_COMPILER				"gcc")

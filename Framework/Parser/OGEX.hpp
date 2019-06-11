@@ -323,6 +323,7 @@ namespace Panda
                         Matrix4f matrix;
                         std::shared_ptr<SceneObjectTransform> transform;
 
+                        auto _key = _structure.GetStructureName();
                         count = _structure.GetTransformCount();
                         for (index = 0; index < count; ++index)
                         {
@@ -336,7 +337,7 @@ namespace Panda
                                 // ExchangeYandZ(matrix)
                             }
                             transform = std::make_shared<SceneObjectTransform>(matrix, object_flag);
-                            baseNode->AppendTransform(std::move(transform));
+                            baseNode->AppendTransform(_key, std::move(transform));
 							//baseNode->AppendTransform(transform);
                         }
                         return;
@@ -357,9 +358,43 @@ namespace Panda
                         {
                             translation = std::make_shared<SceneObjectTranslation>(kind[0], data[0]);
                         }
-                        baseNode->AppendTransform(std::move(translation));
+                        auto _key = _structure.GetStructureName();
+                        baseNode->AppendTransform(_key, std::move(translation));
                         return;
                     }
+                    case OGEX::kStructureRotation:
+                    {
+                        const OGEX::RotationStructure& _structure = dynamic_cast<const OGEX::RotationStructure&>(structure);
+                        bool object_flag = _structure.GetObjectFlag();
+                        std::shared_ptr<SceneObjectRotation> rotation;
+
+                        auto kind = _structure.GetRotationKind();
+                        auto data = _structure.GetRotation();
+                        if (kind == "x")
+                        {
+                            rotation = std::make_shared<SceneObjectRotation>('x', data[0], object_flag);
+                        }
+                        else if (kind == "y")
+                        {
+                            rotation = std::make_shared<SceneObjectRotation>('y', data[0], object_flag);
+                        }
+                        else if (kind == "z")
+                        {
+                            rotation = std::make_shared<SceneObjectRotation>('z', data[0], object_flag);
+                        }
+                        else if (kind == "axis")
+                        {
+                            rotation = std::make_shared<SceneObjectRotation>(Vector3Df(data[0], data[1], data[2]), data[3], object_flag);
+                        }
+                        else if (kind == "quaternion")
+                        {
+                            rotation = std::make_shared<SceneObjectRotation>(Quaternion(data[0], data[1], data[2], data[3]), object_flag);
+                        }
+
+                        auto _key = _structure.GetStructureName();
+                        baseNode->AppendTransform(_key, std::move(rotation));
+                    }
+					return;
                     case OGEX::kStructureMaterial:
                     {
                         const OGEX::MaterialStructure& _structure = dynamic_cast<const OGEX::MaterialStructure&>(structure);
@@ -523,6 +558,79 @@ namespace Panda
                         scene.Cameras[_key] = camera;
                         return;
                     }
+                    case OGEX::kStructureAnimation:
+                    {
+                        const OGEX::AnimationStructure& _structure = dynamic_cast<const OGEX::AnimationStructure&>(structure);
+                        auto clipIndex = _structure.GetClipIndex();
+                        auto clip = std::make_shared<SceneObjectAnimationClip>(clipIndex);
+
+                        const ODDL::Structure* _sub_structure = _structure.GetFirstCoreSubnode();
+                        while(_sub_structure)
+                        {
+                            switch(_sub_structure->GetStructureType())
+                            {
+                                case OGEX::kStructureTrack:
+                                {
+                                    const OGEX::TrackStructure& trackStructure = dynamic_cast<const OGEX::TrackStructure&>(*_sub_structure);
+                                    const OGEX::TimeStructure& timeStructure = dynamic_cast<const OGEX::TimeStructure&>(*trackStructure.GetTimeStructure());
+                                    const OGEX::ValueStructure& valueStructure = dynamic_cast<const OGEX::ValueStructure&>(*trackStructure.GetValueStructure());
+                                    std::shared_ptr<Curve<float>> timeCurve;
+                                    std::shared_ptr<Curve<float>> valueCurve;
+                                    std::vector<float> timeKnots;
+                                    if(timeStructure.GetCurveType() == "bezier")
+                                    {
+                                        auto keyValue = timeStructure.GetKeyValueStructure();
+                                        auto keyIncomingControl = timeStructure.GetKeyControlStructure(0);
+                                        auto keyOutgoingControl = timeStructure.GetKeyControlStructure(1);
+                                        auto keyDataCount = timeStructure.GetKeyDataElementCount();
+                                        const ODDL::DataStructure<ODDL::FloatDataType>* dataStructure = 
+                                            static_cast<const ODDL::DataStructure<ODDL::FloatDataType>*>(keyValue->GetFirstCoreSubnode());
+                                        const float* knots = &dataStructure->GetDataElement(0);
+                                        dataStructure = 
+                                            static_cast<const ODDL::DataStructure<ODDL::FloatDataType>*>(keyIncomingControl->GetFirstCoreSubnode());
+                                        const float* inCp = &dataStructure->GetDataElement(0);
+                                        dataStructure =
+                                            static_cast<const ODDL::DataStructure<ODDL::FloatDataType>*>(keyOutgoingControl->GetFirstCoreSubnode());
+                                        const float* outCp = &dataStructure->GetDataElement(0);
+                                        timeCurve = std::make_shared<Bezier<float>>(knots, inCp, outCp, keyDataCount);
+                                    }
+                                    if (valueStructure.GetCurveType() == "bezier")
+                                    {
+                                        auto keyValue = valueStructure.GetKeyValueStructure();
+                                        auto keyIncomingControl = valueStructure.GetKeyControlStructure(0);
+                                        auto keyOutgoingControl = valueStructure.GetKeyControlStructure(1);
+                                        auto keyDataCount = valueStructure.GetKeyDataElementCount();
+                                        const ODDL::DataStructure<ODDL::FloatDataType>* dataStructure = 
+                                            static_cast<const ODDL::DataStructure<ODDL::FloatDataType>*>(keyValue->GetFirstCoreSubnode());
+                                        const float* knots = &dataStructure->GetDataElement(0);
+                                        dataStructure = 
+                                            static_cast<const ODDL::DataStructure<ODDL::FloatDataType>*>(keyIncomingControl->GetFirstCoreSubnode());
+                                        const float* inCp = &dataStructure->GetDataElement(0);
+                                        dataStructure = 
+                                            static_cast<const ODDL::DataStructure<ODDL::FloatDataType>*>(keyOutgoingControl->GetFirstCoreSubnode());
+                                        const float* outCp = &dataStructure->GetDataElement(0);
+                                        valueCurve = std::make_shared<Bezier<float>>(knots, inCp, outCp, keyDataCount);
+                                    }
+                                    auto ref = trackStructure.GetTargetRef();
+                                    std::string _key(*ref.GetNameArray());
+                                    std::shared_ptr<SceneObjectTransform> trans;
+                                    trans = baseNode->GetTransform(_key);
+                                    auto track = std::make_shared<SceneObjectTrack>(trans, timeCurve, valueCurve);
+                                    clip->AddTrack(track);
+                                }
+                                default:
+                                    ;
+                            }
+
+                            _sub_structure = _sub_structure->Next();
+                        }
+
+                        baseNode->AttachAnimationClip(clipIndex, clip);
+
+                        // register the node to animatable node LUT
+                        scene.AnimatableNodes.push_back(baseNode);
+                    }
+                    return;
                     default:
                         // just ignore it and finish
                         return;

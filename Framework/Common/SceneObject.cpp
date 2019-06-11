@@ -57,6 +57,19 @@ namespace Panda
         return out;
     }
 
+    std::ostream& operator<<(std::ostream& out, CurveType type)
+    {
+        int32_t n = static_cast<int32_t>(type);
+        n = to_endian_net<int32_t>(n);
+        char* c = reinterpret_cast<char*>(&n);
+        for(size_t i = 0; i < sizeof(int32_t); ++i)
+        {
+            out << *c++;
+        }
+
+        return out;
+    }
+
     std::ostream& operator<<(std::ostream& out, const BaseSceneObject& obj)
     {
         out << "SceneObject" << std::endl;
@@ -235,6 +248,72 @@ namespace Panda
         out << "Is Object Local: " << obj.m_IsSceneObjectOnly << std::endl;
 
         return out;
+    }
+
+    std::ostream& operator<<(std::ostream& out, const SceneObjectTrack& obj)
+    {
+        out << "Animation Track: " << std::endl;
+        out << "Time: " << obj.m_Time->GetCurveType() << std::endl;
+        out << "Value: " << obj.m_Value->GetCurveType() << std::endl;
+        out << "Transform: " << *obj.m_pTransform << std::endl;
+
+        return out;
+    }
+
+    std::ostream& operator<<(std::ostream& out, const SceneObjectAnimationClip& obj)
+    {
+        out << "Animation Clip: " << obj.m_Index << std::endl;
+        out << "Num of Track(s): " << obj.m_Tracks.size() << std::endl;
+        for (auto track : obj.m_Tracks)
+        {
+            out << *track;
+        }
+
+        return out;
+    }
+
+    void SceneObjectTrack::Update(const float timePoint)
+    {
+        if (m_pTransform)
+        {
+            float newVal = m_Value->Interpolate(m_Time->Reverse(timePoint));
+            switch(m_pTransform->GetType())
+            {
+                case SceneObjectType::kSceneObjectTypeTranslate:
+                {
+                    auto pObj = std::dynamic_pointer_cast<SceneObjectTranslation>(m_pTransform);
+                    pObj->Update(newVal);
+                }
+                break;
+                case SceneObjectType::kSceneObjectTypeRotate:
+                {
+                    auto pObj = std::dynamic_pointer_cast<SceneObjectRotation>(m_pTransform);
+                    pObj->Update(newVal);
+                }
+                break;
+                case SceneObjectType::kSceneObjectTypeScale:
+                {
+                    auto pObj = std::dynamic_pointer_cast<SceneObjectScale>(m_pTransform);
+                    pObj->Update(newVal);
+                }
+                break;
+                default:
+                    assert(0);
+            }
+        }
+    }
+
+    void SceneObjectAnimationClip::AddTrack(std::shared_ptr<SceneObjectTrack>& track)
+    {
+        m_Tracks.push_back(track);
+    }
+
+    void SceneObjectAnimationClip::Update(const float timePoint)
+    {
+        for (auto track : m_Tracks)
+        {
+            track->Update(timePoint);
+        }
     }
 
     float DefaultAttenFunc (float intensity, float distance)

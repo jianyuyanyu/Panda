@@ -55,6 +55,12 @@ namespace std
 # endif
 #endif
 
+#ifndef DEBUG
+#if defined(_DEBUG)
+#define DEBUG
+#endif
+#endif
+
 namespace Panda
 {
     template<typename T>

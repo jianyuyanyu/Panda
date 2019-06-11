@@ -79,7 +79,7 @@ namespace Panda
             return true;
         }
 
-		// 行列式
+		// 
         T GetDeterminant()
         {
             return m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1]) 
@@ -87,7 +87,7 @@ namespace Panda
                   +m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0]);
         }
 
-		// 代数余子式
+		// 
         T GetCofactor(int32_t row, int32_t col)
         {
             int32_t coefficient = 1;

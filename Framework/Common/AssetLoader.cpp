@@ -124,9 +124,9 @@ namespace Panda
         AssetFilePtr fp = OpenFile(filePath, PANDA_OPEN_TEXT);
         Buffer* pBuff = nullptr;
 
+		size_t length = GetSize(fp);
         if (fp)
         {
-            size_t length = GetSize(fp);
             pBuff = new Buffer(length + 1);
             size_t result = fread(pBuff->GetData(), 1, length, static_cast<FILE*>(fp));
             #ifdef DEBUG
@@ -153,9 +153,9 @@ namespace Panda
         AssetFilePtr fp = OpenFile(filePath, PANDA_OPEN_BINARY);
         Buffer* pBuff = nullptr;
 
+		size_t length = GetSize(fp);
         if (fp)
         {
-            size_t length = GetSize(fp);
             pBuff = new Buffer(length);
             fread (pBuff->GetData(), length, 1, static_cast<FILE*>(fp));
             #ifdef DEBUG
@@ -208,7 +208,7 @@ namespace Panda
         sz = fread(buf.GetData(), buf.m_Size, 1, static_cast<FILE*>(fp));
 
     #ifdef DEBUG
-        fprintf(stderr, "Read file '%s', %d bytes\n", filePath, length);
+        
     #endif 
 
         return sz;

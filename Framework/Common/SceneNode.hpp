@@ -1,23 +1,30 @@
 #pragma once
 #include <iostream>
 #include <list>
+#include <map>
 #include <memory>
 #include <vector>
 #include <string>
+#include "Tree.hpp"
 #include "SceneObject.hpp"
 
 namespace Panda
 {
-    class BaseSceneNode
+    class BaseSceneNode : public TreeNode
     {
         protected:
             std::string m_Name;
-            std::list<std::shared_ptr<BaseSceneNode>> m_Children;
-            std::list<std::shared_ptr<SceneObjectTransform>> m_Transforms;
+            std::vector<std::shared_ptr<SceneObjectTransform>> m_Transforms;
+            std::map<int, std::shared_ptr<SceneObjectAnimationClip>> m_AnimationClips;
+            std::map<std::string, std::shared_ptr<SceneObjectTransform>> m_LUTransform;
+            
 			Matrix4f m_RuntimeTransform;
 
         protected:
             virtual void Dump(std::ostream& out) const {}
+
+        public:
+            typedef std::map<int, std::shared_ptr<SceneObjectAnimationClip>>::const_iterator AnimationClipIterator;
 
         public:
             BaseSceneNode() {m_RuntimeTransform.SetIdentity();}
@@ -26,24 +33,40 @@ namespace Panda
 
             const std::string GetName() const {return m_Name;}
 
-			void AppendChild(const std::shared_ptr<BaseSceneNode>& node)
-			{
-				m_Children.push_back(node);
-			}
-
-            void AppendChild(std::shared_ptr<BaseSceneNode>&& node)
+			void AttachAnimationClip(int clipIndex, std::shared_ptr<SceneObjectAnimationClip> clip)
             {
-                m_Children.push_back(std::move(node));
+                m_AnimationClips.insert({clipIndex, clip});
             }
 
-			void AppendTransform(const std::shared_ptr<SceneObjectTransform>& transform)
+            inline bool GetFirstAnimationClip(AnimationClipIterator& it)
+            {
+                it = m_AnimationClips.cbegin();
+                return it != m_AnimationClips.cend();
+            }
+
+            inline bool GetNextAnimationClip(AnimationClipIterator& it)
+            {
+                it++;
+                return it != m_AnimationClips.cend();
+            }
+
+			void AppendTransform(const char* key, const std::shared_ptr<SceneObjectTransform>& transform)
 			{
 				m_Transforms.push_back(transform);
+                m_LUTransform.insert({std::string(key), transform});
 			}
 
-            void AppendTransform(std::shared_ptr<SceneObjectTransform>&& transform)
+            std::shared_ptr<SceneObjectTransform> GetTransform(const std::string& key)
             {
-                m_Transforms.push_back(std::move(transform));
+                auto it = m_LUTransform.find(key);
+                if (it != m_LUTransform.end())
+                {
+                    return it->second;
+                }
+                else
+                {
+                    return std::shared_ptr<SceneObjectTransform>();
+                }
             }
 
             const std::shared_ptr<Matrix4f> GetCalculatedTransform() const
@@ -52,9 +75,9 @@ namespace Panda
                 result->SetIdentity();
 
                 // TODO: cascading calcuation
-                for (auto trans : m_Transforms)
+                for (auto it = m_Transforms.rbegin(); it != m_Transforms.rend(); ++it)
                 {
-                    *result = *result * static_cast<Matrix4f>(*trans);
+                    *result = *result * static_cast<Matrix4f>(**it);
                 }
 
                 // apply runtime transforms
@@ -70,6 +93,27 @@ namespace Panda
                 m_RuntimeTransform = m_RuntimeTransform * rotate;
             }
 
+            void MoveBy(float distanceX, float distanceY, float distanceZ)
+            {
+                Matrix4f translation;
+                MatrixTranslation(translation, distanceX, distanceY, distanceZ);
+                m_RuntimeTransform = m_RuntimeTransform * translation;
+            }
+
+            void MoveBy(const Vector3Df& distance)
+            {
+                MoveBy(distance.data[0], distance.data[1], distance.data[2]);
+            }
+
+            virtual Matrix3f GetLocalAxis()
+            {
+                return {
+                    {1.0f, 0.0f, 0.0f},
+                    {0.0f, 1.0f, 0.0f},
+                    {0.0f, 0.0f, 1.0f}
+                };
+            }
+
             friend std::ostream& operator<<(std::ostream& out, const BaseSceneNode& node)
             {
                 static thread_local int32_t indent = 0;
@@ -81,14 +125,19 @@ namespace Panda
                 node.Dump(out);
                 out << std::endl;
 
-                for (const std::shared_ptr<BaseSceneNode>& subNode : node.m_Children)
+                for (auto subNode : node.m_Children)
                 {
                     out << *subNode << std::endl;
                 }
 
-                for (const std::shared_ptr<SceneObjectTransform>& subTransform : node.m_Transforms)
+                for (auto subTransform : node.m_Transforms)
                 {
                     out << *subTransform << std::endl;
+                }
+
+                for (auto animClip : node.m_AnimationClips)
+                {
+                    out << * animClip.second << std::endl;
                 }
 
                 indent--;

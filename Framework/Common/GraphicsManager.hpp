@@ -19,6 +19,9 @@ namespace Panda {
 			virtual void Draw();
 
 			#ifdef DEBUG
+			virtual void DrawLine(const Point& from, const Point& to, const Vector3Df& color);
+			virtual void DrawLine(const PointList& vertices, const Vector3Df& color);
+            virtual void DrawLine(const PointList& vertices, const Matrix4f& trans, const Vector3Df& color);
 			virtual void ClearDebugBuffers();
 			#endif
 
