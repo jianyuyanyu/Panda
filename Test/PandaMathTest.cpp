@@ -206,14 +206,44 @@ void TestDCTs()
 	cout << endl;
 }
 
+void TestQuaternion()
+{
+	float root2 = sqrtf(2.0f);
+	float halfRoot2 = root2 / 2.0f;
+	Vector4Df p(1.0f, 0.0f, 0.0f, 1.0f);	// origin point <1, 0, 0>
+	Vector4Df q(0.0f, 0.0f, halfRoot2, halfRoot2);	 // transform along z-axis rotate 90 degrees
+	Vector4Df q_(0.0f, 0.0f, -halfRoot2, halfRoot2); // Conjugate of q
+	Vector4Df p1 = q.MulProduct(p).MulProduct(q_);
+
+	cout << "p1 = " << p1 << endl;
+
+	Vector4Df r(halfRoot2, 0, 0, halfRoot2); // along x-axis rotate 90 degrees
+	Vector4Df r_(-halfRoot2, 0, 0, halfRoot2);	 // conjugate of r
+	Vector4Df p2 = r.MulProduct(p1).MulProduct(r_);
+	cout << "p2 = " << p2 << endl;
+
+	Vector4Df w = r.MulProduct(q);
+	Vector4Df w_ = q_.MulProduct(r_);
+	Vector4Df p3 = w.MulProduct(p).MulProduct(w_);
+	cout << "w = " << w << endl;
+	cout << "w_ = " << w_ << endl;
+	cout << "w * p = " << w.MulProduct(p) << endl;
+	cout << "p3 = " << p3 << endl;
+
+	Vector4Df v(0.0f, -halfRoot2, 0.0f, halfRoot2);
+	Vector4Df v_(0.0f, halfRoot2, 0.0f, halfRoot2);
+	Vector4Df p4 = v.MulProduct(p).MulProduct(v_);
+	cout << "p4 = " << p4 << endl;
+}
+
 int main (int argc, char** argv)
 {
 	cout << std::endl;
 
-	VectorTest();
-	MatrixTest();
-	TestDCTs();
-
+	//VectorTest();
+	//MatrixTest();
+	//TestDCTs();
+	TestQuaternion();
 	getchar();
 
     return 0;

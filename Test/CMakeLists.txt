@@ -91,3 +91,7 @@ add_test(NAME TEST_NumericalMethods COMMAND NumericalMethodsTest)
 # bezier test
 add_executable(BezierCubic1DTest BezierCubic1DTest.cpp)
 add_test(NAME TEST_BezierCubic1D COMMAND BezierCubic1DTest)
+
+# panda math test
+add_executable(PureMathTest PureMathTest.cpp)
+add_test(NAME TEST_PureMath COMMAND PureMathTest)
