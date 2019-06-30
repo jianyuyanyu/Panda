@@ -20,6 +20,7 @@ namespace Panda
             bool IsSceneChanged();
             void NotifySceneIsRenderingQueued();
             void NotifySceneIsPhysicalSimulationQueued();
+            void NotifySceneIsAnimationQueued();
 
             const Scene& GetScene();
             const Scene& GetSceneForPhysicalSimulation();
@@ -36,6 +37,7 @@ namespace Panda
             std::shared_ptr<Scene> m_pScene;
             bool m_IsRenderingQueued = false;
             bool m_IsPhysicalSimulationQueued = false;
+            bool m_IsAnimationQueued = false;
             bool m_DirtyFlag = false;
     };
 

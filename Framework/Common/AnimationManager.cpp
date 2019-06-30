@@ -28,11 +28,18 @@ namespace Panda
 
     void AnimationManager::Finalize()
     {
-
+        ClearAnimationClips();
     }
 
     void AnimationManager::Tick()
     {
+        if (g_pSceneManager->IsSceneChanged())
+        {
+            std::cerr << "[AnimationManager] Detected Scene Change, reinitialize animations ..." << std::endl;
+            Finalize();
+            Initialize();
+            g_pSceneManager->NotifySceneIsAnimationQueued();
+        }
         if (!m_IsTimeLineStarted)
         {
             m_TimeLineStartPoint = m_Clock.now();
@@ -50,5 +57,10 @@ namespace Panda
     void AnimationManager::AddAnimationClip(std::shared_ptr<SceneObjectAnimationClip> clip)
     {
         m_AnimationClips.push_back(clip);
+    }
+
+    void AnimationManager::ClearAnimationClips()
+    {
+        m_AnimationClips.clear();
     }
 }

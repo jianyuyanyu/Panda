@@ -130,7 +130,12 @@ namespace Panda
                 // Enable back face culling.
                 glEnable(GL_CULL_FACE);
                 glCullFace(GL_BACK);
+
+                glEnable(GL_PROGRAM_POINT_SIZE);
             }
+
+            auto config = g_pApp->GetConfiguration();
+            glViewport(0, 0, config.screenWidth, config.screenHeight);
         }
 
         return result;

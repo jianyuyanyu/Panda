@@ -24,7 +24,8 @@ namespace Panda
 
 	void SceneManager::Tick()
 	{
-
+		if (m_DirtyFlag)
+			m_DirtyFlag = !(m_IsRenderingQueued && m_IsPhysicalSimulationQueued && m_IsAnimationQueued);
 	}
 
 	int SceneManager::LoadScene(const char* sceneFileName)
@@ -87,11 +88,11 @@ namespace Panda
 	void SceneManager::NotifySceneIsRenderingQueued()
 	{
 		m_IsRenderingQueued = true;
+	}
 
-		if (m_IsPhysicalSimulationQueued)
-		{
-			m_DirtyFlag = false;
-		}
+	void SceneManager::NotifySceneIsAnimationQueued()
+	{
+		m_IsAnimationQueued = true;
 	}
 
 	void SceneManager::NotifySceneIsPhysicalSimulationQueued()

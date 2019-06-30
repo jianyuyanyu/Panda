@@ -24,20 +24,15 @@ int EditorLogic::Initialize()
         result = g_pSceneManager->LoadScene("Scene/LinearInterpolateTest.ogex");
     //}
 
-    g_pAnimationManager->Initialize();
-
 	return 0;
 }
 
 void EditorLogic::Finalize()
 {
-    cout << "[EditorLogic] Finalize" << endl;
-    g_pAnimationManager->Finalize();
 }
 
 void EditorLogic::Tick()
 {
-    g_pAnimationManager->Tick();
 }
 
 #ifdef DEBUG
