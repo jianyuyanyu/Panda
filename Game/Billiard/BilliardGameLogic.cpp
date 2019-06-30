@@ -35,7 +35,7 @@ namespace Panda
             auto rigicBody = node ->RigidBody();
             if (rigicBody)
             {
-                g_pPhysicsManager->ApplyCentralForce(rigicBody, Vector3Df(-100.0f, 0.0f, 0.0f));
+				g_pPhysicsManager->ApplyCentralForce(rigicBody, Vector3Df({ -100.0f, 0.0f, 0.0f }));
             }
         }
     }

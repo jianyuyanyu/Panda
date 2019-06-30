@@ -244,6 +244,14 @@ namespace Panda
 
     std::ostream& operator<<(std::ostream& out, const SceneObjectTransform& obj)
     {
+		if (obj.m_Type == SceneObjectType::kSceneObjectTypeTranslate)
+			out << "------kSceneObjectTypeTranslate--------" << std::endl;
+		else if (obj.m_Type == SceneObjectType::kSceneObjectTypeRotate)
+			out << "------kSceneObjectTypeRotate------" << std::endl;
+		else if (obj.m_Type == SceneObjectType::kSceneObjectTypeScale)
+			out << "------kSceneObjectTypeScale------" << std::endl;
+		else
+			out << "------kSceneObjectTypeTransform------" << std::endl;
         out << "Transform Matrix: " << obj.m_Matrix << std::endl;
         out << "Is Object Local: " << obj.m_IsSceneObjectOnly << std::endl;
 
@@ -270,50 +278,6 @@ namespace Panda
         }
 
         return out;
-    }
-
-    void SceneObjectTrack::Update(const float timePoint)
-    {
-        if (m_pTransform)
-        {
-            float newVal = m_Value->Interpolate(m_Time->Reverse(timePoint));
-            switch(m_pTransform->GetType())
-            {
-                case SceneObjectType::kSceneObjectTypeTranslate:
-                {
-                    auto pObj = std::dynamic_pointer_cast<SceneObjectTranslation>(m_pTransform);
-                    pObj->Update(newVal);
-                }
-                break;
-                case SceneObjectType::kSceneObjectTypeRotate:
-                {
-                    auto pObj = std::dynamic_pointer_cast<SceneObjectRotation>(m_pTransform);
-                    pObj->Update(newVal);
-                }
-                break;
-                case SceneObjectType::kSceneObjectTypeScale:
-                {
-                    auto pObj = std::dynamic_pointer_cast<SceneObjectScale>(m_pTransform);
-                    pObj->Update(newVal);
-                }
-                break;
-                default:
-                    assert(0);
-            }
-        }
-    }
-
-    void SceneObjectAnimationClip::AddTrack(std::shared_ptr<SceneObjectTrack>& track)
-    {
-        m_Tracks.push_back(track);
-    }
-
-    void SceneObjectAnimationClip::Update(const float timePoint)
-    {
-        for (auto track : m_Tracks)
-        {
-            track->Update(timePoint);
-        }
     }
 
     float DefaultAttenFunc (float intensity, float distance)

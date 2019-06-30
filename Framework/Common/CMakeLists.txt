@@ -1,6 +1,7 @@
 # get all header files and source files
 FILE(GLOB COMMON_HEADERS ./*.hpp)
 FILE(GLOB INTERFACE_HEADERS ../Interface/*.hpp)
+FILE(GLOB ABILITY_HEADERS ../Ability/*.hpp)
 FILE(GLOB PARSER_HEADERS ../Parser/*.hpp)
 FILE(GLOB COMMON_SOURCES ./*.cpp)
 
@@ -10,6 +11,7 @@ add_library(Common
 	${COMMON_HEADERS}
 	${INTERFACE_HEADERS}
 	${PARSER_HEADERS}
+  ${ABILITY_HEADERS}
   )
 
 source_group("Source Files\\Common" FILES ${COMMON_SOURCES})

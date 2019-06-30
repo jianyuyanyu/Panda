@@ -275,7 +275,7 @@ int main()
 	cout << "R = " << R << endl;
 	cout << "b = " << b << endl;
 	cout << "result x = " << x << endl;
-#endif
+
 	float sqrt2_1 = 1.0f / std::sqrt(2);
 	float sqrt2 = std::sqrt(2);
 	float listQ2[] = {
@@ -298,6 +298,181 @@ int main()
 	cout << "R = " << R << endl;
 	cout << "b = " << b << endl;
 	cout << "result x = " << x << endl;
+
+	float list1[] = {
+		2, 1,
+		1, 2
+	};
+	Matrix<float, 2, 2> mat(list1);
+	Vector<float, 2> eigenVector;
+	float eigenValue;
+	SolveEigenWithPowerMethod(mat, 10, eigenValue, eigenVector);
+	cout << "mat = " << mat << endl;
+	cout << "eigen value = " << eigenValue << endl;
+	cout << "eigen vector = " << eigenVector << endl;
+
+	float list1[] = {
+		1, 0, 0,
+		0, 1, 0,
+		0, 0, 1
+	};
+	Matrix<float, 3, 3> mat(list1);
+	Matrix<float, 3, 3> G;
+	cout << "origin mat = " << mat << endl;
+	BuildGivensRotation(0, 1, PI / 6, G);
+	cout << "Givens rotation = " << G << endl;
+	cout << "After rotation = " << G * mat << endl;
+	cout << endl;
+	BuildGivensRotation(0, 2, PI / 6, G);
+	cout << "Givens rotation = " << G << endl;
+	cout << "After rotation = " << G * mat << endl;
+	cout << endl;
+
+	/// Test Givens Transform.
+	float list2[] = {
+		1, 0, 0, 0,
+		0, 1, 0, 0,
+		0, 0, 1, 0,
+		0, 0, 0, 1
+	};
+	float list3[] = {
+	1, 1, 1, 1,
+	1, 1, 1, 1,
+	1, 1, 1, 1,
+	1, 1, 1, 1
+	};
+	float list4[] = {
+		//6, 5, 0,
+		//5, 1, 4,
+		//0, 4, 3
+		-1, 1.5f, 0.5f,
+		2, 8, 8,
+		-2, -7, 1
+	};
+	float list5[] = {
+		-3, 2, 4, -3,
+		5, -2, -3, 5,
+		2, 1, -6, 4,
+		1, 1, 1, 1
+	};
+	Matrix<float, 4, 4> mat4(list5);
+	cout << "origin mat4 = " << mat4 << endl;
+	Matrix<float, 4, 4> temp(mat4);
+
+	for (int32_t i = 1; i < 4; ++i)
+	{
+		for (int32_t j = 0; j < i; ++j)
+		{
+			Matrix<float, 4, 4> G4_;
+			if (BuildGivensRotation(temp, i, j, G4_))
+			{
+				cout << "Givens rotation G4_ = " << G4_ << endl;
+				temp = G4_ * temp;
+				cout << "After rotation G4_ = " << temp << endl;
+				//Matrix<float, 4, 4> G4_Trans;
+				//TransposeMatrix(G4_, G4_Trans);
+				//cout << "After G4_ transpose, G4_Trans = " << G4_Trans << endl;
+				//cout << "mat4 after times G4_Trans = " << mat4 * G4_Trans << endl;
+
+				cout << endl;
+			}
+			else
+			{
+				continue;
+			}
+		}
+	}
+
+	/// Test Jacobi algorithm
+	float list[] = {
+		6, 5, 0,
+		5, 1, 4,
+		0, 4, 3
+	};
+	Matrix<float, 3, 3> mat(list);
+	cout << "mat = " << mat << endl;
+	Matrix<float, 3, 3> temp(mat);
+
+
+	cout << "Start Jacobi=============================" << endl;
+	for (int32_t k = 0; k < 100; ++k)
+	{
+		for (int32_t i = 1; i < 3; ++i)
+		{
+			for (int32_t j = 0; j < i; ++j)
+			{
+				Matrix<float, 3, 3> G;
+				if (BuildGivensRotation(temp, i, j, G))
+				{
+					cout << "Givens rotation = " << G << endl;
+					Matrix<float, 3, 3> G_;
+					TransposeMatrix(G, G_);
+					temp = G * temp * G_;
+					cout << "After Jacobi temp = " << temp << endl;
+				}
+				else
+					continue;
+			}
+		}
+	}
+
+
+	//cout << endl << endl;
+	//cout << "Start Givens=======================" << endl;
+	//temp = mat;
+	//for (int32_t i = 1; i < 3; ++i)
+	//{
+	//	for (int32_t j = 0; j < i; ++j)
+	//	{
+	//		Matrix<float, 3, 3> G;
+	//		if (BuildGivensRotation(temp, i, j, G))
+	//		{
+	//			cout << "Givens Rotation = " << G << endl;
+	//			temp = G * temp;
+	//			cout << "After Givens temp = " << temp << endl;
+	//		}
+	//	}
+	//}
+	//for (int32_t k = 0; k < 100; ++k)
+	//{
+	//	TransposeMatrix(temp, temp);
+	//	for (int32_t i = 1; i < 3; ++i)
+	//	{
+	//		for (int32_t j = 0; j < i; ++j)
+	//		{
+	//			Matrix<float, 3, 3> G;
+	//			if (BuildGivensRotation(temp, i, j, G))
+	//			{
+	//				cout << "Givens Rotation = " << G << endl;
+	//				temp = G * temp;
+	//				cout << "After Givens temp = " << temp << endl;
+	//			}
+	//		}
+	//	}
+	//}
+#endif
+	float list[] = {
+		6, 5, 0,
+		5, 1, 4,
+		0, 4, 3
+	};
+	float list1[] = {
+		4, -30, 60, -35,
+		-30, 300, -675, 420,
+		60, -675, 1620, -1050,
+		-35, 420, -1050, 700
+	};
+	Matrix<float, 4, 4> mat(list1);
+	Vector<float, 4> eigenvalues;
+	Matrix<float, 4, 4> eigenvectors;
+	Matrix<float, 4, 4> result = JacobiMethod(mat, eigenvalues, eigenvectors);
+	std::cout.precision(17);
+	std::cout.setf(std::ios::fixed);
+	std::cout << "mat = " << mat << endl;
+	std::cout << "eigenvalues = " << eigenvalues << endl;
+	std::cout << "eigenvectors = " << eigenvectors << endl;
+	std::cout << "result = " << result << endl;
+
 
     getchar();
     return 0;

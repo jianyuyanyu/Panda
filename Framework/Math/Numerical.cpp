@@ -1,15 +1,13 @@
-#include "PandaMath.hpp"
+#include "Numerical.hpp"
 
 namespace Panda
 {
     void TransformCoord(Vector3Df& inVec, const Matrix4f& inMat)
     {
-        Vector4Df temp(inVec.x, inVec.y, inVec.z, 1.0f);
+		Vector4Df temp({ inVec[0], inVec[1], inVec[2], 1.0f });
         TransformCoord(temp, inMat);
         
-        inVec.x = temp.x;
-        inVec.y = temp.y;
-        inVec.z = temp.z;
+		inVec.Set({ temp[0], temp[1], temp[2] });
 
         return;
     }
@@ -17,20 +15,20 @@ namespace Panda
     void TransformCoord(Vector4Df& inVec, const Matrix4f& inMat)
     {
         Vector4Df temp;
-        temp.x = inVec.x * inMat.m[0][0] + inVec.y * inMat.m[1][0] + inVec.z * inMat.m[2][0] + inVec.w * inMat.m[3][0];
-        temp.y = inVec.x * inMat.m[0][1] + inVec.y * inMat.m[1][1] + inVec.z * inMat.m[2][1] + inVec.w * inMat.m[3][1];
-        temp.z = inVec.x * inMat.m[0][2] + inVec.y * inMat.m[1][2] + inVec.z * inMat.m[2][2] + inVec.w * inMat.m[3][2];
-        temp.w = inVec.x * inMat.m[0][3] + inVec.y * inMat.m[1][3] + inVec.z * inMat.m[2][3] + inVec.w * inMat.m[3][3];
-        
+		temp.Set({ inVec[0] * inMat.m[0][0] + inVec[1] * inMat.m[1][0] + inVec[2] * inMat.m[2][0] + inVec[3] * inMat.m[3][0],
+			inVec[0] * inMat.m[0][1] + inVec[1] * inMat.m[1][1] + inVec[2] * inMat.m[2][1] + inVec[3] * inMat.m[3][1],
+			inVec[0] * inMat.m[0][2] + inVec[1] * inMat.m[1][2] + inVec[2] * inMat.m[2][2] + inVec[3] * inMat.m[3][2],
+			inVec[0] * inMat.m[0][3] + inVec[1] * inMat.m[1][3] + inVec[2] * inMat.m[2][3] + inVec[3] * inMat.m[3][3] });
         inVec = temp;
         return;
     }
 
-    void MatrixTranspose(Matrix4f& outMat, const Matrix4f& inMat)
+    void MatrixScale(Matrix4f& outMat, const Vector3Df& vec)
     {
-        outMat = inMat;
-        outMat.SetTransposed();
-
+        outMat.SetIdentity();
+        outMat.m[0][0] = vec.data[0];
+        outMat.m[1][1] = vec.data[1];
+        outMat.m[2][2] = vec.data[2];
         return;
     }
 
@@ -42,6 +40,13 @@ namespace Panda
         outMat.m[1][1] = y;
         outMat.m[2][2] = z;
 
+        return;
+    }
+
+    void MatrixScale(Matrix4f& outMat, const float scalar)
+    {
+        outMat.SetIdentity();
+        outMat.m[0][0] = outMat.m[1][1] = outMat.m[2][2] = scalar;
         return;
     }
 
@@ -58,9 +63,9 @@ namespace Panda
     void MatrixTranslation(Matrix4f& outMat, const Vector3Df& inVec)
     {
         outMat.SetIdentity();
-        outMat.m[3][0] = inVec.x;
-        outMat.m[3][1] = inVec.y;
-        outMat.m[3][2] = inVec.z;
+        outMat.m[3][0] = inVec[0];
+        outMat.m[3][1] = inVec[1];
+        outMat.m[3][2] = inVec[2];
 
         return;
     }
@@ -146,17 +151,17 @@ namespace Panda
         float c = cosf(angle);
         float s = sinf(angle);
         float one_minus_c = 1.f - c;
-        outMat.m[0][0] = c + inVec.x * inVec.x * one_minus_c;
-        outMat.m[0][1] = s * inVec.z + inVec.x * inVec.y * one_minus_c;
-        outMat.m[0][2] = -s * inVec.y + inVec.x * inVec.z * one_minus_c;
+        outMat.m[0][0] = c + inVec[0] * inVec[0] * one_minus_c;
+        outMat.m[0][1] = s * inVec[2] + inVec[0] * inVec[1] * one_minus_c;
+        outMat.m[0][2] = -s * inVec[1] + inVec[0] * inVec[2] * one_minus_c;
 
-        outMat.m[1][0] = -s * inVec.z + inVec.x * inVec.y * one_minus_c;
-        outMat.m[1][1] = c + inVec.y * inVec.y * one_minus_c;
-        outMat.m[1][2] = s * inVec.x + inVec.y * inVec.z * one_minus_c;
+        outMat.m[1][0] = -s * inVec[2] + inVec[0] * inVec[1] * one_minus_c;
+        outMat.m[1][1] = c + inVec[1] * inVec[1] * one_minus_c;
+        outMat.m[1][2] = s * inVec[0] + inVec[1] * inVec[2] * one_minus_c;
 
-        outMat.m[2][0] = s * inVec.y + inVec.x * inVec.z * one_minus_c;
-        outMat.m[2][1] = -s * inVec.x + inVec.y * inVec.z * one_minus_c;
-        outMat.m[2][2] = c + inVec.z * inVec.z * one_minus_c;
+        outMat.m[2][0] = s * inVec[1] + inVec[0] * inVec[2] * one_minus_c;
+        outMat.m[2][1] = -s * inVec[0] + inVec[1] * inVec[2] * one_minus_c;
+        outMat.m[2][2] = c + inVec[2] * inVec[2] * one_minus_c;
 
         return;
     }
@@ -165,17 +170,17 @@ namespace Panda
     {
         outMat.SetIdentity();
 
-        outMat.m[0][0] = 1.f - 2.f * q.y * q.y - 2.f * q.z * q.z;
-        outMat.m[0][1] = 2.f * q.x * q.y + 2.f * q.w * q.z;
-        outMat.m[0][2] = 2.f * q.x * q.z - 2.f * q.w * q.y;
+        outMat.m[0][0] = 1.f - 2.f * q[1] * q[1] - 2.f * q[2] * q[2];
+        outMat.m[0][1] = 2.f * q[0] * q[1] + 2.f * q[3] * q[2];
+        outMat.m[0][2] = 2.f * q[0] * q[2] - 2.f * q[3] * q[1];
 
-        outMat.m[1][0] = 2.f * q.x * q.y - 2.f * q.w * q.z;
-        outMat.m[1][1] = 1.f - 2.f * q.x * q.x - 2.f * q.z * q.z;
-        outMat.m[1][2] = 2.f * q.y * q.z + 2.f * q.w * q.x;
+        outMat.m[1][0] = 2.f * q[0] * q[1] - 2.f * q[3] * q[2];
+        outMat.m[1][1] = 1.f - 2.f * q[0] * q[0] - 2.f * q[2] * q[2];
+        outMat.m[1][2] = 2.f * q[1] * q[2] + 2.f * q[3] * q[0];
 
-        outMat.m[2][0] = 2.f * q.x * q.z + 2.f * q.w * q.y;
-        outMat.m[2][1] = 2.f * q.y * q.z - 2.f * q.w * q.x;
-        outMat.m[2][2] = 1.f - 2.f * q.x * q.x - 2.f * q.y * q.y;
+        outMat.m[2][0] = 2.f * q[0] * q[2] + 2.f * q[3] * q[1];
+        outMat.m[2][1] = 2.f * q[1] * q[2] - 2.f * q[3] * q[0];
+        outMat.m[2][2] = 1.f - 2.f * q[0] * q[0] - 2.f * q[1] * q[1];
         
         return;
     }
@@ -194,27 +199,27 @@ namespace Panda
     void BuildViewMatrixRH(Matrix4f& result, const Vector3Df& pos, const Vector3Df& target, const Vector3Df& up)
     {
         Vector3Df n = pos - target;
-        n.Normalize();
-        Vector3Df u = up.CrossProduct(n);
-        u.Normalize();
-        Vector3Df v = n.CrossProduct(u);
+		n = Normalize(n);
+        Vector3Df u = CrossProduct(up, n);
+        u = Normalize(u);
+        Vector3Df v = CrossProduct(n, u);
 
         result.SetIdentity();
-        result.m[0][0] = u.x;
-        result.m[0][1] = v.x;
-        result.m[0][2] = n.x;
+        result.m[0][0] = u[0];
+        result.m[0][1] = v[0];
+        result.m[0][2] = n[0];
 
-        result.m[1][0] = u.y;
-        result.m[1][1] = v.y;
-        result.m[1][2] = n.y;
+        result.m[1][0] = u[1];
+        result.m[1][1] = v[1];
+        result.m[1][2] = n[1];
 
-        result.m[2][0] = u.z;
-        result.m[2][1] = v.z;
-        result.m[2][2] = n.z;
+        result.m[2][0] = u[2];
+        result.m[2][1] = v[2];
+        result.m[2][2] = n[2];
 
-        result.m[3][0] = -pos.DotProduct(u);
-        result.m[3][1] = -pos.DotProduct(v);
-        result.m[3][2] = -pos.DotProduct(n);
+        result.m[3][0] = -DotProduct(pos, u);
+        result.m[3][1] = -DotProduct(pos, v);
+        result.m[3][2] = -DotProduct(pos, n);
 
         return;
     }
@@ -222,27 +227,27 @@ namespace Panda
     void BuildViewMatrixLH(Matrix4f& result, const Vector3Df& pos, const Vector3Df& target, const Vector3Df& up)
     {
         Vector3Df n = target - pos;
-        n.Normalize();
-        Vector3Df u = up.CrossProduct(n);
-        u.Normalize();
-        Vector3Df v = n.CrossProduct(u);
+        n = Normalize(n);
+        Vector3Df u = CrossProduct(up, n);
+        u = Normalize(u);
+        Vector3Df v = CrossProduct(n, u);
 
         result.SetIdentity();
-        result.m[0][0] = u.x;
-        result.m[0][1] = v.x;
-        result.m[0][2] = n.x;
+        result.m[0][0] = u[0];
+        result.m[0][1] = v[0];
+        result.m[0][2] = n[0];
 
-        result.m[1][0] = u.y;
-        result.m[1][1] = v.y;
-        result.m[1][2] = n.y;
+        result.m[1][0] = u[1];
+        result.m[1][1] = v[1];
+        result.m[1][2] = n[1];
 
-        result.m[2][0] = u.z;
-        result.m[2][1] = v.z;
-        result.m[2][2] = n.z;
+        result.m[2][0] = u[2];
+        result.m[2][1] = v[2];
+        result.m[2][2] = n[2];
 
-        result.m[3][0] = -pos.DotProduct(u);
-        result.m[3][1] = -pos.DotProduct(v);
-        result.m[3][2] = -pos.DotProduct(n);
+        result.m[3][0] = -DotProduct(pos, u);
+        result.m[3][1] = -DotProduct(pos, v);
+        result.m[3][2] = -DotProduct(pos, n);
 
         return;
     }
@@ -259,7 +264,7 @@ namespace Panda
 
     void BuildPerspectiveFovRHMatrix(Matrix4f& result, const float fov, const float aspect, const float near, const float far)
     {
-        result.SetZero();
+        result.Set(0);
 
         float cFov = 1.f / tanf(fov / 2);
         result.m[0][0] = cFov / aspect;
@@ -282,7 +287,7 @@ namespace Panda
 
     void BuildPerspectiveFovLHMatrix(Matrix4f& result, const float fov, const float aspect, const float near, const float far)
     {
-        result.SetZero();
+        result.Set(0);
 
         float cFov = 1.f / tanf(fov / 2.f);
         result.m[0][0] = cFov / aspect;

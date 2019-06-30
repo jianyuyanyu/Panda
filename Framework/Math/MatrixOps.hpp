@@ -545,33 +545,6 @@ namespace Panda
         }
     }
 
-	template<typename T, int N>
-	Vector<T, N> SolveMaxEigenvectorWithPowerMethod(const Matrix<T, N, N>& mat, int32_t iterCount)
-	{
-		Vector<T, N> vecU;
-		for (int32_t i = 0; i < N; ++i)
-		{
-			vecU.data[i] = mat.m[i][0];
-		}
-		while (iterCount > 0)
-		{		
-			Vector<T, N> vecV = mat * vecU;
-
-			T maxValue = 0.0f;
-			for (int32_t i = 0; i < N; ++i)
-			{
-				if (vecV.data[i] > maxValue)
-					maxValue = vecV.data[i];
-			}
-
-			vecU = 1 / maxValue * vecV;
-
-			--iterCount;
-		}
-
-		return vecU;
-	}
-
 	/**
 	 * mat must be a matrix with rank N.
 	 */
@@ -626,4 +599,155 @@ namespace Panda
 
 		return true;
 	}
+
+    template <typename T, int M, int N>
+    void SolveEigenWithPowerMethod(const Matrix<T, M, N>& mat, int32_t iterCount, T& eigenValue, Vector<T, M>& eigenVector)
+    {
+        //int32_t count = iterCount;
+        //const Matrix<T, M, N> tempMat(mat);
+
+        //Vector<T, M> y(tempMat.GetCol(0));
+        //Vector<T, M> t;
+        //T lambda = 0;
+        //
+        //while (count > 0)
+        //{
+        //    y = Normalize(y);
+        //    t = tempMat * y;
+        //    lambda = DotProduct(t, y);
+        //    y = t;
+
+        //    --count;
+        //}
+
+        //eigenValue = lambda;
+        //eigenVector = Normalize(y);
+
+        /* another algorithm */
+		Vector<T, M> U(mat.GetCol(0));
+		Vector<T, M> V;
+		int32_t count = iterCount;
+
+		while (count > 0)
+		{
+			V = mat * U;
+			int32_t index = V.GetAbsMaxElementIndex();
+			U = 1.0f / V.data[index] * V;
+
+			--count;
+		}
+
+		eigenVector = Normalize(U);
+		eigenValue = V.data[V.GetAbsMaxElementIndex()];
+    }
+
+    template <typename T, int N>
+    void BuildGivensRotation(int32_t i, int32_t j, T theta, Matrix<T, N, N>& mat)
+    {
+        T c = cos(theta);
+        T s = sin(theta);
+        mat.SetIdentity();
+        mat.m[i][i] = c;
+        mat.m[j][j] = c;
+        mat.m[i][j] = -s;
+        mat.m[j][i] = s;
+    }
+
+	template <typename T, int N>
+	bool BuildGivensRotation(const Matrix<T, N, N>& inMat, int32_t i, int32_t j, Matrix<T, N, N>& mat)
+	{
+		assert(i > j);
+		if (inMat.m[i][j] == 0)
+		{
+			mat.SetIdentity();
+			return false;
+		}
+		T a = inMat.m[j][j];
+		T b = inMat.m[i][j];
+		T r = std::sqrt(a * a + b * b);
+		T c = a / r;
+		T s = -b / r;
+		mat.SetIdentity();
+		mat.m[i][i] = c;
+		mat.m[j][j] = c;
+		mat.m[i][j] = s;
+		mat.m[j][i] = -s;
+		return true;
+	}
+
+    /**
+     * Jacobi Method to calculate eigenvalues and eigenvectors
+     * NOTICE: IT IS ONLY APPLIED TO symmetric MATRIX.
+     * Algorithm from: https://www.cmi.ac.in/~ksutar/NLA2013/iterativemethods.pdf
+	 *				   with problems fixed
+     */
+    template<typename T, int N>
+    Matrix<T, N, N> JacobiMethod(const Matrix<T, N, N>& mat, Vector<T, N>& eigenvalues, Matrix<T, N, N>& eigenvectors)
+    {
+        Matrix<T, N, N> temp(mat);
+        Matrix<T, N, N> vectors;
+        vectors.SetIdentity();
+
+        for (int32_t i = 0; i < 19; ++i)
+        {
+            int32_t li, lj;
+            FindLastestOffDiagonalElement(temp, li, lj);
+
+            // calc sine and cosine
+            T c, s;
+            if (temp.m[li][li] == temp.m[lj][lj])
+            {
+                c = cos(ONE_QUARTER_PI);
+                s = sin(ONE_QUARTER_PI);
+            }
+            else 
+            {
+                T theta = 0.5f * atan(2 * temp.m[li][lj] / (temp.m[lj][lj] - temp.m[li][li]));
+                c = cos(theta);
+                s = sin(theta);
+            }
+
+            // Build Givens rotation matrix
+            Matrix<T, N, N> G;
+            G.SetIdentity();
+            G.m[li][li] = G.m[lj][lj] = c;
+            G.m[lj][li] = s;
+            G.m[li][lj] = -s;
+
+            // Do the Givens transformation.
+            Matrix<T, N, N> GT;
+            TransposeMatrix(G, GT);
+            temp = G * temp * GT;
+            vectors = G * vectors;
+        }
+
+        for (int32_t i = 0; i < N; ++i)
+        {
+            eigenvalues.data[i] = temp.m[i][i];
+        }
+        eigenvectors = vectors;
+
+		return temp;
+    }
+
+    // Maybe we can give a tolerance here
+    template <typename T, int N>
+    bool FindLastestOffDiagonalElement(const Matrix<T, N, N>& mat, int32_t& oi, int32_t& oj)
+    {
+        T maxValue = 0.0f;
+        for (int32_t i = 1; i < N; ++i)
+        {
+            for (int32_t j = 0; j < i; ++j)
+            {
+                if (std::abs(mat.m[i][j]) > maxValue)
+                {
+                    oi = i;
+                    oj = j;
+                    maxValue = std::abs(mat.m[i][j]);
+                }
+            }
+        }
+
+        return maxValue != 0.0f;
+    }
 }

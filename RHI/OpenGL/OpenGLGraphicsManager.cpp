@@ -208,30 +208,30 @@ namespace Panda
         location = glGetUniformLocation(shader, "worldMatrix");
         if(location == -1)
             return false;
-        glUniformMatrix4fv(location, 1, false, m_DrawFrameContext.WorldMatrix.GetAddressOf());
+        glUniformMatrix4fv(location, 1, false, m_DrawFrameContext.WorldMatrix);
 
         // Set the view matrix in the vertex shader.
         location = glGetUniformLocation(shader, "viewMatrix");
         if (location == -1)
             return false;
-        glUniformMatrix4fv(location, 1, false, m_DrawFrameContext.ViewMatrix.GetAddressOf());
+        glUniformMatrix4fv(location, 1, false, m_DrawFrameContext.ViewMatrix);
 
         // Set the projection matrix in the vertex shader.
         location = glGetUniformLocation(shader, "projectionMatrix");
         if (location == -1)
             return false;
-        glUniformMatrix4fv(location, 1, false, m_DrawFrameContext.ProjectionMatrix.GetAddressOf());
+        glUniformMatrix4fv(location, 1, false, m_DrawFrameContext.ProjectionMatrix);
 
         // Set lighting parameters for PS shader
         location = glGetUniformLocation(shader, "lightPosition");
         if (location == -1)
             return false;
-        glUniform3fv(location, 1, m_DrawFrameContext.LightPosition.GetAddressOf());
+        glUniform3fv(location, 1, m_DrawFrameContext.LightPosition);
 
         location = glGetUniformLocation(shader, "lightColor");
         if (location == -1)
             return false;
-        glUniform4fv(location, 1, m_DrawFrameContext.LightColor.GetAddressOf());
+        glUniform4fv(location, 1, m_DrawFrameContext.LightColor);
     }
 
     bool OpenGLGraphicsManager::SetPerBatchShaderParameters(GLuint shader, const char* paramName, const Matrix4f& param)
@@ -241,7 +241,7 @@ namespace Panda
         location = glGetUniformLocation(shader, paramName);
         if (location == -1)
             return false;
-        glUniformMatrix4fv(location, 1, false, param.GetAddressOf());
+        glUniformMatrix4fv(location, 1, false, param);
 
         return true;
     }
@@ -269,7 +269,7 @@ namespace Panda
         {
             return false;
         }
-        glUniform3fv(location, 1, param.GetAddressOf());
+        glUniform3fv(location, 1, param);
 
         return true;   
     }
@@ -562,7 +562,7 @@ namespace Panda
                 }
                 else 
                 {
-                    SetPerBatchShaderParameters(m_ShaderProgram, "diffuseColor", Vector3Df(color.Value.data[0], color.Value.data[1], color.Value.data[2]));
+					SetPerBatchShaderParameters(m_ShaderProgram, "diffuseColor", Vector3Df({ color.Value.data[0], color.Value.data[1], color.Value.data[2] }));
                 }
 
                 Normal normal = dbc.material->GetNormal();
@@ -573,7 +573,7 @@ namespace Panda
                 }
 
                 color = dbc.material->GetSpecularColor();
-                SetPerBatchShaderParameters(m_ShaderProgram, "specularColor", Vector3Df(color.Value.data[0], color.Value.data[1], color.Value.data[2]));
+				SetPerBatchShaderParameters(m_ShaderProgram, "specularColor", Vector3Df({ color.Value.data[0], color.Value.data[1], color.Value.data[2] }));
 
                 Parameter param = dbc.material->GetSpecularPower();
                 SetPerBatchShaderParameters(m_ShaderProgram, "specularPower", param.Value);

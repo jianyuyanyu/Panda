@@ -103,14 +103,14 @@ struct ObjectConstants
 
 std::array<Vertex, 8> vertices = 
 {
-    Vertex({Vector3Df(-1.0f, -1.0f, -1.0f), Vector4Df(1.000000000f, 1.000000000f, 1.000000000f, 1.000000000f)}),
-    Vertex({Vector3Df(-1.0f, +1.0f, -1.0f), Vector4Df(0.000000000f, 0.000000000f, 0.000000000f, 1.000000000f)}),
-    Vertex({Vector3Df(+1.0f, +1.0f, -1.0f), Vector4Df(1.000000000f, 0.000000000f, 0.000000000f, 1.000000000f)}),
-    Vertex({Vector3Df(+1.0f, -1.0f, -1.0f), Vector4Df(0.000000000f, 0.501960814f, 0.000000000f, 1.000000000f)}),
-    Vertex({Vector3Df(-1.0f, -1.0f, +1.0f), Vector4Df(0.000000000f, 0.000000000f, 1.000000000f, 1.000000000f)}),
-    Vertex({Vector3Df(-1.0f, +1.0f, +1.0f), Vector4Df(1.000000000f, 1.000000000f, 0.000000000f, 1.000000000f)}),
-    Vertex({Vector3Df(+1.0f, +1.0f, +1.0f), Vector4Df(0.000000000f, 1.000000000f, 1.000000000f, 1.000000000f)}),
-    Vertex({Vector3Df(+1.0f, -1.0f, +1.0f), Vector4Df(1.000000000f, 0.000000000f, 1.000000000f, 1.000000000f)})
+	Vertex({Vector3Df({-1.0f, -1.0f, -1.0f}), Vector4Df({1.000000000f, 1.000000000f, 1.000000000f, 1.000000000f})}),
+	Vertex({Vector3Df({-1.0f, +1.0f, -1.0f}), Vector4Df({0.000000000f, 0.000000000f, 0.000000000f, 1.000000000f})}),
+	Vertex({Vector3Df({+1.0f, +1.0f, -1.0f}), Vector4Df({1.000000000f, 0.000000000f, 0.000000000f, 1.000000000f})}),
+	Vertex({Vector3Df({+1.0f, -1.0f, -1.0f}), Vector4Df({0.000000000f, 0.501960814f, 0.000000000f, 1.000000000f})}),
+	Vertex({Vector3Df({-1.0f, -1.0f, +1.0f}), Vector4Df({0.000000000f, 0.000000000f, 1.000000000f, 1.000000000f})}),
+	Vertex({Vector3Df({-1.0f, +1.0f, +1.0f}), Vector4Df({1.000000000f, 1.000000000f, 0.000000000f, 1.000000000f})}),
+	Vertex({Vector3Df({+1.0f, +1.0f, +1.0f}), Vector4Df({0.000000000f, 1.000000000f, 1.000000000f, 1.000000000f})}),
+	Vertex({Vector3Df({+1.0f, -1.0f, +1.0f}), Vector4Df({1.000000000f, 0.000000000f, 1.000000000f, 1.000000000f})})
 };
 
 std::array<uint16_t, 36> indices =
@@ -732,9 +732,9 @@ void PopulateCommandList()
 
 void Update()
 {
-	Vector3Df cameraPos(5.0f, 5.0f, 5.0f);
-	Vector3Df target(0.0f, 0.0f, 0.0f);
-	Vector3Df up(0.0f, 1.0f, 0.0f);
+	Vector3Df cameraPos({ 5.0f, 5.0f, 5.0f });
+	Vector3Df target({ 0.0f, 0.0f, 0.0f });
+	Vector3Df up({ 0.0f, 1.0f, 0.0f });
 
 	Matrix4f world;
 	world.SetIdentity();
@@ -747,11 +747,11 @@ void Update()
 	combine = proj * view * world;
 	Matrix4f aCombine;
 	aCombine = world * view * proj;
-	aCombine.SetTransposed();
+	TransposeMatrix(aCombine, aCombine);
 
 	BYTE* mappedData = nullptr;
 	g_pConstantBuffer->Map(0, nullptr, reinterpret_cast<void**>(&mappedData));
-	memcpy(&mappedData[0], aCombine.GetAddressOf(), sizeof(ObjectConstants));
+	memcpy(&mappedData[0], aCombine, sizeof(ObjectConstants));
 	g_pConstantBuffer->Unmap(0, nullptr);
 
 	//////////////////////////////////////////////////////////////////////////////////

@@ -1,5 +1,5 @@
 #pragma once
-#include "Ability.hpp"
+#include "Interface.hpp"
 
 namespace Panda
 {

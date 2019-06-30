@@ -21,7 +21,7 @@ int EditorLogic::Initialize()
     // else
     // {
         cout << "[EditorLogic] Loading Splash Scene" << endl;
-        result = g_pSceneManager->LoadScene("Scene/Panda.ogex");
+        result = g_pSceneManager->LoadScene("Scene/LinearInterpolateTest.ogex");
     //}
 
     g_pAnimationManager->Initialize();

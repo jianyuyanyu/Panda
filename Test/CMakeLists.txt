@@ -91,7 +91,22 @@ add_test(NAME TEST_NumericalMethods COMMAND NumericalMethodsTest)
 # bezier test
 add_executable(BezierCubic1DTest BezierCubic1DTest.cpp)
 add_test(NAME TEST_BezierCubic1D COMMAND BezierCubic1DTest)
+target_include_directories(BezierCubic1DTest PUBLIC PandaMath)
+target_link_libraries(BezierCubic1DTest PandaMath)
 
 # panda math test
 add_executable(PureMathTest PureMathTest.cpp)
 add_test(NAME TEST_PureMath COMMAND PureMathTest)
+
+# Linear interpolate test
+add_executable(LinearInterpolateTest LinearInterpolateTest.cpp)
+target_link_libraries(LinearInterpolateTest PandaMath)
+add_test(NAME TEST_LinearInterpolate COMMAND LinearInterpolateTest)
+
+add_executable(QRDecompositionTest QRDecompositionTest.cpp)
+target_link_libraries(QRDecompositionTest PandaMath)
+add_test(NAME TEST_QRDecomposition COMMAND QRDecompositionTest)
+
+add_executable(PolarDecompositionTest PolarDecompositionTest.cpp)
+target_link_libraries(PolarDecompositionTest PandaMath)
+add_test(NAME TEST_PolarDecomposition COMMAND PolarDecompositionTest)

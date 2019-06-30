@@ -3,9 +3,6 @@
 #include "Vector.hpp"
 #include <algorithm>
 
-/*
-    A common matrix which is not used in engine currently.
- */
 namespace Panda
 {
     template <typename T, int M, int N>
@@ -44,6 +41,32 @@ namespace Panda
             memcpy_s(data, sizeof(T) * M * N, list, sizeof(T) * M * N);
         }
 
+        Vector<T, N>& operator[](int rowIndex)
+        {
+            return v[rowIndex];
+        }
+
+        const Vector<T, N>& operator[] (int rowIndex) const 
+        {
+            return v[rowIndex];
+        }
+
+         operator T*()
+        {
+            return &data[0];
+        }
+
+         operator const T*() const
+        {
+            return &data[0];
+        }
+
+		Matrix& operator=(const Matrix& rhs)
+		{
+			memcpy(data, rhs.data, sizeof(T) * M * N);
+			return *this;
+		}
+
 		void Set(const T val)
 		{
 			size_t mn = M * N;
@@ -67,7 +90,7 @@ namespace Panda
 		void SetIdentity()
 		{
 			Set(0);
-			int32_t n = std::min(M, N);
+			int32_t n = (std::min)(M, N);
 			for (int32_t i = 0; i < n; ++i)
 				m[i][i] = 1;
 		}
@@ -86,16 +109,14 @@ namespace Panda
             }
             return result;
         }
-
-		Matrix& operator=(const Matrix& rhs)
-		{
-			memcpy(data, rhs.data, sizeof(T) * M * N);
-			return *this;
-		}
     };
 
+	typedef Matrix<float, 2, 2> Matrix2f;
+    typedef Matrix<float, 3, 3> Matrix3f;
+    typedef Matrix<float, 4, 4> Matrix4f;
+
     template <typename T, int M, int N>
-    std::ostream& operator<<(std::ostream& out, Matrix<T, M, N>& matrix)
+    std::ostream& operator<<(std::ostream& out, const Matrix<T, M, N>& matrix)
     {
         out << std::endl;
         out << "{ ";
@@ -136,7 +157,7 @@ namespace Panda
         Matrix<T, M, N> result;
         for(size_t i = 0; i < M; ++i)
             for (size_t j = 0; j < N; ++j)
-                result.data[i * N + j] = mat.data[i * N + j];
+                result.data[i * N + j] = mat.data[i * N + j] * scaler;
         return result;
     }
 
@@ -180,5 +201,135 @@ namespace Panda
 		}
 
 		return result;
+	}
+
+	template<typename T, int M, int N>
+	bool AlmostZero(const Matrix<T, M, N>& mat)
+	{
+		bool result = true;
+		for (int32_t i = 0; i < M; ++i)
+		{
+			if (!result)
+				break;
+
+			for (int32_t j = 0; j < N; ++j)
+			{
+				if (abs(mat.m[i][j]) > std::numeric_limits<T>::epsilon())
+				{
+					result = false;
+					break;
+				}
+			}
+		}
+
+		return result;
+	}
+
+	template <typename T, int M, int N>
+	bool operator==(const Matrix<T, M, N>& mat1, const Matrix<T, M, N>& mat2)
+	{
+		return AlmostZero(mat1 - mat2);
+	}
+
+	template <typename T, int M, int N>
+	bool operator!=(const Matrix<T, M, N>& mat1, const Matrix<T, M, N>& mat2)
+	{
+		return !(mat1 == mat2);
+	}
+
+	template <typename T, int M, int N>
+	void TransposeMatrix(const Matrix<T, M, N>& mat, Matrix<T, N, M>& out)
+	{
+		Matrix<T, M, N> temp(mat);
+		for (int32_t i = 0; i < M; ++i)
+		{
+			for (int32_t j = 0; j < N; ++j)
+			{
+				out.m[i][j] = temp.m[j][i];
+			}
+		}
+	}
+
+	template <typename T, int N>
+	T GetCofactor(const Matrix<T, N, N>& mat, int32_t i, int32_t j)
+	{
+		int32_t factor = 1;
+		if ((i + j) % 2 == 1)
+			factor = -1;
+		
+		Matrix<T, N - 1, N - 1> newMat;
+		int32_t k = 0, l = 0;
+		for (int32_t row = 0; row < N; ++row)
+		{
+			if (row == i)
+				continue;
+			l = 0;
+			for (int32_t col = 0; col < N; ++col)
+			{
+				if (col == j)
+					continue;
+
+				newMat.m[k][l] = mat.m[row][col];
+				++l;
+			}
+			++k;
+		}
+
+		return factor * GetDeterminant(newMat);
+	}
+
+	template <typename T, int N>
+	T GetDeterminant(const Matrix<T, N, N>& mat)
+	{
+		T sum = 0;
+		for (int32_t i = 0; i < N; ++i)
+			sum += mat.m[0][i] * GetCofactor(mat, 0, i);
+		return sum;
+	}
+
+	template <typename T>
+	T GetDeterminant(const Matrix<T, 1, 1>& mat)
+	{
+		return mat.m[0][0];
+	}
+
+	template <typename T>
+	T GetDeterminant(const Matrix<T, 2, 2>& mat)
+	{
+		return mat.m[0][0] * mat.m[1][1] - mat.m[0][1] * mat.m[1][0];
+	}
+
+	template <typename T, int N>
+	bool GetAdjointMatrix(const Matrix<T, N, N>& mat, Matrix<T, N, N>& out)
+	{
+		Matrix<T, N, N> temp(mat);
+
+		for (int32_t i = 0; i < N; ++i)
+		{
+			for (int32_t j = 0; j < N; ++j)
+			{
+				out.m[i][j] = GetCofactor(temp, i, j);
+			}
+		}
+
+		TransposeMatrix(out, out);
+		return true;
+	}
+
+	template <typename T, int N>
+	bool InverseMatrix(const Matrix<T, N, N>& mat, Matrix<T, N, N>& out)
+	{
+		T det = GetDeterminant(mat);
+		if (det == 0)
+		{
+			out.SetIdentity();
+			return false;
+		}
+
+		Matrix<T, N, N> temp;
+		GetAdjointMatrix(mat, temp);
+		out = temp / det;
+		
+		return true;
 	}
 }

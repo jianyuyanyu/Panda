@@ -3,9 +3,6 @@
 #include <vector>
 #include <cassert>
 
-/*
-    A common vecotr which is not used in engine currently.
- */
 namespace Panda
 {
     template <typename T, int N>
@@ -13,7 +10,7 @@ namespace Panda
     {
         T data[N] = {0};
 
-        Vector() {}
+        Vector() = default;
         Vector(const T val)
         {
             for (size_t i = 0; i < N; ++i)
@@ -38,6 +35,25 @@ namespace Panda
         Vector(const Vector<T, N>& rhs)
         {
             memcpy_s(data, sizeof(T) * N, rhs.data, sizeof(T) * N);
+        }
+
+        operator T*() {
+            return reinterpret_cast<T*>(this);
+        }
+
+        operator const T*() const 
+        {
+            return reinterpret_cast<const T*>(this);
+        }
+
+        T operator[] (int32_t index)
+        {
+            return data[index];
+        }
+
+        const T operator[](int32_t index) const
+        {
+            return data[index];
         }
 
         void Set(const T val)
@@ -78,6 +94,20 @@ namespace Panda
             return *this;
         }
 
+        Vector& operator+=(T scalar)
+        {
+            for (int32_t i = 0; i < N; ++i)
+                data[i] += scalar;
+            return *this;
+        }
+
+        Vector& operator+=(const Vector<T, N>& rhs)
+        {
+            for (int32_t i = 0; i < N; ++i)
+                data[i] = rhs[i];
+            return *this;
+        }
+
         // negative
         Vector<T, N> operator-()
         {
@@ -89,32 +119,37 @@ namespace Panda
             return result;
         }
 
-        T GetLength()
-        {
-            T sum = 0;
-            for (int32_t i = 0; i < N; ++i)
-            {
-                sum += data[i] * data[i];
-            }
-            return std::sqrt(sum);
-        }
+		int32_t GetAbsMaxElementIndex()
+		{
+			int32_t index = 0;
+			T value = 0;
 
-        T GetLengthSquare()
-        {
-            T sum = 0;
-            for (int32_t i = 0; i < N; ++i)
-            {
-                sum += data[i] * data[i];
-            }
-            return sum;
-        }
+			for (int32_t i = 0; i < N; ++i)
+			{
+				if (std::abs(data[i]) > value) {
+					value = std::abs(data[i]);
+					index = i;
+				}
+			}
+
+			return index;
+		}
     };
+
+    typedef Vector<float, 2> Vector2Df;
+    
+    typedef Vector<float, 3> Vector3Df;
+    typedef Vector<double, 3> Vector3Dd;
+    typedef Vector<int32_t, 3> Vector3Di;
+
+    typedef Vector<float, 4> Vector4Df;
+    typedef Vector<float, 4> Quaternion;
+    typedef Vector<int32_t, 4> Vector4Di;
+	typedef Vector<uint8_t, 4> R8G8B8A8Unorm;
 
     template <typename T, int N>
     std::ostream& operator<<(std::ostream& out, const Vector<T, N>& vec)
     {
-        out.precision(6);
-        out.setf(std::ios::fixed);
         out << "( ";
         for(size_t i = 0; i < N; ++i)
             out << vec.data[i] << ((i == N -1)? "": ", ");
@@ -135,12 +170,45 @@ namespace Panda
     }
 
     template <typename T, int N>
+    Vector<T, N> operator+(const Vector<T, N>& vec, T scalar)
+    {
+        Vector<T, N> result;
+        for (size_t i = 0; i < N; ++i)
+        {
+            result[i] = vec[i] + scalar;
+        }
+        return result;
+    }
+
+    template <typename T, int N>
+    Vector<T, N> operator+(T scalar, const Vector<T, N>& vec)
+    {
+        Vector<T, N> result;
+        for (size_t i = 0; i < N; ++i)
+        {
+            result[i] = vec[i] + scalar;
+        }
+        return result;
+    }
+
+    template <typename T, int N>
     Vector<T, N> operator-(const Vector<T, N>& vec1, const Vector<T, N>& vec2)
     {
         Vector<T, N> result;
         for (size_t i = 0; i < N; ++i)
         {
             result.data[i] = vec1.data[i] - vec2.data[i];
+        }
+        return result;
+    }
+
+    template <typename T, int N>
+    Vector<T, N> operator-(const Vector<T, N>& vec, T scalar)
+    {
+        Vector<T, N> result;
+        for (size_t i = 0; i < N; ++i)
+        {
+            result[i] = vec[i] - scalar;
         }
         return result;
     }
@@ -167,6 +235,17 @@ namespace Panda
         return result;
     }
 
+	template<typename T, int N>
+	Vector<T, N> operator*(const Vector<T, N>& vec1, const Vector<T, N>& vec2)
+	{
+		Vector<T, N> result;
+		for (size_t i = 0; i < N; ++i)
+		{
+			result.data[i] = vec1[i] * vec2[i];
+		}
+		return result;
+	}
+
     template <typename T, int N>
     Vector<T, N> operator/(const Vector<T, N>& vec, const float scaler)
     {
@@ -174,6 +253,73 @@ namespace Panda
         float t = 1.0f / scaler;
         return vec * t;
     }
+
+	template<typename T, int N>
+	Vector<T, N> operator/(const Vector<T, N>& vec1, const Vector<T, N>& vec2)
+	{
+		Vector<T, N> result;
+		for (int32_t i = 0; i < N; ++i)
+			result.data[i] = vec1[i] / vec2[i];
+		return result;
+	}
+
+    template <typename T, int N>
+    bool operator>(const Vector<T, N>& vec, const float scalar)
+    {
+        return GetLength(vec) > scalar;
+    }
+
+    template <typename T, int N>
+    bool operator>=(const Vector<T, N>& vec, const float scalar)
+    {
+        return GetLength(vec) >= scalar;
+    }
+
+    template <typename T, int N>
+    bool operator<(const Vector<T, N>& vec, const float scalar)
+    {
+        return GetLength(vec) < scalar;
+    }
+
+    template <typename T, int N>
+    bool operator<=(const Vector<T, N>& vec, const float scalar)
+    {
+        return GetLength(vec) <= scalar;
+    }
+
+	template <typename T>
+	T pow(const T base, const float exponent)
+	{
+		return std::pow(base, exponent);
+	}
+
+	template<typename T, int N>
+	Vector<T, N> pow(const Vector<T, N>& vec, const float exponent)
+	{
+		Vector<T, N> result;
+
+		for (int32_t i = 0; i < N; ++i)
+		{
+			result.data[i] = pow(vec[i], exponent);
+		}
+
+		return result;
+	}
+
+	template <typename T>
+	T abs(const T data)
+	{
+		return std::abs(data);
+	}
+
+	template <typename T, int N>
+	Vector<T, N> abs(const Vector<T, N>& vec)
+	{
+		Vector<T, N> result;
+		for (int32_t i = 0; i < N; ++i)
+			result.data[i] = abs(vec[i]);
+		return result;
+	}
 
 	template <typename T, int N>
 	T DotProduct(const Vector<T, N>& vec1, const Vector<T, N>& vec2)
@@ -183,4 +329,58 @@ namespace Panda
 			result += vec1.data[i] * vec2.data[i];
 		return result;
 	}
+
+    template <typename T, int N>
+    Vector<T, N> CrossProduct(const Vector<T, N>& vec1, const Vector<T, N>& vec2)
+    {
+        Vector<T, N> result;
+        result.Set((T)0);
+        if (N != 3)
+            return result;
+        
+		result.Set({ vec1[1] * vec2[2] - vec1[2] * vec2[1],
+			vec1[2] * vec2[0] - vec1[0] * vec2[2],
+			vec1[0] * vec2[1] - vec1[1] * vec2[0] });
+
+        return result;
+    }
+
+    template <typename T, int N>
+    Vector<T, N> MulByElement(const Vector<T, N>& vec1, const Vector<T, N>& vec2)
+    {
+        Vector<T, N> result;
+        for (int32_t i = 0; i < N; ++i)
+            result.data[i] = vec1[i] * vec2[i];
+        return result;
+    }
+
+	template <typename T, int N>
+	Vector<T, N> Normalize(const Vector<T, N>& vec)
+	{
+		Vector<T, N> result(vec);
+		result = result / GetLength(result);
+		return result;
+	}
+
+    template <typename T, int N>
+    T GetLength(const Vector<T, N>& vec)
+    {
+        T sum = 0;
+        for (int32_t i = 0; i < N; ++i)
+        {
+            sum += vec[i] * vec[i];
+        }
+        return std::sqrt(sum);
+    }
+
+    template <typename T, int N>
+    T GetLengthSquare(const Vector<T, N>& vec)
+    {
+        T sum = 0;
+        for (int32_t i = 0; i < N; ++i)
+        {
+            sum += vec[i] * vec[i];
+        }
+        return sum;
+    }
 }

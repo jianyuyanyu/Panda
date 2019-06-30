@@ -34,9 +34,9 @@ namespace Panda
     void DebugManager::DrawAxis()
     {
         // x - axis
-        Vector3Df from(-1000.0f, 0.0f, 0.0f);
-        Vector3Df to(1000.0f, 0.0f, 0.0f);
-        Vector3Df color(1.0f, 0.0f, 0.0f);
+		Vector3Df from({ -1000.0f, 0.0f, 0.0f });
+		Vector3Df to({ 1000.0f, 0.0f, 0.0f });
+		Vector3Df color({ 1.0f, 0.0f, 0.0f });
         g_pGraphicsManager->DrawLine(from, to, color);
 
         // y - axis

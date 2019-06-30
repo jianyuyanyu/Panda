@@ -50,6 +50,7 @@ namespace Panda
             std::unordered_map<std::string, std::shared_ptr<SceneCameraNode>>       CameraNodes;
             std::unordered_map<std::string, std::shared_ptr<SceneLightNode>>        LightNodes;
             std::unordered_map<std::string, std::shared_ptr<SceneGeometryNode>>     GeometryNodes;
+            std::unordered_map<std::string, std::weak_ptr<SceneBoneNode>>           BoneNodes;
             
             std::unordered_map<std::string, std::shared_ptr<SceneObjectCamera>>     Cameras;
             std::unordered_map<std::string, std::shared_ptr<SceneObjectLight>>      Lights;

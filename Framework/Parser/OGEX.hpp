@@ -3,8 +3,12 @@
 #include <unordered_map>
 #include "OpenGEX.h"
 #include "portable.hpp"
+#include "SceneNode.hpp"
+#include "SceneObject.hpp"
+#include "Curve.hpp"
 #include "Scene.hpp"
 #include "SceneParser.hpp"
+#include "Linear.hpp"
 
 namespace Panda
 {
@@ -37,6 +41,14 @@ namespace Panda
                     case OGEX::kStructureNode:
                     {
                         node = std::make_shared<SceneEmptyNode>(structure.GetStructureName());
+                        break;
+                    }
+                    case OGEX::kStructureBoneNode:
+                    {
+                        auto _node = std::make_shared<SceneBoneNode>(structure.GetStructureName());
+                        std::string _key = structure.GetStructureName();
+                        scene.BoneNodes.emplace(_key, _node);
+                        node = _node;
                         break;
                     }
                     case OGEX::kStructureGeometryNode:
@@ -384,17 +396,45 @@ namespace Panda
                         }
                         else if (kind == "axis")
                         {
-                            rotation = std::make_shared<SceneObjectRotation>(Vector3Df(data[0], data[1], data[2]), data[3], object_flag);
+							rotation = std::make_shared<SceneObjectRotation>(Vector3Df({ data[0], data[1], data[2] }), data[3], object_flag);
                         }
                         else if (kind == "quaternion")
                         {
-                            rotation = std::make_shared<SceneObjectRotation>(Quaternion(data[0], data[1], data[2], data[3]), object_flag);
+							rotation = std::make_shared<SceneObjectRotation>(Quaternion({ data[0], data[1], data[2], data[3] }), object_flag);
                         }
 
                         auto _key = _structure.GetStructureName();
                         baseNode->AppendTransform(_key, std::move(rotation));
                     }
 					return;
+                    case OGEX::kStructureScale:
+                    {
+                        const OGEX::ScaleStructure& _structure = dynamic_cast<const OGEX::ScaleStructure&>(structure);
+                        bool object_flag = _structure.GetObjectFlag();
+                        std::shared_ptr<SceneObjectScale> scale;
+
+                        auto kind = _structure.GetScaleKind();
+                        auto data = _structure.GetScale();
+                        if (kind == "x")
+                        {
+                            scale = std::make_shared<SceneObjectScale>('x', data[0], object_flag);
+                        }
+                        else if (kind == "y")
+                        {
+                            scale = std::make_shared<SceneObjectScale>('y', data[0], object_flag);
+                        }
+                        else if (kind == "z")
+                        {
+                            scale = std::make_shared<SceneObjectScale>('z', data[0], object_flag);
+                        }
+                        else if (kind == "xyz")
+                        {
+                            scale = std::make_shared<SceneObjectScale>(data[0], data[1], data[2], object_flag);
+                        }
+                        auto _key = _structure.GetStructureName();
+                        baseNode->AppendTransform(_key, std::move(scale));
+                    }
+                    return;
                     case OGEX::kStructureMaterial:
                     {
                         const OGEX::MaterialStructure& _structure = dynamic_cast<const OGEX::MaterialStructure&>(structure);
@@ -412,7 +452,7 @@ namespace Panda
                         while (_sub_structure)
                         {
                             std::string attrib, textureName;
-                            ColorRGBAf color;
+                            Vector4Df color;
                             float param;
                             switch(_sub_structure->GetStructureType())
                             {
@@ -474,7 +514,7 @@ namespace Panda
                         while (subStructure)
                         {
                             std::string attrib, textureName;
-                            ColorRGBAf color;
+                            Vector4Df color;
                             float param;
                             switch(subStructure->GetStructureType())
                             {
@@ -524,7 +564,7 @@ namespace Panda
                         while(subStructure)
                         {
                             std::string attrib, textureName;
-                            ColorRGBAf color;
+                            Vector4Df color;
                             float param;
                             switch(subStructure->GetStructureType())
                             {
@@ -562,7 +602,7 @@ namespace Panda
                     {
                         const OGEX::AnimationStructure& _structure = dynamic_cast<const OGEX::AnimationStructure&>(structure);
                         auto clipIndex = _structure.GetClipIndex();
-                        auto clip = std::make_shared<SceneObjectAnimationClip>(clipIndex);
+                        std::shared_ptr<SceneObjectAnimationClip> clip = std::make_shared<SceneObjectAnimationClip>(clipIndex);
 
                         const ODDL::Structure* _sub_structure = _structure.GetFirstCoreSubnode();
                         while(_sub_structure)
@@ -574,48 +614,149 @@ namespace Panda
                                     const OGEX::TrackStructure& trackStructure = dynamic_cast<const OGEX::TrackStructure&>(*_sub_structure);
                                     const OGEX::TimeStructure& timeStructure = dynamic_cast<const OGEX::TimeStructure&>(*trackStructure.GetTimeStructure());
                                     const OGEX::ValueStructure& valueStructure = dynamic_cast<const OGEX::ValueStructure&>(*trackStructure.GetValueStructure());
-                                    std::shared_ptr<Curve<float>> timeCurve;
-                                    std::shared_ptr<Curve<float>> valueCurve;
-                                    std::vector<float> timeKnots;
+                                    auto ref = trackStructure.GetTargetRef();
+                                    std::string _key(*ref.GetNameArray());
+                                    std::shared_ptr<SceneObjectTransform> trans;
+                                    trans = baseNode->GetTransform(_key);
+                                    std::shared_ptr<SceneObjectTrack> track;
+
+                                    auto timeKeyValue = timeStructure.GetKeyValueStructure();
+                                    auto timeKeyDataCount = timeStructure.GetKeyDataElementCount();
+                                    auto dataStructure = static_cast<const ODDL::DataStructure<ODDL::FloatDataType>*>(timeKeyValue->GetFirstCoreSubnode());
+                                    auto timeArraySize = dataStructure->GetArraySize();
+                                    const float* timeKnots = &dataStructure->GetDataElement(0);
+                                    assert(timeArraySize == 0);
+
+                                    auto valueKeyValue = valueStructure.GetKeyValueStructure();
+                                    auto valueKeyDataCount = valueStructure.GetKeyDataElementCount();
+                                    dataStructure = static_cast<const ODDL::DataStructure<ODDL::FloatDataType>*>(valueKeyValue->GetFirstCoreSubnode());
+                                    auto valueArraySize = dataStructure->GetArraySize();
+                                    const float* valueKnots = &dataStructure->GetDataElement(0);
+                                    std::shared_ptr<CurveBase> timeCurve;
+                                    std::shared_ptr<CurveBase> valueCurve;
+                                    SceneObjectTrackType type = SceneObjectTrackType::kScalar;
                                     if(timeStructure.GetCurveType() == "bezier")
                                     {
-                                        auto keyValue = timeStructure.GetKeyValueStructure();
                                         auto keyIncomingControl = timeStructure.GetKeyControlStructure(0);
                                         auto keyOutgoingControl = timeStructure.GetKeyControlStructure(1);
-                                        auto keyDataCount = timeStructure.GetKeyDataElementCount();
-                                        const ODDL::DataStructure<ODDL::FloatDataType>* dataStructure = 
-                                            static_cast<const ODDL::DataStructure<ODDL::FloatDataType>*>(keyValue->GetFirstCoreSubnode());
-                                        const float* knots = &dataStructure->GetDataElement(0);
                                         dataStructure = 
                                             static_cast<const ODDL::DataStructure<ODDL::FloatDataType>*>(keyIncomingControl->GetFirstCoreSubnode());
                                         const float* inCp = &dataStructure->GetDataElement(0);
                                         dataStructure =
                                             static_cast<const ODDL::DataStructure<ODDL::FloatDataType>*>(keyOutgoingControl->GetFirstCoreSubnode());
                                         const float* outCp = &dataStructure->GetDataElement(0);
-                                        timeCurve = std::make_shared<Bezier<float>>(knots, inCp, outCp, keyDataCount);
+                                        timeCurve = std::make_shared<Bezier<float, float>>(timeKnots, inCp, outCp, timeKeyDataCount);
+                                    }
+                                    else {
+                                        timeCurve = std::make_shared<Linear<float, float>>(timeKnots, timeKeyDataCount);
                                     }
                                     if (valueStructure.GetCurveType() == "bezier")
                                     {
-                                        auto keyValue = valueStructure.GetKeyValueStructure();
                                         auto keyIncomingControl = valueStructure.GetKeyControlStructure(0);
                                         auto keyOutgoingControl = valueStructure.GetKeyControlStructure(1);
-                                        auto keyDataCount = valueStructure.GetKeyDataElementCount();
-                                        const ODDL::DataStructure<ODDL::FloatDataType>* dataStructure = 
-                                            static_cast<const ODDL::DataStructure<ODDL::FloatDataType>*>(keyValue->GetFirstCoreSubnode());
-                                        const float* knots = &dataStructure->GetDataElement(0);
+                                        
                                         dataStructure = 
                                             static_cast<const ODDL::DataStructure<ODDL::FloatDataType>*>(keyIncomingControl->GetFirstCoreSubnode());
                                         const float* inCp = &dataStructure->GetDataElement(0);
                                         dataStructure = 
                                             static_cast<const ODDL::DataStructure<ODDL::FloatDataType>*>(keyOutgoingControl->GetFirstCoreSubnode());
                                         const float* outCp = &dataStructure->GetDataElement(0);
-                                        valueCurve = std::make_shared<Bezier<float>>(knots, inCp, outCp, keyDataCount);
+                                        
+                                        switch(valueArraySize)
+                                        {
+                                            case 0:
+                                            case 1:
+                                            {
+                                                valueCurve = std::make_shared<Bezier<float, float>>(
+                                                    valueKnots,
+                                                    inCp,
+                                                    outCp,
+                                                    valueKeyDataCount
+                                                );
+                                                type = SceneObjectTrackType::kScalar;
+                                                break;
+                                            }
+                                            case 3:
+                                            {
+                                                valueCurve = std::make_shared<Bezier<Vector3Df, Vector3Df>>(
+                                                    reinterpret_cast<const Vector3Df*>(valueKnots),
+                                                    reinterpret_cast<const Vector3Df*>(inCp),
+                                                    reinterpret_cast<const Vector3Df*>(outCp),
+                                                    valueKeyDataCount
+                                                );
+                                                type = SceneObjectTrackType::kVector3;
+                                                break;
+                                            }
+                                            case 4:
+                                            {
+                                                valueCurve = std::make_shared<Bezier<Vector4Df, float>>(
+                                                    reinterpret_cast<const Vector4Df*>(valueKnots),
+                                                    reinterpret_cast<const Vector4Df*>(inCp),
+                                                    reinterpret_cast<const Vector4Df*>(outCp),
+                                                    valueKeyDataCount
+                                                );
+                                                type = SceneObjectTrackType::kQuaternion;
+                                                break;
+                                            }
+                                            case 16:
+                                            {
+                                                valueCurve = std::make_shared<Bezier<Matrix4f, float>>(
+                                                    reinterpret_cast<const Matrix4f*>(valueKnots),
+                                                    reinterpret_cast<const Matrix4f*>(inCp),
+                                                    reinterpret_cast<const Matrix4f*>(outCp),
+                                                    valueKeyDataCount
+                                                );
+                                                break;
+                                            }
+                                            default:
+                                                assert(0);
+                                        }
                                     }
-                                    auto ref = trackStructure.GetTargetRef();
-                                    std::string _key(*ref.GetNameArray());
-                                    std::shared_ptr<SceneObjectTransform> trans;
-                                    trans = baseNode->GetTransform(_key);
-                                    auto track = std::make_shared<SceneObjectTrack>(trans, timeCurve, valueCurve);
+                                    else // default to linear
+                                    {
+                                        switch(valueArraySize)
+                                        {
+                                            case 0:
+                                            case 1:
+                                                {
+                                                    valueCurve = std::make_shared<Linear<float, float>>(
+                                                        valueKnots,
+                                                        valueKeyDataCount
+                                                    );
+                                                    type = SceneObjectTrackType::kScalar;
+                                                    break;
+                                                }
+                                            case 3:
+                                            {
+                                                valueCurve = std::make_shared<Linear<Vector3Df, Vector3Df>>(
+                                                    reinterpret_cast<const Vector3Df*>(valueKnots),
+                                                    valueKeyDataCount);
+                                                type = SceneObjectTrackType::kVector3;
+                                                break;
+                                            }
+                                            case 4:
+                                            {
+                                                valueCurve = std::make_shared<Linear<Vector4Df, float>>(
+                                                    reinterpret_cast<const Vector4Df*>(valueKnots),
+                                                    valueKeyDataCount);
+                                                type = SceneObjectTrackType::kQuaternion;
+                                                break;
+                                            }
+                                            case 16:
+                                            {
+                                                valueCurve = std::make_shared<Linear<Matrix4f, float>>(
+                                                    reinterpret_cast<const Matrix4f*>(valueKnots),
+                                                    valueKeyDataCount
+                                                );
+                                                type = SceneObjectTrackType::kMatrix;
+                                                break;
+                                            }
+                                            default:
+                                                assert(0);
+                                        }
+                                    }
+                                    
+                                    track = std::make_shared<SceneObjectTrack>(trans, timeCurve, valueCurve, type);
                                     clip->AddTrack(track);
                                 }
                                 default:

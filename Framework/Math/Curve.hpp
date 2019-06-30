@@ -10,13 +10,30 @@ namespace Panda
         kBezier = "BEZI"_i32
     };
 
-    template <typename T>
-    struct Curve
+    class CurveBase
     {
-        Curve() = default;
-        virtual ~Curve() = default;
-        virtual T Reverse(const T p) const = 0;
-        virtual T Interpolate(const T t) const = 0;
-        virtual CurveType GetCurveType() const = 0;
+        private:
+            const CurveType m_kCurveType;
+
+        public:
+            CurveBase() = delete;
+            CurveBase(CurveType type) : m_kCurveType(type) {}
+            virtual ~CurveBase() = default;
+            CurveType GetCurveType() const {return m_kCurveType;}
+    };
+
+    template <typename VAL, typename PARAM>
+    class Curve
+    {
+        protected:
+            std::vector<VAL> m_Knots;
+
+        public:
+            virtual PARAM Reverse(VAL t, size_t& index) const = 0;
+            virtual VAL Interpolate(PARAM t, const size_t index) const = 0;
+            void AddKnot(const VAL knot)
+            {
+                m_Knots.push_back(knot);
+            }
     };
 }

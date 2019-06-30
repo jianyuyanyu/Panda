@@ -421,10 +421,10 @@ namespace Panda
 
                             pBuf = reinterpret_cast<uint8_t*>(img.Data) + (img.Pitch * (mcuIndexY * 8 + i) + (mcuIndexX * 8 + j) * (img.BitCount >> 3));
                             rgb = ConvertYCbCr2RGB(ycbcr);
-                            reinterpret_cast<ColorRGBAi*>(pBuf)->r = (uint8_t)rgb.r;
-                            reinterpret_cast<ColorRGBAi*>(pBuf)->g = (uint8_t)rgb.g;
-                            reinterpret_cast<ColorRGBAi*>(pBuf)->b = (uint8_t)rgb.b;
-                            reinterpret_cast<ColorRGBAi*>(pBuf)->a = 255;
+                            reinterpret_cast<R8G8B8A8Unorm*>(pBuf)->data[0] = (uint8_t)rgb[0];
+                            reinterpret_cast<R8G8B8A8Unorm*>(pBuf)->data[1] = (uint8_t)rgb[1];
+                            reinterpret_cast<R8G8B8A8Unorm*>(pBuf)->data[2] = (uint8_t)rgb[2];
+                            reinterpret_cast<R8G8B8A8Unorm*>(pBuf)->data[3] = 255;
                         }
 
                     McuIndex++;

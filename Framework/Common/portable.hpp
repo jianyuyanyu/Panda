@@ -54,6 +54,9 @@ namespace std
 #	define FORCEINLINE inline
 # endif
 #endif
+#ifndef INLINE
+#define INLINE inline
+#endif
 
 #ifndef DEBUG
 #if defined(_DEBUG)

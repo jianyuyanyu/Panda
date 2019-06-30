@@ -125,12 +125,12 @@ namespace Panda
 		if (pCameraNode)
 		{
 			m_DrawFrameContext.ViewMatrix = *pCameraNode->GetCalculatedTransform();
-			m_DrawFrameContext.ViewMatrix.SetInverse();
+			InverseMatrix(m_DrawFrameContext.ViewMatrix, m_DrawFrameContext.ViewMatrix);
 		}
 		else 
 		{
 			// use default camera
-			Vector3Df position = {0.0f, -5.0f, 0.0f}, lookAt = {0.0f, 0.0f, 0.0f}, up = {0.0f, 0.0f, 1.0f};
+			Vector3Df position({0.0f, -5.0f, 0.0f}), lookAt({0.0f, 0.0f, 0.0f}), up({0.0f, 0.0f, 1.0f});
 			BuildViewMatrix(m_DrawFrameContext.ViewMatrix, position, lookAt, up);
 		}
 

@@ -215,7 +215,7 @@ namespace Panda
     void PhysicsManager::ApplyCentralForce(void* rigidBody, Vector3Df force)
     {
         btRigidBody* _rigidBody = reinterpret_cast<btRigidBody*>(rigidBody);
-        btVector3 _force(force.x, force.y, force.z);
+        btVector3 _force(force[0], force[1], force[2]);
         _rigidBody->activate(true);
         _rigidBody->applyCentralForce(_force);
     }

@@ -14,7 +14,7 @@ int main(int argc, const char** argv)
 {
     int result = 0;
 
-    RGBf rgb = {64, 35, 17};
+    RGBf rgb({64, 35, 17});
 	cout << "RGB color: " << rgb << endl;;
 
     YCbCrf ycbcr = ConvertRGB2YCbCr(rgb);
