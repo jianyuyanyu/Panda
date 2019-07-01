@@ -319,4 +319,6 @@ namespace Panda
 
 		rotation.Set({ thetaX, thetaY, thetaZ });
     }
+
+    void BresenhamLineAlgorithm(const Pixel2D& pos1, const Pixel2D& pos2, std::vector<Pixel2D>& result);
 }

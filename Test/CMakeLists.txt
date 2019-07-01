@@ -110,3 +110,7 @@ add_test(NAME TEST_QRDecomposition COMMAND QRDecompositionTest)
 add_executable(PolarDecompositionTest PolarDecompositionTest.cpp)
 target_link_libraries(PolarDecompositionTest PandaMath)
 add_test(NAME TEST_PolarDecomposition COMMAND PolarDecompositionTest)
+
+add_executable(RasterizationTest RasterizationTest.cpp)
+target_link_libraries(RasterizationTest PandaMath)
+add_test(NAME TEST_Rasterization COMMAND RasterizationTest)

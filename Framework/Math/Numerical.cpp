@@ -307,4 +307,119 @@ namespace Panda
 
         return;
     }
+
+   void BresenhamLineAlgorithm(const Pixel2D& pos1, const Pixel2D& pos2, std::vector<Pixel2D>& result)
+    {
+	   result.clear();
+
+        // Makesure that start point is on the left of end point.
+        Pixel2D start, end;
+        if (pos1.data[0] > pos2.data[0])
+        {
+            start = pos2;
+            end = pos1;
+        }
+        else 
+        {
+            start = pos1;
+            end = pos2;
+        }
+
+        // Some special situations.
+        if (start == end)
+        {    
+            result.push_back(start);
+            return;
+        }
+
+        if (start.data[0] == end.data[0])
+        {
+			int16_t diff = 0;
+            if (end.data[1] > start.data[1])
+                diff = end.data[1] - start.data[1];
+            else 
+                diff = start.data[1] - end.data[1];
+            for (int16_t i = 0; i < diff; ++i)
+            {
+				int16_t temp = start.data[1] + i;
+                Pixel2D p({start.data[0], temp});
+                result.push_back(p);
+            }
+            result.push_back(end);
+            return;
+        }
+
+        if (start.data[1] == end.data[1])
+        {
+			int16_t diff = 0;
+            if (end.data[0] > start.data[0])
+                diff = end.data[0] - start.data[0];
+            else 
+                diff = start.data[0] - end.data[0];
+            for (int16_t i = 0; i < diff; ++i)
+            {
+				int16_t temp = start.data[0] + i;
+                Pixel2D p({temp, start.data[1]});
+                result.push_back(p);
+            }
+            result.push_back(end);
+            return;
+        }
+
+        // Common situation.
+		result.push_back(start);
+        float scope = 0.0f;
+		scope = std::abs((float)(end.data[1] - start.data[1]) / (end.data[0] - start.data[0]));
+        if (std::abs(scope) < 1.0f)
+        {
+            // Use x increment to determine y increment
+			int16_t diff = 0;
+            float error = 0.0f;
+            diff = end.data[0] - start.data[0];
+			int16_t xPos = start.data[0];
+			int16_t yPos = start.data[1];
+            for(int16_t i = 1; i < diff; ++i)
+            {
+                xPos++;
+                error += scope;
+                if (error > 0.5f)
+                {
+                    if (end.data[1] > start.data[1])
+                        yPos++;
+                    else
+                        yPos--;
+                    error -= 1.0f;
+                } 
+                result.push_back(Pixel2D({xPos, yPos}));
+            }
+        }
+        else 
+        {
+            // Use y increment to determine x increment
+            scope = std::abs((float)(end.data[0] - start.data[0]) / (end.data[1] - start.data[1]));
+            // Use x increment to determine y increment
+            int16_t diff = 0;
+            float error = 0.0f;
+			int16_t xPos = start.data[0];
+			int16_t yPos = start.data[1];
+            diff = end.data[1] - start.data[1];
+            if (diff < 0)
+                diff = -diff;
+            for(int16_t i = 1; i < diff; ++i)
+            {
+                if (end.data[1] > start.data[1])
+                    yPos++;
+                else
+                    yPos--;
+                error += scope;
+                if (error > 0.5f)
+                {
+                    xPos++;
+                    error -= 1.0f;
+                } 
+                result.push_back(Pixel2D({xPos, yPos}));
+            }                
+        }
+        result.push_back(end);
+    }
 }

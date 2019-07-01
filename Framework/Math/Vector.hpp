@@ -137,6 +137,7 @@ namespace Panda
     };
 
     typedef Vector<float, 2> Vector2Df;
+    typedef Vector<int16_t, 2> Pixel2D;
     
     typedef Vector<float, 3> Vector3Df;
     typedef Vector<double, 3> Vector3Dd;
