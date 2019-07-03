@@ -231,12 +231,49 @@ namespace Panda
         location = glGetUniformLocation(shader, "lightPosition");
         if (location == -1)
             return false;
-        glUniform3fv(location, 1, m_DrawFrameContext.LightPosition);
+        glUniform4fv(location, 1, m_DrawFrameContext.LightPosition);
 
         location = glGetUniformLocation(shader, "lightColor");
         if (location == -1)
             return false;
         glUniform4fv(location, 1, m_DrawFrameContext.LightColor);
+
+        location = glGetUniformLocation(shader, "lightIntensity");
+        if (location == -1)
+            return false;
+        glUniform1f(location, m_DrawFrameContext.LightIntensity);
+
+        location = glGetUniformLocation(shader, "lightDirection");
+        if (location == -1)
+            return false;
+        glUniform3fv(location, 1, m_DrawFrameContext.LightDirection);
+
+        location = glGetUniformLocation(shader, "lightDistAttenCurveType");
+        if (location == -1)
+            return false;
+        glUniform1i(location, (GLint)m_DrawFrameContext.LightDistAttenCurveType);
+
+        location = glGetUniformLocation(shader, "lightDistAttenCurveParams");
+        if (location == -1)
+            return false;
+        glUniform1fv(location, 5, m_DrawFrameContext.LightDistAttenCurveParams);
+
+        location = glGetUniformLocation(shader, "lightAngleAttenCurveType");
+        if (location == -1)
+            return false;
+        glUniform1i(location, (GLint)m_DrawFrameContext.LightAngleAttenCurveType);
+
+        location = glGetUniformLocation(shader, "lightAngleAttenCurveParams");
+        if (location == -1)
+            return false;
+        glUniform1fv(location, 5, m_DrawFrameContext.LightAngleAttenCurveParams);
+
+        location = glGetUniformLocation(shader, "ambientColor");
+        if (location == -1)
+            return false;
+        glUniform4fv(location, 1, m_DrawFrameContext.AmbientColor);
+
+        return true;
     }
 
     bool OpenGLGraphicsManager::SetPerBatchShaderParameters(GLuint shader, const char* paramName, const Matrix4f& param)
@@ -589,17 +626,17 @@ namespace Panda
 
 #ifdef DEBUG 
         // Set the color shader as the current shader program and set the matrices that it will use for rendering.
-        glUseProgram(m_debugShaderProgram);
+        //glUseProgram(m_debugShaderProgram);
 
-        SetPerFrameShaderParameters(m_debugShaderProgram);
+        //SetPerFrameShaderParameters(m_debugShaderProgram);
 
-        for (auto dbc : m_DebugDrawBatchContext)
-        {
-            SetPerBatchShaderParameters(m_debugShaderProgram, "FrontColor", dbc.color);
+        //for (auto dbc : m_DebugDrawBatchContext)
+        //{
+        //    SetPerBatchShaderParameters(m_debugShaderProgram, "FrontColor", dbc.color);
 
-            glBindVertexArray(dbc.vao);
-            glDrawArrays(dbc.mode, 0x00, dbc.count);
-        }
+        //    glBindVertexArray(dbc.vao);
+        //    glDrawArrays(dbc.mode, 0x00, dbc.count);
+        //}
 #endif
 
         return;

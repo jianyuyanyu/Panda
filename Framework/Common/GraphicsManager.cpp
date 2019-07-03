@@ -61,46 +61,6 @@ namespace Panda
 		RenderBuffers();
 	}
 
-/*
-	bool GraphicsManager::SetPerFrameShaderParameters()
-	{
-		std::cout << "[RHI] GraphicsManager::SetPerFrameShaderParameters(void)" << std::endl;
-		return true;
-	}
-
-	bool GraphicsManager::SetPerBatchShaderParameters(const char* paramName, const Matrix4f& param)
-	{
-		std::cout << "[RHI] GraphicsManager::SetPerFrameShaderParameters(const char* paramName, const Matrix4f& param)" << std::endl;
-		std::cout << "paramName = " << paramName << std::endl;
-		std::cout << "param = " << param << std::endl;
-		return true;
-	}
-
-	bool GraphicsManager::SetPerBatchShaderParameters(const char* paramName, const Vector3Df& param)
-	{
-		std::cout << "[RHI] GraphicsManager::SetPerFrameShaderParameters(const char* paramName, const Vector3f& param)" << std::endl;
-		std::cout << "paramName = " << paramName << std::endl;
-		std::cout << "param = " << param << std::endl;
-		return true;
-	}
-
-	bool GraphicsManager::SetPerBatchShaderParameters(const char* paramName, const float param)
-	{
-		std::cout << "[RHI] GraphicsManager::SetPerFrameShaderParameters(const char* paramName, const float param)" << std::endl;
-		std::cout << "paramName = " << paramName << std::endl;
-		std::cout << "param = " << param << std::endl;
-		return true;
-	}
-
-	bool GraphicsManager::SetPerBatchShaderParameters(const char* paramName, const int param)
-	{
-		std::cout << "[RHI] GraphicsManager::SetPerFrameShaderParameters(const char* paramName, const int param)" << std::endl;
-		std::cout << "paramName = " << paramName << std::endl;
-		std::cout << "param = " << param << std::endl;
-		return true;
-	}
-*/
-
 	void GraphicsManager::InitConstants()
 	{
 		// Initialize the world/model matrix to the identity matrix.
@@ -156,24 +116,51 @@ namespace Panda
 
 	void GraphicsManager::CalculateLights()
 	{
+		m_DrawFrameContext.AmbientColor = {0.01f, 0.01f, 0.01f};
 		auto& scene = g_pSceneManager->GetScene();
 		auto pLightNode = scene.GetFirstLightNode();
 		if (pLightNode)
 		{
-			m_DrawFrameContext.LightPosition = {0.0f, 0.0f, 0.0f};
-			TransformCoord(m_DrawFrameContext.LightPosition, *pLightNode->GetCalculatedTransform());
+			const std::shared_ptr<Matrix4f> transPtr = pLightNode->GetCalculatedTransform();
+			m_DrawFrameContext.LightPosition = {0.0f, 0.0f, 0.0f, 1.0f};
+			TransformCoord(m_DrawFrameContext.LightPosition, *transPtr);
+			m_DrawFrameContext.LightDirection = {0.0f, 0.0f, -1.0f};
+			TransformCoord(m_DrawFrameContext.LightDirection, *transPtr);
 
-			auto pLight = scene.GetLight(pLightNode->GetSceneObjectRef());
+			const std::shared_ptr<SceneObjectLight> pLight = scene.GetLight(pLightNode->GetSceneObjectRef());
 			if (pLight)
 			{
 				m_DrawFrameContext.LightColor = pLight->GetColor().Value;
+				m_DrawFrameContext.LightIntensity = pLight->GetIntensity();
+				const AttenCurve& attenCurve = pLight->GetDistanceAttenuation();
+				m_DrawFrameContext.LightDistAttenCurveType = attenCurve.type;
+				memcpy(m_DrawFrameContext.LightDistAttenCurveParams, &attenCurve.u, sizeof(attenCurve.u));
+				if (pLight->GetType() == SceneObjectType::kSceneObjectTypeLightSpot)
+				{
+					const std::shared_ptr<SceneObjectSpotLight> _pLight = std::dynamic_pointer_cast<SceneObjectSpotLight>(pLight);
+					const AttenCurve& angleAttenCurve = _pLight->GetAngleAttenuation();
+					m_DrawFrameContext.LightAngleAttenCurveType = angleAttenCurve.type;
+					memcpy(m_DrawFrameContext.LightAngleAttenCurveParams, &angleAttenCurve.u, sizeof(angleAttenCurve.u));
+				}
+			}
+			else 
+			{
+				assert(0);
 			}
 		}
 		else 
 		{
-			// use default light
-			m_DrawFrameContext.LightPosition = {-1.0f, -5.0f, -0.0f};
+			// use default build light (Point)
+			m_DrawFrameContext.LightPosition = {-1.0f, -5.0f, 0.0f, 1.0f};
 			m_DrawFrameContext.LightColor = {1.0f, 1.0f, 1.0f, 1.0f};
+			m_DrawFrameContext.LightDirection = {0.0f, 0.0f, -1.0f};
+			m_DrawFrameContext.LightIntensity = 1.0f;
+			m_DrawFrameContext.LightDistAttenCurveType = AttenCurveType::kAttenLinear;
+			m_DrawFrameContext.LightDistAttenCurveParams[0] = 0.0f;
+			m_DrawFrameContext.LightDistAttenCurveParams[1] = 1.0f;
+			m_DrawFrameContext.LightAngleAttenCurveType = AttenCurveType::kAttenLinear;
+			m_DrawFrameContext.LightAngleAttenCurveParams[0] = PI;
+			m_DrawFrameContext.LightAngleAttenCurveParams[1] = PI;
 		}
 	}
 

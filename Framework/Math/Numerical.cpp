@@ -422,4 +422,219 @@ namespace Panda
         }
         result.push_back(end);
     }
+
+    Point2DList BottomFlatTriangleRasterization(const Point2D& pos1, const Point2D& pos2, const Point2D& pos3)
+    {
+        Point2D bottomL, bottomR, top;
+        if (pos1.data[1] == pos2.data[1])
+        {
+            bottomL = pos1.data[0] < pos2.data[0]? pos1 : pos2;
+            bottomR = pos1.data[0] < pos2.data[0]? pos2 : pos1;
+            top = pos3;
+        }
+        else if (pos1.data[1] == pos3.data[1])
+        {
+            bottomL = pos1.data[0] < pos3.data[0]? pos1 : pos3;
+            bottomR = pos1.data[0] < pos3.data[0]? pos3 : pos1;
+            top = pos2;
+        }
+        else 
+        {
+            bottomL = pos2.data[0] < pos3.data[0]? pos2 : pos3;
+            bottomR = pos2.data[0] < pos3.data[0]? pos3 : pos2;
+            top = pos1;
+        }
+
+        float invSlope1 = (top.data[0] - bottomL.data[0]) / (top.data[1] - bottomL.data[1]);
+        float invSlope2 = (top.data[0] - bottomR.data[0]) / (top.data[1] - bottomR.data[1]);
+
+        float startX = top.data[0];
+        float endX = top.data[0];
+        Point2DList result;
+        for (int32_t y = std::round(top.data[1]); y <= std::round(bottomL.data[1]); ++y)
+        {
+            for (int32_t x = std::round(startX); x <= std::round(endX); ++x)
+            {
+                result.push_back(std::make_shared<Point2D>(Point2D({(float)x, (float)y})));
+            }
+            startX += invSlope1;
+            endX += invSlope2;
+        }
+
+        return result;
+    }
+
+	Point2DList TopFlatTriangleRasterization(const Point2D& pos1, const Point2D& pos2, const Point2D& pos3)
+	{
+		Point2D topL, topR, bottom;
+		if (pos1.data[1] == pos2.data[1])
+		{
+			topL = pos1.data[0] < pos2.data[0] ? pos1 : pos2;
+			topR = pos1.data[0] < pos2.data[0] ? pos2 : pos1;
+			bottom = pos3;
+		}
+		else if (pos1.data[1] == pos3.data[1])
+		{
+			topL = pos1.data[0] < pos3.data[0] ? pos1 : pos3;
+			topR = pos1.data[0] < pos3.data[0] ? pos3 : pos1;
+			bottom = pos2;
+		}
+		else
+		{
+			topL = pos2.data[0] < pos3.data[0] ? pos2 : pos3;
+			topR = pos2.data[0] < pos3.data[0] ? pos3 : pos2;
+			bottom = pos1;
+		}
+
+		float invSlopeL = (bottom.data[0] - topL.data[0]) / (bottom.data[1] - topL.data[1]);
+		float invSlopeR = (bottom.data[0] - topR.data[0]) / (bottom.data[1] - topR.data[1]);
+
+		Point2DList result;
+		float startX = topL.data[0];
+		float endX = topR.data[0];
+		for (int32_t y = std::round(topL.data[1]); y <= std::round(bottom.data[1]); ++y)
+		{
+			for (int32_t x = std::round(startX); x <= std::round(endX); ++x)
+			{
+				result.push_back(std::make_shared<Point2D>(Point2D({ (float)x, float(y) })));
+			}
+			startX += invSlopeL;
+			endX += invSlopeR;
+		}
+		return result;
+	}
+
+	Point2DList TriangleRasterization(const Point2D& pos1, const Point2D& pos2, const Point2D& pos3)
+	{
+		if (IsBottomFlat(pos1, pos2, pos3))
+			return BottomFlatTriangleRasterization(pos1, pos2, pos3);
+
+		if (IsTopFlat(pos1, pos2, pos3))
+			return TopFlatTriangleRasterization(pos1, pos2, pos3);
+
+		// Sort the points
+		Point2D top, middle, bottom;
+		if (pos1.data[1] < pos2.data[1])
+		{
+			if (pos3.data[1] < pos1.data[1])
+			{
+				top = pos3;
+				middle = pos1;
+				bottom = pos2;
+			}
+			else if (pos3.data[1] < pos2.data[1])
+			{
+				top = pos1;
+				middle = pos3;
+				bottom = pos2;
+			}
+			else
+			{
+				top = pos1;
+				middle = pos2;
+				bottom = pos3;
+			}
+		}
+		else
+		{
+			if (pos3.data[1] < pos2.data[1])
+			{
+				top = pos3;
+				middle = pos2;
+				bottom = pos1;
+			}
+			else if (pos3.data[1] < pos1.data[1])
+			{
+				top = pos2;
+				middle = pos3;
+				bottom = pos1;
+			}
+			else
+			{
+				top = pos2;
+				middle = pos1;
+				bottom = pos3;
+			}
+		}
+
+		// Make the 4th point.
+		Point2D n4(middle);
+		n4.data[0] = (bottom.data[0] - top.data[0]) / (bottom.data[1] - top.data[1]) * n4.data[1];
+		Point2DList bottomFlat = BottomFlatTriangleRasterization(top, middle, n4);
+		Point2DList topFlat = TopFlatTriangleRasterization(middle, n4, bottom);
+
+		// Remove the bottom scanline form "bottomFlat"
+		Point2DList::iterator removeStart = bottomFlat.end() - 1;
+		for (Point2DList::iterator it = bottomFlat.end() - 1; it >= bottomFlat.begin(); --it)
+		{
+			if ((*it)->data[1] == (*removeStart)->data[1])
+				removeStart = it;
+			else
+				break;
+		}
+		bottomFlat.erase(removeStart, bottomFlat.end());
+
+		Point2DList result(bottomFlat.begin(), bottomFlat.end());
+		result.insert(result.end(), topFlat.begin(), topFlat.end());
+		return result;
+	}
+
+	bool IsBottomFlat(const Point2D& pos1, const Point2D& pos2, const Point2D& pos3)
+	{
+		if (pos1.data[1] == pos2.data[1])
+			return pos3.data[1] > pos1.data[1];
+		else if (pos1.data[1] == pos3.data[1])
+			return pos2.data[1] > pos1.data[1];
+		else if (pos2.data[1] == pos2.data[1])
+			return pos1.data[1] > pos2.data[1];
+		else
+			return false;
+	}
+
+	bool IsTopFlat(const Point2D& pos1, const Point2D& pos2, const Point2D& pos3)
+	{
+		if (pos1.data[1] == pos2.data[1])
+			return pos3.data[1] < pos1.data[1];
+		else if (pos1.data[1] == pos3.data[1])
+			return pos2.data[1] < pos1.data[1];
+		else if (pos2.data[1] == pos3.data[1])
+			return pos1.data[1] < pos2.data[1];
+		else
+			return false;
+	}
+
+    Point2DList BarycentricTriangleRasterization(const Point2D& pos1, const Point2D& pos2, Point2D& pos3)
+    {
+        Vector2Df AB = {{pos2.data[0] - pos1.data[0], pos2.data[1] - pos1.data[1]}};
+        Vector2Df AC = {{pos3.data[0] - pos1.data[0], pos3.data[1] - pos1.data[1]}};
+        float aABC = CrossProduct(AB, AC);
+
+        float xmin = pos1.data[0], xmax = pos1.data[0];
+        float ymin = pos1.data[1], ymax = pos1.data[1];
+        if (pos2.data[0] < xmin) xmin = pos2.data[0];
+        if (pos2.data[0] > xmax) xmax = pos2.data[0];
+        if (pos2.data[1] < ymin) ymin = pos2.data[1];
+        if (pos2.data[1] > ymax) ymax = pos2.data[1];
+        if (pos3.data[0] < xmin) xmin = pos3.data[0];
+        if (pos3.data[0] > xmax) xmax = pos3.data[0];
+        if (pos3.data[1] < ymin) ymin = pos3.data[1];
+        if (pos3.data[1] > ymax) ymax = pos3.data[1];
+
+        Point2DList result;
+		for (int32_t y = std::round(ymin); y <= std::round(ymax); ++y)
+        {
+			for (int32_t x = std::round(xmin); x <= std::round(xmax); ++x)
+            {
+                Vector2Df AP = {{x - pos1.data[0], y - pos1.data[1]}};
+                float aAPC = CrossProduct(AP, AC);
+                float aABP = CrossProduct(AB, AP);
+                float s = aAPC / aABC, t = aABP / aABC;
+                if (s >= 0.0f && t >= 0.0f && (s + t) <= 1.0f)
+                {
+                    result.push_back(std::make_shared<Point2D>(Point2D({(float)x, (float)y})));
+                }
+            }
+        }
+        return result;
+    }
 }

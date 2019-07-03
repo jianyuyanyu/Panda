@@ -5,16 +5,36 @@
 
 namespace Panda
 {
-    typedef std::function<float(float /* Intensity */, float /* Distance */)> AttenFunc;
-    
-    float DefaultAttenFunc (float intensity, float distance);
+	ENUM(AttenCurveType)
+	{
+		kAttenLinear = 0,
+		kAttenSmooth = 1,
+		kAttenInverse = 2,
+		kAttenInverseSquare = 3
+	};
+
+    struct AttenCurve
+    {
+        AttenCurveType type;
+        union AttenCurveParams
+        {
+            struct LinearParam {float beginAtten; float endAtten;} linearParams;
+            struct SmoothParam {float beginAtten; float endAtten;} smoothParams;
+            struct InverseParam {float scale; float offset; float kl; float kc;} inverseParams;
+            struct InverseSquareParam {float scale; float offset; float kq; float kl; float kc;} inverseSquareParams;
+        } u;
+
+        AttenCurve() : type(AttenCurveType::kAttenLinear),
+            u({{0.0f, 1.0f}})
+            {}
+    };
 
     class SceneObjectLight : public BaseSceneObject
     {
         protected:
             Color       m_LightColor;
             float       m_Intensity;
-            AttenFunc   m_LightAttenuation;
+            AttenCurve  m_DistanceAttenuation;
             bool        m_IsCastShadows;
             std::string m_Texture;
 
@@ -45,9 +65,14 @@ namespace Panda
                 }
             }
 
-            void SetAttenuation(AttenFunc func)
+            void SetDistanceAttenuation(AttenCurve curve)
             {
-                m_LightAttenuation = func;
+                m_DistanceAttenuation = curve;
+            }
+
+            const AttenCurve& GetDistanceAttenuation()
+            {
+                return m_DistanceAttenuation;
             }
 
             const Color& GetColor() {return m_LightColor;}
@@ -55,9 +80,9 @@ namespace Panda
 
         protected:
             // can only used as base class of delivered lighting objects
-            SceneObjectLight() : 
-                BaseSceneObject(SceneObjectType::kSceneObjectTypeLight), m_LightColor(Vector4Df(1.0f)), m_Intensity(100.0f),
-                m_LightAttenuation(DefaultAttenFunc), m_IsCastShadows(false) 
+            SceneObjectLight(const SceneObjectType type) : 
+                BaseSceneObject(type), m_LightColor(Vector4Df(1.0f)), m_Intensity(1.0f),
+                m_IsCastShadows(false) 
             {}
 
             friend std::ostream& operator<<(std::ostream& out, const SceneObjectLight& obj);
@@ -67,7 +92,7 @@ namespace Panda
     class SceneObjectPointLight : public SceneObjectLight
     {
         public:
-            using SceneObjectLight::SceneObjectLight;
+            SceneObjectPointLight() : SceneObjectLight(SceneObjectType::kSceneObjectTypeLightPoint) {}
 
         friend std::ostream& operator<<(std::ostream& out, const SceneObjectPointLight& obj);
     };
@@ -75,14 +100,24 @@ namespace Panda
     // spot light
     class SceneObjectSpotLight : public SceneObjectLight
     {
-        public:
-            float   m_ConeAngle;
-            float   m_PenumbraAngle;
+        protected:
+            float   m_ConeBeginAngle;
+            float   m_ConeEndAngle;
+            AttenCurve m_LightAngleAttenuation;
 
         public:
             SceneObjectSpotLight() :
-                SceneObjectLight(), m_ConeAngle(PI / 4.0f), m_PenumbraAngle(PI / 3.0f)
+                SceneObjectLight(SceneObjectType::kSceneObjectTypeLightSpot)
+            {}
+
+            void SetAngleAttenuation(AttenCurve curve)
             {
+                m_LightAngleAttenuation = curve;
+            }
+
+            const AttenCurve& GetAngleAttenuation()
+            {
+                return m_LightAngleAttenuation;
             }
 
             friend std::ostream& operator<<(std::ostream& out, const SceneObjectSpotLight& obj);
@@ -92,7 +127,7 @@ namespace Panda
 	class SceneObjectInfiniteLight : public SceneObjectLight
 	{
 	public:
-		using SceneObjectLight::SceneObjectLight;
+		SceneObjectInfiniteLight():SceneObjectLight(SceneObjectType::kSceneObjectTypeLightInfinite) {}
 
 		friend std::ostream& operator<<(std::ostream& out, const SceneObjectInfiniteLight& obj);
 	};

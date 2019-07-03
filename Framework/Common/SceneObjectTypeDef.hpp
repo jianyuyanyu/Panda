@@ -4,6 +4,7 @@
 
 namespace Panda
 {
+
     ENUM (IndexDataType)
     {
         kIndexDataTypeInt8  = "I8  "_i32,

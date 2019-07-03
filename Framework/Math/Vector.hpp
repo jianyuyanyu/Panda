@@ -331,19 +331,21 @@ namespace Panda
 		return result;
 	}
 
-    template <typename T, int N>
-    Vector<T, N> CrossProduct(const Vector<T, N>& vec1, const Vector<T, N>& vec2)
+    template <typename T>
+    Vector<T, 3> CrossProduct(const Vector<T, 3>& vec1, const Vector<T, 3>& vec2)
     {
-        Vector<T, N> result;
-        result.Set((T)0);
-        if (N != 3)
-            return result;
+        Vector<T, 3> result;
         
 		result.Set({ vec1[1] * vec2[2] - vec1[2] * vec2[1],
 			vec1[2] * vec2[0] - vec1[0] * vec2[2],
 			vec1[0] * vec2[1] - vec1[1] * vec2[0] });
 
         return result;
+    }
+    template <typename T>
+    T CrossProduct(const Vector<T, 2>& vec1, const Vector<T, 2>& vec2)
+    {
+        return vec1.data[0] * vec2.data[1] - vec1.data[1] * vec2.data[0];
     }
 
     template <typename T, int N>

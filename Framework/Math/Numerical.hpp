@@ -2,11 +2,34 @@
 #include <functional>
 #include <limits>
 #include <cmath>
+#include <vector>
+#include <set>
+#include <unordered_set>
 #include "Matrix.hpp"
 #include "Utility.hpp"
 
 namespace Panda
 {
+    typedef Vector<float, 2> Point2D;
+    typedef std::shared_ptr<Point2D> Point2DPtr;
+    typedef std::vector<Point2DPtr> Point2DList;
+    typedef Vector<float, 3> Point;
+    typedef std::shared_ptr<Point> PointPtr;
+    typedef std::unordered_set<PointPtr> PointSet;
+    typedef std::vector<PointPtr> PointList;
+    typedef std::pair<PointPtr, PointPtr> Edge;
+    inline bool operator==(const Edge& a, const Edge& b)
+    {
+        return (a.first == b.first && a.second == b.second) || (a.first == b.second && a.second == b.first);
+    }
+    typedef std::shared_ptr<Edge> EdgePtr;
+    inline bool operator==(const EdgePtr& a, const EdgePtr& b)
+    {
+        return (a->first == b->first && a->second == b->second) || (a->first == b->second && a->second == b->first);
+    }
+    typedef std::unordered_set<EdgePtr> EdgeSet;
+    typedef std::vector<EdgePtr> EdgeList;
+
     void TransformCoord(Vector3Df& inVec, const Matrix4f& inMat);
 
     void TransformCoord(Vector4Df& inVec, const Matrix4f& inMat);
@@ -321,4 +344,16 @@ namespace Panda
     }
 
     void BresenhamLineAlgorithm(const Pixel2D& pos1, const Pixel2D& pos2, std::vector<Pixel2D>& result);
+
+    Point2DList BottomFlatTriangleRasterization(const Point2D& pos1, const Point2D& pos2, const Point2D& pos3);
+
+	Point2DList TopFlatTriangleRasterization(const Point2D& pos1, const Point2D& pos2, const Point2D& pos3);
+
+	Point2DList TriangleRasterization(const Point2D& pos1, const Point2D& pos2, const Point2D& pos3);
+
+	bool IsBottomFlat(const Point2D& pos1, const Point2D& pos2, const Point2D& pos3);
+
+	bool IsTopFlat(const Point2D& pos1, const Point2D& pos2, const Point2D& pos3);
+
+    Point2DList BarycentricTriangleRasterization(const Point2D& pos1, const Point2D& pos2, Point2D& pos3);
 }

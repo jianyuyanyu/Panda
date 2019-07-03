@@ -26,18 +26,6 @@ namespace Panda {
 			#endif
 
 		protected:
-			// bool SetPerFrameShaderParameters();
-			// bool SetPerBatchShaderParameters(const char* paramName, const Matrix4f& param);
-			// bool SetPerBatchShaderParameters(const char* paramName, const Vector3Df& param);
-			// bool SetPerBatchShaderParameters(const char* paramName, const float param);
-			// bool SetPerBatchShaderParameters(const char* paramName, const int param);
-
-			// void InitConstants();
-			// bool InitializeShader(const char* vsFilename, const char* psFilename);
-			// void InitializeBuffers();
-			// void CalculateCameraMatrix();
-			// void CalculateLights();
-			// void RenderBuffers();
 			virtual bool InitializeShaders();
 			virtual void ClearShaders();
 			virtual void InitializeBuffers(const Scene& scene);
@@ -55,8 +43,15 @@ namespace Panda {
 				Matrix4f WorldMatrix;
 				Matrix4f ViewMatrix;
 				Matrix4f ProjectionMatrix;
-				Vector3Df LightPosition;
+				Vector4Df LightPosition;
 				Vector4Df LightColor;
+				Vector3Df LightDirection;
+				float LightIntensity;
+				AttenCurveType LightDistAttenCurveType;
+				float LightDistAttenCurveParams[5];
+				AttenCurveType LightAngleAttenCurveType;
+				float LightAngleAttenCurveParams[5];
+				Vector3Df AmbientColor;
 
 				friend std::ostream& operator<<(std::ostream& out, DrawFrameContext context)
 				{
@@ -67,6 +62,10 @@ namespace Panda {
 					out << "ProjectionMatrix = " << context.ProjectionMatrix << std::endl;
 					out << "LightPosition = " << context.LightPosition << std::endl;
 					out << "LightColor = " << context.LightColor << std::endl;
+					out << "LightDirection = " << context.LightDirection << std::endl;
+					out << "LightIntensity = " << context.LightIntensity << std::endl;
+					out << "LightDistAttenCurveType = " << context.LightDistAttenCurveType << std::endl;
+					out << "AmbientColor = " << context.AmbientColor << std::endl;
 					out << "----------------------" << std::endl;
 					out << std::endl;
 

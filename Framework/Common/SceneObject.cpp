@@ -203,8 +203,8 @@ namespace Panda
     {
         out << static_cast<const SceneObjectLight&>(obj) << std::endl;
         out << "Light Type: Spot" << std::endl;
-        out << "Cone Angle: " << obj.m_ConeAngle << std::endl;
-        out << "Penumbra Angle: " << obj.m_PenumbraAngle << std::endl;
+        out << "Cone Begin Angle: " << obj.m_ConeBeginAngle << std::endl;
+        out << "Cone End Angle: " << obj.m_ConeEndAngle << std::endl;
         return out;
     }
 

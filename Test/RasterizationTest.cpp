@@ -1,5 +1,6 @@
 #include <iomanip>
 #include <iostream>
+#include <string>
 #include <vector>
 #include "PandaMath.hpp"
 
@@ -9,6 +10,40 @@ using namespace std;
 namespace Panda
 {
 	DepthClipSpace g_DepthClipSpace = DepthClipSpace::kDepthClipZeroToOne;
+}
+
+template<class T>
+void visualize(T points, const string& name)
+{
+	cout << name << ':' << endl;
+
+	// dump the result
+	for (auto point : points)
+	{
+		cout << *point;
+	}
+
+	// visualize in the console
+	// note y is fliped towarding downside for easy print
+	int row = 0, col = 0;
+	for (auto point : points)
+	{
+		while (col < point->data[1])
+		{
+			col++;
+			cout << endl;
+			row = 0;
+		}
+
+		while (row++ < point->data[0])
+		{
+			cout << ' ';
+		}
+
+		cout << '*';
+	}
+
+	cout << endl;
 }
 
 ostream& operator<<(ostream& out, const std::vector<Pixel2D>& vec)
@@ -52,9 +87,57 @@ void TestLineAlgorithm()
 
 }
 
+void TestBottomFlat()
+{
+	Point2D v1({ 5.0f, 7.0f });
+	Point2D v2({ 0.0f, 8.0f });
+	Point2D v3({ 21.0f, 8.0f });
+
+	Point2DList points = BottomFlatTriangleRasterization(v1, v2, v3);
+
+	visualize(points, "Bottom Flat Triangle");
+}
+
+void TestTopFlat()
+{
+	Point2D v1 = { { 0.0f, 0.0f } };
+	Point2D v2 = { { 21.0f, 0.0f } };
+	Point2D v3 = { { 12.0f, 8.0f } };
+
+	Point2DList points = TopFlatTriangleRasterization(v1, v2, v3);
+
+	visualize(points, "General Triangle");
+}
+
+void TestNormalTriangle()
+{
+	Point2D v1 = { { 1.0f, 0.0f } };
+	Point2D v2 = { { 16.0f, 9.0f } };
+	Point2D v3 = { { 30.0f, 4.0f } };
+
+	Point2DList points = TriangleRasterization(v1, v2, v3);
+
+	visualize(points, "General Triangle");
+}
+
+void TestBarycentric()
+{
+	Point2D v1 = { { 1.0f, 0.0f } };
+	Point2D v2 = { { 16.0f, 9.0f } };
+	Point2D v3 = { { 30.0f, 4.0f } };
+
+	Point2DList points = BarycentricTriangleRasterization(v1, v2, v3);
+
+	visualize(points, "General Triangle Barycentric");
+}
+
 int main()
 {
-    TestLineAlgorithm();
+    //TestLineAlgorithm();
+	//TestBottomFlat();
+	//TestTopFlat();
+	//TestNormalTriangle();
+	TestBarycentric();
 
     getchar();
     return 0;

@@ -541,8 +541,54 @@ namespace Panda
                                 }
                                 case OGEX::kStructureAtten:
                                 {
-                                    // TODO: truly implement it
-                                    light->SetAttenuation(DefaultAttenFunc);
+                                    auto atten = dynamic_cast<const OGEX::AttenStructure*>(subStructure);
+                                    AttenCurve curve;
+                                    if (atten->GetCurveType() == "linear")
+                                    {
+                                        curve.type = AttenCurveType::kAttenLinear;
+                                        curve.u.linearParams.beginAtten = atten->GetBeginParam();
+                                        curve.u.linearParams.endAtten = atten->GetEndParam();
+                                    }
+                                    else if (atten->GetCurveType() == "smooth")
+                                    {
+                                        curve.type = AttenCurveType::kAttenSmooth;
+                                        curve.u.smoothParams.beginAtten = atten->GetBeginParam();
+                                        curve.u.smoothParams.endAtten = atten->GetEndParam();
+                                    }
+                                    else if (atten->GetCurveType() == "inverse")
+                                    {
+                                        curve.type = AttenCurveType::kAttenInverse;
+                                        curve.u.inverseParams.scale = atten->GetScaleParam();
+                                        curve.u.inverseParams.offset = atten->GetOffsetParam();
+                                        curve.u.inverseParams.kl = atten->GetLinearParam();
+                                        curve.u.inverseParams.kc = atten->GetConstantParam();
+                                    }
+                                    else if (atten->GetCurveType() == "inverse_square")
+                                    {
+                                        curve.type = AttenCurveType::kAttenInverseSquare;
+                                        curve.u.inverseSquareParams.scale = atten->GetScaleParam();
+                                        curve.u.inverseSquareParams.offset = atten->GetOffsetParam();
+                                        curve.u.inverseSquareParams.kq = atten->GetQuadraticParam();
+                                        curve.u.inverseSquareParams.kl = atten->GetLinearParam();
+                                        curve.u.inverseSquareParams.kc = atten->GetConstantParam();
+                                    }
+
+                                    if (atten->GetAttenKind() == "angle")
+                                    {
+                                        auto _light = dynamic_pointer_cast<SceneObjectSpotLight>(light);
+                                        _light->SetAngleAttenuation(curve);
+                                    }
+                                    else if (atten->GetAttenKind() == "cos_angle")
+                                    {
+                                        // TODO: mark the angle in cos value instead of rad
+                                        auto _light = dynamic_pointer_cast<SceneObjectSpotLight>(light);
+                                        _light->SetAngleAttenuation(curve);
+                                    }
+                                    else 
+                                    {
+                                        light->SetDistanceAttenuation(curve);
+                                    }
+                                    
                                     break;
                                 }
                                 default:

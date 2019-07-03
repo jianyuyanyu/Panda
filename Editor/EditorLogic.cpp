@@ -21,7 +21,8 @@ int EditorLogic::Initialize()
     // else
     // {
         cout << "[EditorLogic] Loading Splash Scene" << endl;
-        result = g_pSceneManager->LoadScene("Scene/LinearInterpolateTest.ogex");
+		// donuts.ogex
+        result = g_pSceneManager->LoadScene("Scene/splash.ogex");
     //}
 
 	return 0;
