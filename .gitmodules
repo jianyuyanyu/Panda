@@ -4,9 +4,6 @@
 [submodule "External/src/opengex"]
 	path = External/src/opengex
 	url = https://github.com/netwarm007/OpenGEX.git
-[submodule "External/src/crossguid"]
-	path = External/src/crossguid
-	url = https://github.com/netwarm007/crossguid
 [submodule "External/src/llvm"]
 	path = External/src/llvm
 	url = http://llvm.org/git/llvm
