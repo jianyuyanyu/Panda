@@ -1,6 +1,3 @@
 [submodule "External/src/libpng"]
 	path = External/src/libpng
 	url = git://git.code.sf.net/p/libpng/code
-[submodule "External/src/opengex"]
-	path = External/src/opengex
-	url = https://github.com/netwarm007/OpenGEX.git
