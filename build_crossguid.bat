@@ -1,5 +1,5 @@
 @echo off
-::git submodule update --init 3rdParty/crossguid
+git submodule update --init 3rdParty/crossguid
 mkdir 3rdParty\crossguid\build
 cd 3rdParty\crossguid\build
 rm -rf *
