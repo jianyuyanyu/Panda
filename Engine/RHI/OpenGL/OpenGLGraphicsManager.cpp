@@ -227,45 +227,62 @@ namespace Panda
         glUniformMatrix4fv(location, 1, false, m_DrawFrameContext.ProjectionMatrix);
 
         // Set lighting parameters for PS shader
-        location = glGetUniformLocation(shader, "lightPosition");
+        location = glGetUniformLocation(shader, "numLights");
         if (location == -1)
             return false;
-        glUniform4fv(location, 1, m_DrawFrameContext.LightPosition);
+        glUniform1i(location, m_DrawFrameContext.Lights.size());
+        
+        for (int32_t i = 0; i < m_DrawFrameContext.Lights.size(); ++i)
+        {
+            char paramName[64] = {0};
+            sprintf(paramName, "allLights[%d].lightPosition", i);
+            location = glGetUniformLocation(shader, paramName);
+            if (location == -1)
+                return false;
+            glUniform4fv(location, 1, m_DrawFrameContext.Lights[i].LightPosition);
 
-        location = glGetUniformLocation(shader, "lightColor");
-        if (location == -1)
-            return false;
-        glUniform4fv(location, 1, m_DrawFrameContext.LightColor);
+            sprintf(paramName, "allLights[%d].lightColor", i);
+            location = glGetUniformLocation(shader, paramName);
+            if (location == -1)
+                return false;
+            glUniform4fv(location, 1, m_DrawFrameContext.Lights[i].LightColor);
 
-        location = glGetUniformLocation(shader, "lightIntensity");
-        if (location == -1)
-            return false;
-        glUniform1f(location, m_DrawFrameContext.LightIntensity);
+            sprintf(paramName, "allLights[%d].lightIntensity", i);
+            location = glGetUniformLocation(shader, paramName);
+            if (location == -1)
+                return false;
+            glUniform1f(location, m_DrawFrameContext.Lights[i].LightIntensity);
 
-        location = glGetUniformLocation(shader, "lightDirection");
-        if (location == -1)
-            return false;
-        glUniform3fv(location, 1, m_DrawFrameContext.LightDirection);
+            sprintf(paramName, "allLights[%d].lightDirection", i);
+            location = glGetUniformLocation(shader, paramName);
+            if (location == -1)
+                return false;
+            glUniform3fv(location, 1, m_DrawFrameContext.Lights[i].LightDirection);
 
-        location = glGetUniformLocation(shader, "lightDistAttenCurveType");
-        if (location == -1)
-            return false;
-        glUniform1i(location, (GLint)m_DrawFrameContext.LightDistAttenCurveType);
+            sprintf(paramName, "allLights[%d].lightDistAttenCurveType", i);
+            location = glGetUniformLocation(shader, paramName);
+            if (location == -1)
+                return false;
+            glUniform1i(location, (GLint)m_DrawFrameContext.Lights[i].LightDistAttenCurveType);
 
-        location = glGetUniformLocation(shader, "lightDistAttenCurveParams");
-        if (location == -1)
-            return false;
-        glUniform1fv(location, 5, m_DrawFrameContext.LightDistAttenCurveParams);
+            sprintf(paramName, "allLights[%d].lightDistAttenCurveParams", i);
+            location = glGetUniformLocation(shader, paramName);
+            if (location == -1)
+                return false;
+            glUniform1fv(location, 5, m_DrawFrameContext.Lights[i].LightDistAttenCurveParams);
 
-        location = glGetUniformLocation(shader, "lightAngleAttenCurveType");
-        if (location == -1)
-            return false;
-        glUniform1i(location, (GLint)m_DrawFrameContext.LightAngleAttenCurveType);
+            sprintf(paramName, "allLights[%d].lightAngleAttenCurveType", i);
+            location = glGetUniformLocation(shader, paramName);
+            if (location == -1)
+                return false;
+            glUniform1i(location, (GLint)m_DrawFrameContext.Lights[i].LightAngleAttenCurveType);
 
-        location = glGetUniformLocation(shader, "lightAngleAttenCurveParams");
-        if (location == -1)
-            return false;
-        glUniform1fv(location, 5, m_DrawFrameContext.LightAngleAttenCurveParams);
+            sprintf(paramName, "allLights[%d].lightAngleAttenCurveParams", i);
+            location = glGetUniformLocation(shader, paramName);
+            if (location == -1)
+                return false;
+            glUniform1fv(location, 5, m_DrawFrameContext.Lights[i].LightAngleAttenCurveParams);
+        }
 
         location = glGetUniformLocation(shader, "ambientColor");
         if (location == -1)

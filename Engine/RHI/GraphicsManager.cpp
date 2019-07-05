@@ -117,50 +117,62 @@ namespace Panda
 	void GraphicsManager::CalculateLights()
 	{
 		m_DrawFrameContext.AmbientColor = {0.01f, 0.01f, 0.01f};
+		m_DrawFrameContext.Lights.clear();
+		
 		auto& scene = g_pSceneManager->GetScene();
-		auto pLightNode = scene.GetFirstLightNode();
-		if (pLightNode)
+		auto _pLightNode = scene.GetFirstLightNode();
+		if (!_pLightNode) 
 		{
-			const std::shared_ptr<Matrix4f> transPtr = pLightNode->GetCalculatedTransform();
-			m_DrawFrameContext.LightPosition = {0.0f, 0.0f, 0.0f, 1.0f};
-			TransformCoord(m_DrawFrameContext.LightPosition, *transPtr);
-			m_DrawFrameContext.LightDirection = {0.0f, 0.0f, -1.0f};
-			TransformCoord(m_DrawFrameContext.LightDirection, *transPtr);
+			LightContext light;
+			// use default build light (Point)
+			light.LightPosition = {-1.0f, -5.0f, 0.0f, 1.0f};
+			light.LightColor = {1.0f, 1.0f, 1.0f, 1.0f};
+			light.LightDirection = {0.0f, 0.0f, -1.0f};
+			light.LightIntensity = 1.0f;
+			light.LightDistAttenCurveType = AttenCurveType::kAttenLinear;
+			light.LightDistAttenCurveParams[0] = 0.0f;
+			light.LightDistAttenCurveParams[1] = 1.0f;
+			light.LightAngleAttenCurveType = AttenCurveType::kAttenLinear;
+			light.LightAngleAttenCurveParams[0] = PI;
+			light.LightAngleAttenCurveParams[1] = PI;
 
-			const std::shared_ptr<SceneObjectLight> pLight = scene.GetLight(pLightNode->GetSceneObjectRef());
+			m_DrawFrameContext.Lights.push_back(light);
+
+			return;
+		}
+
+		for (auto pLightNode : scene.LightNodes)
+		{
+			LightContext light;
+			const std::shared_ptr<Matrix4f> transPtr = pLightNode.second->GetCalculatedTransform();
+			light.LightPosition = {0.0f, 0.0f, 0.0f, 1.0f};
+			TransformCoord(light.LightPosition, *transPtr);
+			light.LightDirection = {0.0f, 0.0f, -1.0f};
+			TransformCoord(light.LightDirection, *transPtr);
+
+			const std::shared_ptr<SceneObjectLight> pLight = scene.GetLight(pLightNode.second->GetSceneObjectRef());
 			if (pLight)
 			{
-				m_DrawFrameContext.LightColor = pLight->GetColor().Value;
-				m_DrawFrameContext.LightIntensity = pLight->GetIntensity();
+				light.LightColor = pLight->GetColor().Value;
+				light.LightIntensity = pLight->GetIntensity();
 				const AttenCurve& attenCurve = pLight->GetDistanceAttenuation();
-				m_DrawFrameContext.LightDistAttenCurveType = attenCurve.type;
-				memcpy(m_DrawFrameContext.LightDistAttenCurveParams, &attenCurve.u, sizeof(attenCurve.u));
+				light.LightDistAttenCurveType = attenCurve.type;
+				memcpy(light.LightDistAttenCurveParams, &attenCurve.u, sizeof(attenCurve.u));
 				if (pLight->GetType() == SceneObjectType::kSceneObjectTypeLightSpot)
 				{
 					const std::shared_ptr<SceneObjectSpotLight> _pLight = std::dynamic_pointer_cast<SceneObjectSpotLight>(pLight);
 					const AttenCurve& angleAttenCurve = _pLight->GetAngleAttenuation();
-					m_DrawFrameContext.LightAngleAttenCurveType = angleAttenCurve.type;
-					memcpy(m_DrawFrameContext.LightAngleAttenCurveParams, &angleAttenCurve.u, sizeof(angleAttenCurve.u));
+					light.LightAngleAttenCurveType = angleAttenCurve.type;
+					memcpy(light.LightAngleAttenCurveParams, &angleAttenCurve.u, sizeof(angleAttenCurve.u));
 				}
 			}
 			else 
 			{
 				assert(0);
 			}
-		}
-		else 
-		{
-			// use default build light (Point)
-			m_DrawFrameContext.LightPosition = {-1.0f, -5.0f, 0.0f, 1.0f};
-			m_DrawFrameContext.LightColor = {1.0f, 1.0f, 1.0f, 1.0f};
-			m_DrawFrameContext.LightDirection = {0.0f, 0.0f, -1.0f};
-			m_DrawFrameContext.LightIntensity = 1.0f;
-			m_DrawFrameContext.LightDistAttenCurveType = AttenCurveType::kAttenLinear;
-			m_DrawFrameContext.LightDistAttenCurveParams[0] = 0.0f;
-			m_DrawFrameContext.LightDistAttenCurveParams[1] = 1.0f;
-			m_DrawFrameContext.LightAngleAttenCurveType = AttenCurveType::kAttenLinear;
-			m_DrawFrameContext.LightAngleAttenCurveParams[0] = PI;
-			m_DrawFrameContext.LightAngleAttenCurveParams[1] = PI;
+
+			m_DrawFrameContext.Lights.push_back(light);
+
 		}
 	}
 

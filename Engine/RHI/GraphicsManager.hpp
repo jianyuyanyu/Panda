@@ -38,11 +38,8 @@ namespace Panda {
 			virtual void RenderBuffers();
 
 		protected:
-			struct DrawFrameContext
+			struct LightContext
 			{
-				Matrix4f WorldMatrix;
-				Matrix4f ViewMatrix;
-				Matrix4f ProjectionMatrix;
 				Vector4Df LightPosition;
 				Vector4Df LightColor;
 				Vector3Df LightDirection;
@@ -51,6 +48,15 @@ namespace Panda {
 				float LightDistAttenCurveParams[5];
 				AttenCurveType LightAngleAttenCurveType;
 				float LightAngleAttenCurveParams[5];
+				
+			};
+
+			struct DrawFrameContext
+			{
+				Matrix4f WorldMatrix;
+				Matrix4f ViewMatrix;
+				Matrix4f ProjectionMatrix;
+				std::vector<LightContext> Lights;
 				Vector3Df AmbientColor;
 
 				friend std::ostream& operator<<(std::ostream& out, DrawFrameContext context)
@@ -60,12 +66,6 @@ namespace Panda {
 					out << "WorldMatrix = " << context.WorldMatrix << std::endl;
 					out << "ViewMatrix = " << context.ViewMatrix << std::endl;
 					out << "ProjectionMatrix = " << context.ProjectionMatrix << std::endl;
-					out << "LightPosition = " << context.LightPosition << std::endl;
-					out << "LightColor = " << context.LightColor << std::endl;
-					out << "LightDirection = " << context.LightDirection << std::endl;
-					out << "LightIntensity = " << context.LightIntensity << std::endl;
-					out << "LightDistAttenCurveType = " << context.LightDistAttenCurveType << std::endl;
-					out << "AmbientColor = " << context.AmbientColor << std::endl;
 					out << "----------------------" << std::endl;
 					out << std::endl;
 

@@ -8,14 +8,19 @@
 // CONSTANTS       //
 /////////////////////
 // per frame
-uniform vec4    lightPosition;
-uniform vec4    lightColor;
-uniform vec3    lightDirection;
-uniform float   lightIntensity;
-uniform int     lightDistAttenCurveType;
-uniform float   lightDistAttenCurveParams[5];
-uniform int     lightAngleAttenCurveType;
-uniform float   lightAngleAttenCurveParams[5];
+#define MAX_LIGHTS 10
+uniform int numLights;
+uniform struct Light
+{
+    vec4    lightPosition;
+    vec4    lightColor;
+    vec3    lightDirection;
+    float   lightIntensity;
+    int     lightDistAttenCurveType;
+    float   lightDistAttenCurveParams[5];
+    int     lightAngleAttenCurveType;
+    float   lightAngleAttenCurveParams[5];
+} allLights[MAX_LIGHTS];
 
 uniform mat4 worldMatrix;
 uniform mat4 viewMatrix;
@@ -104,29 +109,38 @@ float ImplementAttenCurve(float dist, int attenType, float attenParams[5])
     return atten;
 }
 
-void main(void)
+vec3 Illumination(Light l)
 {
     // vertex normal
     vec3 N = normalize(normal.xyz);
 
-    vec3 L = (viewMatrix * worldMatrix * lightPosition).xyz - v.xyz; // vector from vertex to light
+    vec3 L = (viewMatrix * worldMatrix * l.lightPosition).xyz - v.xyz; // vector from vertex to light
     float distance = length(L);
     L = normalize(L);
-    vec3 lightDir = normalize((viewMatrix * worldMatrix * vec4(lightDirection, 0.0f)).xyz);
+    vec3 lightDir = normalize((viewMatrix * worldMatrix * vec4(l.lightDirection, 0.0f)).xyz);
     float lightToSurfAngle = acos(dot(L, lightDir));
 
     //angle attenuation
-    float atten = ImplementAttenCurve(lightToSurfAngle, lightAngleAttenCurveType, lightAngleAttenCurveParams);
+    float atten = ImplementAttenCurve(lightToSurfAngle, l.lightAngleAttenCurveType, l.lightAngleAttenCurveParams);
 
     // distance attenuation
-    atten *= ImplementAttenCurve(distance, lightDistAttenCurveType, lightDistAttenCurveParams);
+    atten *= ImplementAttenCurve(distance, l.lightDistAttenCurveType, l.lightDistAttenCurveParams);
 
     vec3 R = normalize(2.0f * clamp(dot(L, N), 0.0f, 1.0f) * N - L);
     vec3 V = -normalize(v.xyz);
 
     if (usingDiffuseMap)
-        outputColor = vec4(ambientColor.rgb + lightIntensity * atten * lightColor.rgb * (texture(diffuseMap, uv).rgb * clamp(dot(N, L), 0.0f, 1.0f) + specularColor.rgb * pow(clamp(dot(R, V), 0.0f, 1.0f), specularPower)), 1.0f); 
+        return l.lightIntensity * atten * l.lightColor.rgb * (texture(diffuseMap, uv).rgb * clamp(dot(N, L), 0.0f, 1.0f) + specularColor.rgb * pow(clamp(dot(R, V), 0.0f, 1.0f), specularPower)); 
     else
-        outputColor = vec4(ambientColor.rgb + lightIntensity * atten * lightColor.rgb * (diffuseColor.rgb * clamp(dot(N, L), 0.0f, 1.0f) + specularColor.rgb * pow(clamp(dot(R,V), 0.0f, 1.0f), specularPower)), 1.0f); 
+        return l.lightIntensity * atten * l.lightColor.rgb * (diffuseColor.rgb * clamp(dot(N, L), 0.0f, 1.0f) + specularColor.rgb * pow(clamp(dot(R,V), 0.0f, 1.0f), specularPower)); 
+}
+
+void main(void)
+{
+    vec3 ill = vec3(0);
+    for (int i = 0; i < numLights; ++i)
+        ill += Illumination(allLights[i]);
+    
+    outputColor = vec4(clamp(ill, 0.0f, 1.0f), 1.0f);
 }
 
