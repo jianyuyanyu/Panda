@@ -1,3 +1,4 @@
+mkdir Binaries
 mkdir Build
 pushd Build
 rm -rf *

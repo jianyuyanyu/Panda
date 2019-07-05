@@ -4,8 +4,14 @@ cmake_minimum_required (VERSION 3.1)	# Minimum limited version, 3.1
 
 project(Panda) # project name
 
-set (CMAKE_C_STNDARD 11)
-set (CMAKE_CXX_STANDARD 11)
+# 'cause crossguid need c++17.
+set (CMAKE_C_STNDARD 17)
+set (CMAKE_CXX_STANDARD 17)
+set (CMAKE_DEBUG_POSTFIX "d")
+set (CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG  ${PROJECT_SOURCE_DIR}/Binaries)
+set (CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE  ${PROJECT_SOURCE_DIR}/Binaries)
+set (CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG  ${PROJECT_SOURCE_DIR}/Binaries)
+set (CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE   ${PROJECT_SOURCE_DIR}/Binaries)
 
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMake")
 include (TargetArchDetect)
@@ -18,92 +24,32 @@ else()
     set(ARCH_BIT 32)
 endif()
 
-include_directories("${PROJECT_SOURCE_DIR}/Framework/Ability")      # include directory: Ability
-include_directories("${PROJECT_SOURCE_DIR}/Framework/Parser/")       # include directory:Parser
-include_directories("${PROJECT_SOURCE_DIR}/Framework/Common/")		# include directory:Common
-include_directories("${PROJECT_SOURCE_DIR}/Framework/Interface/")	# include directory:Interface
-include_directories("${PROJECT_SOURCE_DIR}/Framework/Math/")			# include directory: Math
-include_directories("${PROJECT_SOURCE_DIR}/Physics")
-include_directories("${PROJECT_SOURCE_DIR}/RHI/")
-include_directories("${PROJECT_SOURCE_DIR}/")
 IF(${UNIX})
     set(PANDA_TARGET_PLATFORM "Linux")
 ELSEIF(${WIN32})
     set(PANDA_TARGET_PLATFORM "Windows")
 ENDIF(${UNIX})
-include_directories("${PROJECT_SOURCE_DIR}/Platform/${PANDA_TARGET_PLATFORM}/")
-include_directories("${PROJECT_SOURCE_DIR}/Platform/${PANDA_TARGET_PLATFORM}/")
-set(PANDA_EXTERNAL_ROOT ${PROJECT_SOURCE_DIR}/External/${CMAKE_SYSTEM_NAME}/)
-include_directories("${PANDA_EXTERNAL_ROOT}/include/")
-include_directories("${PANDA_EXTERNAL_ROOT}/include/bullet")
-set(PANDA_EXTERNAL_LIBRARY_PATH ${PANDA_EXTERNAL_ROOT}lib/)
-find_library(XG_LIBRARY xg PATHS ${PANDA_EXTERNAL_LIBRARY_PATH} NO_CMAKE_FIND_ROOT_PATH NO_SYSTEM_ENVIRONMENT_PATH)
-find_library(OPENDDL_LIBRARY OpenDDL PATHS ${PANDA_EXTERNAL_LIBRARY_PATH} NO_CMAKE_FIND_ROOT_PATH NO_SYSTEM_ENVIRONMENT_PATH)
-find_library(OPENGEX_LIBRARY OpenGEX PATHS ${PANDA_EXTERNAL_LIBRARY_PATH} NO_CMAKE_FIND_ROOT_PATH NO_SYSTEM_ENVIRONMENT_PATH)
-find_library(ZLIB_LIBRARY zlib PATHS ${PANDA_EXTERNAL_LIBRARY_PATH} NO_CMAKE_FIND_ROOT_PATH NO_SYSTEM_ENVIRONMENT_PATH)
-find_library(BULLET_COLLISION_LIBRARY NAMES BulletCollision_Debug PATHS ${PANDA_EXTERNAL_LIBRARY_PATH} NO_CMAKE_FIND_ROOT_PATH NO_SYSTEM_ENVIRONMENT_PATH)
-find_library(BULLET_DYNAMICS_LIBRARY NAMES BulletDynamics_Debug PATHS ${PANDA_EXTERNAL_LIBRARY_PATH} NO_CMAKE_FIND_ROOT_PATH NO_SYSTEM_ENVIRONMENT_PATH)
-find_library(BULLET_LINEARMATH_LIBRARY NAMES LinearMath_Debug PATHS ${PANDA_EXTERNAL_LIBRARY_PATH} NO_CMAKE_FIND_ROOT_PATH NO_SYSTEM_ENVIRONMENT_PATH)
-include(CTest)
-include(CheckCXXSourceCompiles)
-include(PlatformDependencies)
-CHECK_CXX_SOURCE_COMPILES(
-"#include <memory>
-int main(int argc, char** argv)
-{
-    std::unique_ptr<int> my_int = std::make_unique<int>();
-    *my_int = 0;
-    return *my_int;
-}
-"
- HAVE_MAKE_UNIQUE)
- configure_file(${PROJECT_SOURCE_DIR}/config.h.in ${PROJECT_SOURCE_DIR}/config.h)
- 
-CHECK_CXX_SOURCE_COMPILES(
-"#include <algorithm>
 
-int main(int argc, char** argv)
-{
-	int result = -1;
-	result = std::clamp(result, 0, 1);
-	return result;
-}
-"
-HAVE_CLAMP)
+include_directories("${PROJECT_SOURCE_DIR}/Engine/Common")
+include_directories("${PROJECT_SOURCE_DIR}/Engine/Core")
+include_directories("${PROJECT_SOURCE_DIR}/Engine/InputManager")
+include_directories("${PROJECT_SOURCE_DIR}/Engine/DebugManager")
+include_directories("${PROJECT_SOURCE_DIR}/Engine/RHI")
+include_directories("${PROJECT_SOURCE_DIR}/Engine/SceneManager")
+include_directories("${PROJECT_SOURCE_DIR}")
+set(PANDA_EXTERNAL_ROOT ${PROJECT_SOURCE_DIR}/3rdParty)
+set(PANDA_EXTERNAL_LIBRARY_PATH ${PANDA_EXTERNAL_ROOT}/lib)
+include_directories("${PANDA_EXTERNAL_ROOT}/include")
 
-add_subdirectory(Framework)		# sub directory, must have CMakeLists.txt in it
-add_subdirectory(Platform)
-add_subdirectory(RHI)
+find_library(CROSSGUID_D_LIB crossguidd PATHS ${PANDA_EXTERNAL_LIBRARY_PATH} NO_CMAKE_FIND_ROOT_PATH NO_SYSTEM_ENVIRONMENT_PATH)
+find_library(CROSSGUID_R_LIB crossguid PATHS ${PANDA_EXTERNAL_LIBRARY_PATH} NO_CMAKE_FIND_ROOT_PATH NO_SYSTEM_ENVIRONMENT_PATH)
+find_library(OPENDDL_LIB OpenDDL PATHS ${PANDA_EXTERNAL_LIBRARY_PATH} NO_CMAKE_FIND_ROOT_PATH NO_SYSTEM_ENVIRONMENT_PATH)
+find_library(OPENGEX_LIB OpenGEX PATHS ${PANDA_EXTERNAL_LIBRARY_PATH} NO_CMAKE_FIND_ROOT_PATH NO_SYSTEM_ENVIRONMENT_PATH)
+find_library(ZLIB_LIB zlib PATHS ${PANDA_EXTERNAL_LIBRARY_PATH} NO_CMAKE_FIND_ROOT_PATH NO_SYSTEM_ENVIRONMENT_PATH)
+
+add_subdirectory(Engine)		# sub directory, must have CMakeLists.txt in it
 add_subdirectory(Test)
-add_subdirectory(Game)
-add_subdirectory(Physics)
 add_subdirectory(Editor)
-
-#IF (${UNIX})	# Unix platform compile configuration.
-#	set (CMAKE_C_COMPILER				"gcc")
-#	set (CMAKE_C_FLAGS_DEBUG			"-g")
-#	set (CMAKE_C_FLAGS_RELWITHDEBINFO	"-O2 -g")
-#	set (CMAKE_CXX_COMPILER				"g++")
-#	set (CMAKE_CXX_FLAGS				"-Wall -std=gnu++14")
-#	set (CMAKE_CXX_FLAGS_DEBUG			"-g")
-#	set (CMAKE_CXX_FLAGS_RELWITHDEBINFO	"-O2 -g")
-#	set (CMAKE_CXX_STANDARD				11)
-#ELSEIF (${WIN32})
-#	# windows specific code
-#	set (CMAKE_C_COMPILER				"cl")
-#	set (CMAKE_C_FLAGS_DEBUG			"/Debug /Zi")
-#	set (CMAKE_C_FLAGS_RELWITHDEBINFO	"-O2 /Debug")
-#	set (CMAKE_CXX_COMPILER				"cl")
-#	set (CMAKE_CXX_FLAGS_DEBUG			"/Debug /Zi")
-#	set (CMAKE_CXX_FLAGS				"-Wall -Xclang -std=gnu++14")
-#	set (CMAKE_CXX_FLAGS_RELWITHDEBINFO	"-O2 /Debug")
-#ENDIF (${UNIX})
-#set (CMAKE_C_FLAGS				"-Wall")
-#set (CMAKE_C_FLAGS_MINSIZEREL	"-Os -DNDEBUG")
-#set (CMAKE_C_FLAGS_RELEASE		"-O3 -DNDEBUG")
-#set (CMAKE_C_STANDARD			11)
-#set (CMAKE_CXX_FLAGS_MINSIZEREL	"-Os -DNDEBUG")
-#set (CMAKE_CXX_FLAGS_RELEASE	"-O3 -DNDEBUG")
 
 # ------------------------- Begin Generic CMake Variable Logging ------------------
 # if you are building in-source, this is the same as CMAKE_SOURCE_DIR, otherwise
@@ -275,15 +221,12 @@ MESSAGE(STATUS "TARGET_ARCH:				" ${TARGET_ARCH})
 MESSAGE(STATUS "PANDA_EXTERNAL_ROOT: " ${PANDA_EXTERNAL_ROOT})
 MESSAGE(STATUS "PANDA_EXTERNAL_LIBRARY_PATH: " ${PANDA_EXTERNAL_LIBRARY_PATH})
 
-MESSAGE(STATUS "XG_LIBRARY: " ${XG_LIBRARY})
-MESSAGE(STATUS "OPENDDL_LIBRARY: " ${OPENDDL_LIBRARY})
-MESSAGE(STATUS "OPENGEX_LIBRARY: " ${OPENGEX_LIBRARY})
-MESSAGE(STATUS "BULLET_COLLISION_LIBRARY: " ${BULLET_COLLISION_LIBRARY})
-MESSAGE(STATUS "BULLET_DYNAMICS_LIBRARY: " ${BULLET_DYNAMICS_LIBRARY})
-MESSAGE(STATUS "BULLET_LINEARMATH_LIBRARY: " ${BULLET_LINEARMATH_LIBRARY})
-
-#
-#MESSAGE( STATUS ": " ${} )
+MESSAGE(STATUS "CROSSGUID_LIB: " ${CROSSGUID_LIB})
+MESSAGE(STATUS "OPENDDL_LIB: " ${OPENDDL_LIB})
+MESSAGE(STATUS "OPENGEX_LIB: " ${OPENGEX_LIB})
+MESSAGE(STATUS "CMAKE_DEBUG_POSTFIX: " ${CMAKE_DEBUG_POSTFIX})
+MESSAGE(STATUS "CMAKE_CONFIGURATION_TYPES: " ${CMAKE_CONFIGURATION_TYPES})
+MESSAGE(STATUS "CMAKE_BUILD_TYPE: " ${CMAKE_BUILD_TYPE})
 
 # ------------------------- End of Generic CMake Variable Logging ------------------
 

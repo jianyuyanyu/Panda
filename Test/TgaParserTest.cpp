@@ -2,7 +2,7 @@
 #include <string>
 #include "AssetLoader.hpp"
 #include "MemoryManager.hpp"
-#include "TGA.hpp"
+#include "Parser/TGA.hpp"
 
 using namespace std;
 using namespace Panda;

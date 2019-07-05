@@ -1,0 +1,12 @@
+[submodule "3rdParty/crossguid"]
+	path = 3rdParty/crossguid
+	url = git@github.com:FlashPanda/crossguid.git
+[submodule "3rdParty/OpenGEX"]
+	path = 3rdParty/OpenGEX
+	url = git@github.com:FlashPanda/OpenGEX.git
+[submodule "3rdParty/zlib"]
+	path = 3rdParty/zlib
+	url = git@github.com:FlashPanda/zlib.git
+[submodule "3rdParty/libpng"]
+	path = 3rdParty/libpng
+	url = git@github.com:FlashPanda/libpng.git

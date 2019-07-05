@@ -1,6 +1,6 @@
 #include<iostream>
 #include <iomanip>
-#include "Numerical.hpp"
+#include "Math/Numerical.hpp"
 
 using namespace Panda;
 using namespace std;

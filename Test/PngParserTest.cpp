@@ -2,7 +2,7 @@
 #include <string>
 #include "AssetLoader.hpp"
 #include "MemoryManager.hpp"
-#include "PNG.hpp"
+#include "Parser/PNG.hpp"
 
 using namespace Panda;
 using namespace std;

@@ -38,18 +38,9 @@
 # vscode
 .vscode
 
-**/build
-Build/
-*.*~
-*.pdb
-*.ilk
-*.vso
-*.pso
-**/.vs
-*.swp
-**/Debug
-**/Release
-**/lib
-**/lib64
-
-config.h
+Build/*
+Binaries/*
+3rdParty/bin
+3rdParty/include
+3rdParty/lib
+3rdParty/share

@@ -1,6 +1,6 @@
 #!/bin/bash
-git submodule update --init External/src/crossguid
-mkdir -p External/build/crossguid
-cd External/build/crossguid
-cmake -DCMAKE_INSTALL_PREFIX=../../ ../../src/crossguid
+git submodule update --init 3rdParty/crossguid
+mkdir -p 3rdParty/crossguid/build
+cd 3rdParty/crossguid/build
+cmake -DCMAKE_INSTALL_PREFIX=../../ ../
 cmake --build . --config debug --target install

@@ -2,7 +2,7 @@
 #include <string>
 #include "AssetLoader.hpp"
 #include "MemoryManager.hpp"
-#include "OGEX.hpp"
+#include "Parser/OGEX.hpp"
 
 using namespace Panda;
 using namespace std;

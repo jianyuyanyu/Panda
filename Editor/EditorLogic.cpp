@@ -1,7 +1,6 @@
 #include "EditorLogic.hpp"
-#include "IApplication.hpp"
+#include "Interface/IApplication.hpp"
 #include "SceneManager.hpp"
-#include "AnimationManager.hpp"
 
 using namespace Panda;
 using namespace std;

@@ -1,6 +1,6 @@
 #include <iostream>
 #include <iomanip>
-#include "Bezier.hpp"
+#include "Math/Bezier.hpp"
 
 using namespace Panda;
 using namespace std;

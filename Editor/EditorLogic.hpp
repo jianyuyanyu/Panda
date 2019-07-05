@@ -1,6 +1,6 @@
 #pragma once
-#include "IGameLogic.hpp"
-#include "PandaMath.hpp"
+#include "Interface/IGameLogic.hpp"
+#include "Math/PandaMath.hpp"
 #include "portable.hpp"
 
 namespace Panda

@@ -18,7 +18,7 @@
 #include <exception>
 
 #include "Utility.hpp"
-#include "PandaMath.hpp"
+#include "Math/PandaMath.hpp"
 #include "d3dx12.h"
 
 using namespace DirectX;

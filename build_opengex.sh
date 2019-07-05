@@ -1,6 +1,6 @@
 #!/bin/bash
-git submodule update --init External/src/opengex
-mkdir -p External/build/opengex
-cd External/build/opengex
-cmake -DCMAKE_INSTALL_PREFIX=../../ ../../src/opengex
+git submodule update --init 3rdParty\OpenGEX
+mkdir -p 3rdParty\OpenGEX\build
+cd 3rdParty\OpenGEX\build
+cmake -DCMAKE_INSTALL_PREFIX=../../ ../
 cmake --build . --config debug --target install

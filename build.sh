@@ -1,4 +1,5 @@
 #!/bin/bash
+mkdir Binaries
 mkdir -p Build
 cd Build
 rm -rf *

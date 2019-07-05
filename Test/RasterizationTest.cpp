@@ -2,7 +2,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include "PandaMath.hpp"
+#include "Math/PandaMath.hpp"
 
 using namespace Panda;
 using namespace std;

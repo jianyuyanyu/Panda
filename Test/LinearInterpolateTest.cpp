@@ -1,7 +1,7 @@
 #include <iostream>
 #include <random>
-#include "Linear.hpp"
-#include "PandaMath.hpp"
+#include "Math/Linear.hpp"
+#include "Math/PandaMath.hpp"
 
 using namespace Panda;
 using namespace std;
