@@ -99,3 +99,8 @@ add_test(NAME TEST_PolarDecomposition COMMAND PolarDecompositionTest)
 add_executable(RasterizationTest RasterizationTest.cpp)
 target_link_libraries(RasterizationTest Core)
 add_test(NAME TEST_Rasterization COMMAND RasterizationTest)
+
+add_executable(InstructionPipelineTest
+    InstructionPipelineTest.cpp)
+target_link_libraries(InstructionPipelineTest Core)
+add_test(NAME TEST_InstructionPipeline COMMAND InstructionPipelineTest)

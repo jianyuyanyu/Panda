@@ -49,6 +49,8 @@ namespace Panda {
         HRESULT WaitForPreviousFrame();
         HRESULT PopulateCommandList();
 
+		HRESULT CreateIntervalVertexBuffer();
+
     private:
         static const uint32_t           k_FrameCount  = 2;
         static const uint32_t           k_MaxSceneObjectCount = 65535;
@@ -70,7 +72,13 @@ namespace Panda {
         ID3D12PipelineState*            m_pPipelineState = nullptr;         // an object maintains the state of all currently set shaders
                                                                             // and certain fixed function state objects
                                                                             // such as the input assembler, tesselator, rasterizer and output manager
+		
         ID3D12GraphicsCommandList*      m_pCommandList = nullptr;           // a list to store GPU commands, which will be submitted to GPU to execute when done
+
+		ID3D12RootSignature*			m_pRootSignatureResolve = nullptr;	// used for resolve msaa render target
+		ID3D12PipelineState*			m_pPipelineStateResolve = nullptr;	// used for resolve msaa render target
+        ID3D12Resource*                 m_pMsaaRenderTarget;                // render target used for msaa
+		D3D12_VERTEX_BUFFER_VIEW		m_VertexBufferViewResolve;
 
         uint32_t                        m_RtvDescriptorSize;
         uint32_t                        m_CbvSrvDescriptorSize;
