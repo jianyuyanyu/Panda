@@ -42,13 +42,12 @@ namespace Panda {
 			{
 				Vector4Df LightPosition;
 				Vector4Df LightColor;
-				Vector3Df LightDirection;
+				Vector4Df LightDirection;
 				float LightIntensity;
 				AttenCurveType LightDistAttenCurveType;
 				float LightDistAttenCurveParams[5];
 				AttenCurveType LightAngleAttenCurveType;
 				float LightAngleAttenCurveParams[5];
-				
 			};
 
 			struct DrawFrameContext
@@ -56,21 +55,21 @@ namespace Panda {
 				Matrix4f WorldMatrix;
 				Matrix4f ViewMatrix;
 				Matrix4f ProjectionMatrix;
-				std::vector<LightContext> Lights;
 				Vector3Df AmbientColor;
+				std::vector<LightContext> Lights;
 
-				friend std::ostream& operator<<(std::ostream& out, DrawFrameContext context)
-				{
-					out << std::endl;
-					out << "----------------------" << std::endl;
-					out << "WorldMatrix = " << context.WorldMatrix << std::endl;
-					out << "ViewMatrix = " << context.ViewMatrix << std::endl;
-					out << "ProjectionMatrix = " << context.ProjectionMatrix << std::endl;
-					out << "----------------------" << std::endl;
-					out << std::endl;
+				//friend std::ostream& operator<<(std::ostream& out, DrawFrameContext context)
+				//{
+				//	out << std::endl;
+				//	out << "----------------------" << std::endl;
+				//	out << "WorldMatrix = " << context.WorldMatrix << std::endl;
+				//	out << "ViewMatrix = " << context.ViewMatrix << std::endl;
+				//	out << "ProjectionMatrix = " << context.ProjectionMatrix << std::endl;
+				//	out << "----------------------" << std::endl;
+				//	out << std::endl;
 
-					return out;
-				}
+				//	return out;
+				//}
 			};
 
 			DrawFrameContext m_DrawFrameContext;

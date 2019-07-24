@@ -38,6 +38,12 @@ namespace Panda
 			return ret;
 		}
 
+		if ((ret = g_pShaderModule->Initialize()) != 0)
+		{
+			std::cerr << "Failed. err = " << ret;
+			return ret;
+		}
+
 		if ((ret = g_pInputManager->Initialize()) != 0)
 		{
 			std::cerr << "Failed. err = " << ret;
@@ -68,6 +74,7 @@ namespace Panda
 		#endif
 		g_pGameLogic->Finalize();
 		g_pInputManager->Finalize();
+		g_pShaderModule->Finalize();
 		g_pGraphicsManager->Finalize();
 		g_pSceneManager->Finalize();
 		g_pAssetLoader->Finalize();
@@ -80,6 +87,7 @@ namespace Panda
 		g_pSceneManager->Tick();
 		g_pInputManager->Tick();
 		g_pGameLogic->Tick();
+		g_pShaderModule->Tick();
 		g_pGraphicsManager->Tick();
 		#ifdef DEBUG
 		g_pDebugManager->Tick();

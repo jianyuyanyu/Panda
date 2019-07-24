@@ -116,7 +116,7 @@ namespace Panda
 
 	void GraphicsManager::CalculateLights()
 	{
-		m_DrawFrameContext.AmbientColor = {0.01f, 0.01f, 0.01f};
+		m_DrawFrameContext.AmbientColor = {0.2f, 0.2f, 0.2f};
 		m_DrawFrameContext.Lights.clear();
 		
 		auto& scene = g_pSceneManager->GetScene();
@@ -127,7 +127,7 @@ namespace Panda
 			// use default build light (Point)
 			light.LightPosition = {-1.0f, -5.0f, 0.0f, 1.0f};
 			light.LightColor = {1.0f, 1.0f, 1.0f, 1.0f};
-			light.LightDirection = {0.0f, 0.0f, -1.0f};
+			light.LightDirection = {0.0f, 0.0f, -1.0f, 0.0f};
 			light.LightIntensity = 1.0f;
 			light.LightDistAttenCurveType = AttenCurveType::kAttenLinear;
 			light.LightDistAttenCurveParams[0] = 0.0f;
@@ -147,7 +147,7 @@ namespace Panda
 			const std::shared_ptr<Matrix4f> transPtr = pLightNode.second->GetCalculatedTransform();
 			light.LightPosition = {0.0f, 0.0f, 0.0f, 1.0f};
 			TransformCoord(light.LightPosition, *transPtr);
-			light.LightDirection = {0.0f, 0.0f, -1.0f};
+			light.LightDirection = {0.0f, 0.0f, -1.0f, 0.0f};
 			TransformCoord(light.LightDirection, *transPtr);
 
 			const std::shared_ptr<SceneObjectLight> pLight = scene.GetLight(pLightNode.second->GetSceneObjectRef());

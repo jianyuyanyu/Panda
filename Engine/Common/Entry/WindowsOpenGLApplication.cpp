@@ -3,6 +3,7 @@
 #include "WindowsOpenGLApplication.hpp"
 #include "glad/glad_wgl.h"
 
+
 namespace Panda
 {
 	static LRESULT CALLBACK TmpWndProc(HWND hWnd, UINT uiMsg, WPARAM wParam, LPARAM lParam)

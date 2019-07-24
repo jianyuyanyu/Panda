@@ -1,10 +1,12 @@
 #include <iostream>
 #include <objbase.h>
+#include <d3dcompiler.h>
 #include "d3dx12.h"
 #include "D3D12GraphicsManager.hpp"
 #include "Entry/WindowsApplication.hpp"
 #include "SceneManager.hpp"
 #include "AssetLoader.hpp"
+#include "D3DShaderModule.hpp"
 
 namespace Panda {
 #define MSAA_SOLUTION_DEFAULT	1
@@ -310,7 +312,7 @@ namespace Panda {
 		prop.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
 		prop.CreationNodeMask = 1;
 		prop.VisibleNodeMask = 1;
-
+		
 		if (FAILED(hr = m_pDev->CreateCommittedResource(
 			&prop,
 			D3D12_HEAP_FLAG_NONE,
@@ -671,6 +673,10 @@ namespace Panda {
     {
         HRESULT hr;
 
+		k_SizePerFrameConstantBuffer = ALIGN(sizeof(DrawFrameContext) + sizeof(LightContext) * k_MaxLightCount, 256);
+		k_SizePerBatchConstantBuffer = ALIGN(sizeof(DrawBatchContext), 256);
+		k_SizeConstantBufferPerFrame = k_SizePerFrameConstantBuffer + k_SizePerBatchConstantBuffer * k_MaxSceneObjectCount;
+
         D3D12_HEAP_PROPERTIES prop = {
             D3D12_HEAP_TYPE_UPLOAD,
             D3D12_CPU_PAGE_PROPERTY_UNKNOWN,
@@ -712,16 +718,16 @@ namespace Panda {
         {
             for (uint32_t j = 0; j < k_MaxSceneObjectCount; ++j)
             {
-                // Describe and create constant buffer descriptors.
-                // 1 per frame and 1 per batch descriptor per object.
-                D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
+				// Describe and create constant buffer descriptors.
+				// 1 per frame and 1 per batch descriptor per object.
+				D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
 
-                // Per frame const buffer descriptors.
-                cbvDesc.BufferLocation = pConstantUploadBuffer->GetGPUVirtualAddress() +
-                    i * k_SizeConstantBufferPerFrame;
-                cbvDesc.SizeInBytes = k_SizePerFrameConstantBuffer;
-                m_pDev->CreateConstantBufferView(&cbvDesc, cbvHandle);
-                cbvHandle.ptr += m_CbvSrvDescriptorSize;
+				// Per frame const buffer descriptors.
+				cbvDesc.BufferLocation = pConstantUploadBuffer->GetGPUVirtualAddress() +
+					i * k_SizeConstantBufferPerFrame;
+				cbvDesc.SizeInBytes = k_SizePerFrameConstantBuffer;
+				m_pDev->CreateConstantBufferView(&cbvDesc, cbvHandle);
+				cbvHandle.ptr += m_CbvSrvDescriptorSize;
 
                 // Per batch constant buffer descriptors
                 cbvDesc.BufferLocation += k_SizePerFrameConstantBuffer + j * k_SizePerBatchConstantBuffer;
@@ -860,6 +866,10 @@ namespace Panda {
         }
 		std::cout << "Done!" << std::endl;
 
+        std::cout << "Creating PSO ...";
+        if (FAILED (hr = InitializePSO()))
+            return hr;
+        std::cout << "Done!" << std::endl;
 
         return hr;
     }
@@ -880,18 +890,20 @@ namespace Panda {
 
 		// root signature for base pass
 		{
-
 			D3D12_DESCRIPTOR_RANGE1 ranges[3] = {
 				{D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 2, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC},
 				{D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, 1, 0},
 				{D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC}
 			};
 
-			D3D12_ROOT_PARAMETER1 rootParameters[3] = {
+			D3D12_ROOT_PARAMETER1 rootParameters[4] = {
 				{D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE, {1, &ranges[0]}, D3D12_SHADER_VISIBILITY_ALL},
 				{D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE, {1, &ranges[1]}, D3D12_SHADER_VISIBILITY_PIXEL},
 				{D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE, {1, &ranges[2]}, D3D12_SHADER_VISIBILITY_PIXEL}
 			};
+            rootParameters[3].ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
+            rootParameters[3].Constants = {2, 0, 1};
+            rootParameters[3].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
 			// Allow input layout and deny unecessary access to certain pipeline stages.
 			D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags =
@@ -970,16 +982,117 @@ namespace Panda {
     }
 
     // This is the function that loads and prepares the shaders.
-    bool D3D12GraphicsManager::InitializeShaders()
+    HRESULT D3D12GraphicsManager::InitializePSO()
     {
         HRESULT hr = S_OK;
 
 		// basic pass
 		{
+			ID3DBlob* pVS = CompileShader(L"../../Asset/Shaders/basic.hlsl", nullptr, "VSMain", "vs_5_0");
+			ID3DBlob* pPS = CompileShader(L"../../Asset/Shaders/basic.hlsl", nullptr, "PSMain", "ps_5_0");
 
-			const char* vsFilename = "Shaders/test_vs.cso";
-			const char* fsFilename = "Shaders/test_ps.cso";
+			D3D12_SHADER_BYTECODE vertexShaderByteCode;
+			D3D12_SHADER_BYTECODE pixelShaderByteCode;
 
+			vertexShaderByteCode.pShaderBytecode = reinterpret_cast<BYTE*>(pVS->GetBufferPointer());
+			vertexShaderByteCode.BytecodeLength = pVS->GetBufferSize();
+
+			pixelShaderByteCode.pShaderBytecode = reinterpret_cast<BYTE*>(pPS->GetBufferPointer());
+			pixelShaderByteCode.BytecodeLength = pPS->GetBufferSize();
+
+			//const char* vsFilename = "Shaders/basic_vs.cso";
+			//const char* fsFilename = "Shaders/basic_ps.cso";
+
+			//Buffer vertexShader = g_pAssetLoader->SyncOpenAndReadBinary(vsFilename);
+			//Buffer pixelShader = g_pAssetLoader->SyncOpenAndReadBinary(fsFilename);
+			
+			//vertexShaderByteCode.pShaderBytecode = vertexShader.GetData();
+			//vertexShaderByteCode.BytecodeLength = vertexShader.GetDataSize();
+			//
+			//pixelShaderByteCode.pShaderBytecode = pixelShader.GetData();
+			//pixelShaderByteCode.BytecodeLength = pixelShader.GetDataSize();
+
+			// create the input layout object
+			D3D12_INPUT_ELEMENT_DESC ied[] =
+			{
+				{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
+				{"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 1, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
+				{"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 2, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0}
+			};
+
+			D3D12_RASTERIZER_DESC rsd = {
+				D3D12_FILL_MODE_SOLID, D3D12_CULL_MODE_BACK, TRUE, D3D12_DEFAULT_DEPTH_BIAS, D3D12_DEFAULT_DEPTH_BIAS_CLAMP,
+				TRUE, FALSE, FALSE, 0, D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF
+			};
+			const D3D12_RENDER_TARGET_BLEND_DESC defaultRenderTargetBlend = {
+				FALSE, FALSE,
+				D3D12_BLEND_ONE, D3D12_BLEND_ZERO, D3D12_BLEND_OP_ADD,
+				D3D12_BLEND_ONE, D3D12_BLEND_ZERO, D3D12_BLEND_OP_ADD,
+				D3D12_LOGIC_OP_NOOP,
+				D3D12_COLOR_WRITE_ENABLE_ALL
+			};
+
+			D3D12_BLEND_DESC bld = {
+				FALSE, FALSE,
+				{
+					defaultRenderTargetBlend,
+					defaultRenderTargetBlend,
+					defaultRenderTargetBlend,
+					defaultRenderTargetBlend,
+					defaultRenderTargetBlend,
+					defaultRenderTargetBlend,
+					defaultRenderTargetBlend
+				}
+			};
+
+			const D3D12_DEPTH_STENCILOP_DESC defaultStencilOp = {
+				D3D12_STENCIL_OP_KEEP,
+				D3D12_STENCIL_OP_KEEP,
+				D3D12_STENCIL_OP_KEEP,
+				D3D12_COMPARISON_FUNC_ALWAYS };
+			D3D12_DEPTH_STENCIL_DESC dsd = {
+				TRUE,
+				D3D12_DEPTH_WRITE_MASK_ALL,
+				D3D12_COMPARISON_FUNC_LESS,
+				FALSE,
+				D3D12_DEFAULT_STENCIL_READ_MASK,
+				D3D12_DEFAULT_STENCIL_WRITE_MASK,
+				defaultStencilOp, defaultStencilOp
+			};
+
+
+			// describe and create the graphics pipeline state object(PSO)
+			D3D12_GRAPHICS_PIPELINE_STATE_DESC psod = {};
+			psod.pRootSignature = m_pRootSignature;
+			psod.VS = vertexShaderByteCode;
+			psod.PS = pixelShaderByteCode;
+			psod.BlendState = bld;
+			psod.SampleMask = UINT_MAX;
+			psod.RasterizerState = rsd;
+			psod.DepthStencilState = dsd;
+			psod.InputLayout = { ied, _countof(ied) };
+			psod.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+			psod.NumRenderTargets = 1;
+			psod.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+			psod.DSVFormat = DXGI_FORMAT_D32_FLOAT;
+			psod.SampleDesc.Count = 4;  // 4X MSAA
+			psod.SampleDesc.Quality = DXGI_STANDARD_MULTISAMPLE_QUALITY_PATTERN;
+			//psod.SampleDesc.Count = 1;  // 4X MSAA
+			//psod.SampleDesc.Quality = 0;
+
+			if (FAILED(hr = m_pDev->CreateGraphicsPipelineState(&psod, IID_PPV_ARGS(&m_pPipelineState))))
+			{
+				return hr;
+			}
+		}
+
+#if (!MSAA_SOLUTION_DEFAULT)
+		// resolve pass
+		{
+			const char* vsFilename = "Shaders/msaa_resolver_vs.cso";
+			const char* fsFilename = "Shaders/msaa_resolver_ps.cso";
+
+			// load the shaders
 			Buffer vertexShader = g_pAssetLoader->SyncOpenAndReadBinary(vsFilename);
 			Buffer pixelShader = g_pAssetLoader->SyncOpenAndReadBinary(fsFilename);
 
@@ -990,6 +1103,119 @@ namespace Panda {
 			D3D12_SHADER_BYTECODE pixelShaderByteCode;
 			pixelShaderByteCode.pShaderBytecode = pixelShader.GetData();
 			pixelShaderByteCode.BytecodeLength = pixelShader.GetDataSize();
+
+			// create the input layout object
+			D3D12_INPUT_ELEMENT_DESC ied[] = {
+				{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
+				{"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0}
+			};
+
+			D3D12_RASTERIZER_DESC rsd = {
+				D3D12_FILL_MODE_SOLID, D3D12_CULL_MODE_BACK, TRUE,
+				D3D12_DEFAULT_DEPTH_BIAS, D3D12_DEFAULT_DEPTH_BIAS_CLAMP,
+				TRUE, FALSE, FALSE, 0, D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF };
+
+			const D3D12_RENDER_TARGET_BLEND_DESC defaultRenderTargetBlend = { FALSE, FALSE,
+				D3D12_BLEND_ONE, D3D12_BLEND_ZERO, D3D12_BLEND_OP_ADD,
+				D3D12_BLEND_ONE, D3D12_BLEND_ZERO, D3D12_BLEND_OP_ADD,
+				D3D12_LOGIC_OP_NOOP,
+				D3D12_COLOR_WRITE_ENABLE_ALL };
+
+			D3D12_BLEND_DESC bld = { FALSE, FALSE,
+			{
+				defaultRenderTargetBlend,
+				defaultRenderTargetBlend,
+				defaultRenderTargetBlend,
+				defaultRenderTargetBlend,
+				defaultRenderTargetBlend,
+				defaultRenderTargetBlend,
+				defaultRenderTargetBlend
+				}
+			};
+
+			const D3D12_DEPTH_STENCILOP_DESC defaultStencilOp = {
+				D3D12_STENCIL_OP_KEEP,
+				D3D12_STENCIL_OP_KEEP,
+				D3D12_STENCIL_OP_KEEP,
+				D3D12_COMPARISON_FUNC_ALWAYS };
+
+			D3D12_DEPTH_STENCIL_DESC dsd = {
+				TRUE,
+				D3D12_DEPTH_WRITE_MASK_ALL,
+				D3D12_COMPARISON_FUNC_LESS,
+				FALSE,
+				D3D12_DEFAULT_STENCIL_READ_MASK,
+				D3D12_DEFAULT_STENCIL_WRITE_MASK,
+				defaultStencilOp, defaultStencilOp };
+
+			D3D12_GRAPHICS_PIPELINE_STATE_DESC psod = {};
+			psod.pRootSignature = m_pRootSignatureResolve;
+			psod.VS = vertexShaderByteCode;
+			psod.PS = pixelShaderByteCode;
+			psod.BlendState = bld;
+			psod.SampleMask = UINT_MAX;
+			psod.RasterizerState = rsd;
+			psod.DepthStencilState = dsd;
+			psod.InputLayout = { ied, _countof(ied) };
+			psod.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+			psod.NumRenderTargets = 1;
+			psod.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+			psod.DSVFormat = DXGI_FORMAT_UNKNOWN;
+			psod.SampleDesc.Count = 1; // no msaa
+			psod.SampleDesc.Quality = 0; // no msaa
+
+			if (FAILED(hr = m_pDev->CreateGraphicsPipelineState(&psod, IID_PPV_ARGS(&m_pPipelineStateResolve))))
+			{
+				return false;
+			}
+		}
+#endif
+
+        if (!m_pCommandList)
+        {
+            if (FAILED(hr = m_pDev->CreateCommandList(0,
+                D3D12_COMMAND_LIST_TYPE_DIRECT,
+                m_pCommandAllocator,
+                m_pPipelineState,
+                IID_PPV_ARGS(&m_pCommandList))))
+            {
+                return hr;
+            }            
+        }
+
+
+        return hr;
+    }
+
+	bool D3D12GraphicsManager::InitializeShaders()
+	{
+		HRESULT hr = S_OK;
+
+		// basic pass
+		{
+			ID3DBlob* pVS = CompileShader(L"../../Asset/Shaders/basic.hlsl", nullptr, "VSMain", "vs_5_0");
+			ID3DBlob* pPS = CompileShader(L"../../Asset/Shaders/basic.hlsl", nullptr, "PSMain", "ps_5_0");
+
+			D3D12_SHADER_BYTECODE vertexShaderByteCode;
+			D3D12_SHADER_BYTECODE pixelShaderByteCode;
+
+			vertexShaderByteCode.pShaderBytecode = reinterpret_cast<BYTE*>(pVS->GetBufferPointer());
+			vertexShaderByteCode.BytecodeLength = pVS->GetBufferSize();
+
+			pixelShaderByteCode.pShaderBytecode = reinterpret_cast<BYTE*>(pPS->GetBufferPointer());
+			pixelShaderByteCode.BytecodeLength = pPS->GetBufferSize();
+
+			//const char* vsFilename = "Shaders/basic_vs.cso";
+			//const char* fsFilename = "Shaders/basic_ps.cso";
+
+			//Buffer vertexShader = g_pAssetLoader->SyncOpenAndReadBinary(vsFilename);
+			//Buffer pixelShader = g_pAssetLoader->SyncOpenAndReadBinary(fsFilename);
+
+			//vertexShaderByteCode.pShaderBytecode = vertexShader.GetData();
+			//vertexShaderByteCode.BytecodeLength = vertexShader.GetDataSize();
+			//
+			//pixelShaderByteCode.pShaderBytecode = pixelShader.GetData();
+			//pixelShaderByteCode.BytecodeLength = pixelShader.GetDataSize();
 
 			// create the input layout object
 			D3D12_INPUT_ELEMENT_DESC ied[] =
@@ -1150,63 +1376,34 @@ namespace Panda {
 		}
 #endif
 
-        if (!m_pCommandList)
-        {
-            if (FAILED(hr = m_pDev->CreateCommandList(0,
-                D3D12_COMMAND_LIST_TYPE_DIRECT,
-                m_pCommandAllocator,
-                m_pPipelineState,
-                IID_PPV_ARGS(&m_pCommandList))))
-            {
-                return false;
-            }            
-        }
+		if (!m_pCommandList)
+		{
+			if (FAILED(hr = m_pDev->CreateCommandList(0,
+				D3D12_COMMAND_LIST_TYPE_DIRECT,
+				m_pCommandAllocator,
+				m_pPipelineState,
+				IID_PPV_ARGS(&m_pCommandList))))
+			{
+				return false;
+			}
+		}
 
 
-        return true;
-    }
+		return true;
+	}
 
-    void D3D12GraphicsManager::ClearShaders()
-    {
-        SafeRelease(&m_pCommandList);
-        SafeRelease(&m_pPipelineState);
-		SafeRelease(&m_pPipelineStateResolve);
-    }
+     void D3D12GraphicsManager::ClearShaders()
+     {
+         SafeRelease(&m_pCommandList);
+         SafeRelease(&m_pPipelineState);
+	 	SafeRelease(&m_pPipelineStateResolve);
+     }
 
     void D3D12GraphicsManager::InitializeBuffers(const Scene& scene)
     {
         HRESULT hr;
 
-        std::cout << "Creating Constant Buffer ...";
-        if (FAILED(hr = CreateConstantBuffer())) {
-            return;
-        }
-        std::cout << "Done!" << std::endl;
-
-        std::cout << "Creating Sampler Buffer ...";
-        if (FAILED(hr = CreateSamplerBuffer())) {
-            return;
-        }
-        std::cout << "Done!" << std::endl;
-
-        for (auto _it : scene.Materials)
-        {
-            auto material = _it.second;
-            if (material)
-            {
-                auto color = material->GetBaseColor();
-                if (auto texture = color.ValueMap)
-                {
-                    if (FAILED(hr = CreateTextureBuffer(*texture)))
-                    {
-                        return;
-                    }
-                }
-            }
-        }
-
 		std::cout << "Creating vertex buffer..." << std::endl;
-        int32_t n = 0;
         for (auto _it : scene.GeometryNodes)
         {
 			auto pGeometryNode = _it.second;
@@ -1251,7 +1448,6 @@ namespace Panda {
                 dbc.node = pGeometryNode;
 
                 m_DrawBatchContext.push_back(dbc);
-                ++n;
             }
         }
 		std::cout << "Done!" << std::endl;
@@ -1262,6 +1458,35 @@ namespace Panda {
 		std::cout << "Done! " << std::endl;
 
 #endif
+		std::cout << "Creating Constant Buffer ...";
+		if (FAILED(hr = CreateConstantBuffer())) {
+			return;
+		}
+		std::cout << "Done!" << std::endl;
+
+		std::cout << "Creating Sampler Buffer ...";
+		if (FAILED(hr = CreateSamplerBuffer())) {
+			return;
+		}
+		std::cout << "Done!" << std::endl;
+
+
+		for (auto _it : scene.Materials)
+		{
+			auto material = _it.second;
+			if (material)
+			{
+				auto color = material->GetBaseColor();
+				if (auto texture = color.ValueMap)
+				{
+					if (FAILED(hr = CreateTextureBuffer(*texture)))
+					{
+						return;
+					}
+				}
+			}
+		}
+
         if (SUCCEEDED(hr = m_pCommandList->Close()))
         {
             ID3D12CommandList* ppCommandLists[] = {m_pCommandList};
@@ -1402,9 +1627,9 @@ namespace Panda {
 			m_pCommandList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
 
 			// clear the back buffer to a deep blue
-			const FLOAT clearColor[] = { 0.0f, 0.1f, 0.2f, 1.0f };
+			const FLOAT clearColor[] = { 0.2f, 0.3f, 0.4f, 1.0f };
 			m_pCommandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
-			m_pCommandList->ClearDepthStencilView(m_pDsvHeap->GetCPUDescriptorHandleForHeapStart(), D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+			m_pCommandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
 			// Set necessary state.
 			m_pCommandList->SetGraphicsRootSignature(m_pRootSignature);
@@ -1418,6 +1643,9 @@ namespace Panda {
 			m_pCommandList->RSSetViewports(1, &m_ViewPort);
 			m_pCommandList->RSSetScissorRects(1, &m_ScissorRect);
 			m_pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST); // tell D3D our vertices can assemble to triangle list
+
+            // Set num of lights
+            m_pCommandList->SetGraphicsRoot32BitConstant(3, m_DrawFrameContext.Lights.size(), 0);
 
 			// do 3D rendering on the back buffer here
 			int32_t i = 0;
@@ -1581,7 +1809,24 @@ namespace Panda {
 
     bool D3D12GraphicsManager::SetPerFrameShaderParameters()
     {
-        memcpy(m_pCbvDataBegin + m_FrameIndex * k_SizeConstantBufferPerFrame, &m_DrawFrameContext, sizeof(m_DrawFrameContext));
+        //memcpy(m_pCbvDataBegin + m_FrameIndex * k_SizeConstantBufferPerFrame, &m_DrawFrameContext, sizeof(m_DrawFrameContext));
+        uint8_t* pHead = m_pCbvDataBegin + m_FrameIndex * k_SizeConstantBufferPerFrame;
+        size_t offset = (uint8_t*)&m_DrawFrameContext.Lights - (uint8_t*)&m_DrawFrameContext;
+
+        memcpy(pHead,
+            &m_DrawFrameContext,
+            offset);
+        
+		uint32_t t = ALIGN(offset, 16);
+        pHead += t;     // 16 bytes alignment
+
+        for (auto light : m_DrawFrameContext.Lights)
+        {
+            //size_t size = ALIGN(sizeof(LightContext), 16);
+            memcpy(pHead, &light, sizeof(LightContext));
+			size_t size = ALIGN(sizeof(LightContext), 16);
+            pHead += size;
+        }
 
         return true;
     }
@@ -1630,5 +1875,25 @@ namespace Panda {
 
         return true;
     }
+
+	ID3DBlob* D3D12GraphicsManager::CompileShader(const std::wstring& filename,
+		const D3D_SHADER_MACRO* defines,
+		const std::string& entrypoint,
+		const std::string& target)
+	{
+		UINT compileFlags = 0;
+
+		HRESULT hr = S_OK;
+
+		ID3DBlob* byteCode = nullptr;
+		ID3DBlob* errors;
+		hr = D3DCompileFromFile(filename.c_str(), defines, D3D_COMPILE_STANDARD_FILE_INCLUDE,
+			entrypoint.c_str(), target.c_str(), compileFlags, 0, &byteCode, &errors);
+
+		if (errors != nullptr)
+			OutputDebugStringA((char*)errors->GetBufferPointer());
+
+		return byteCode;
+	}
 }
 

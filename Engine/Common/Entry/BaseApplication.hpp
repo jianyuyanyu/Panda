@@ -7,6 +7,7 @@
 #include "InputManager.hpp"
 #include "Interface/IGameLogic.hpp"
 #include "DebugManager.hpp"
+#include "Interface/IShaderModule.hpp"
 
 namespace Panda {
   class BaseApplication : implements IApplication {

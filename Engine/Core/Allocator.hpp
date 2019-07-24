@@ -3,6 +3,10 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#ifndef ALIGN
+#define ALIGN(n, a) (((n) + (a - 1)) & ~((a) - 1))		// 获取对齐的最小值
+#endif
+
 namespace Panda{
 	struct BlockHeader {
 		BlockHeader* pNext;

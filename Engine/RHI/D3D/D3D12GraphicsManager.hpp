@@ -4,12 +4,18 @@
 #include <DXGI1_4.h>
 #include <vector>
 #include <map>
+#include <string>
 #include "GraphicsManager.hpp"
 #include "Buffer.hpp"
 #include "Image.hpp"
 #include "SceneObject.hpp"
 
 namespace Panda {
+	struct D3dShaderProgram {
+		D3D12_SHADER_BYTECODE vertexShaderByteCode;
+		D3D12_SHADER_BYTECODE pixelShaderByteCode;
+	};
+
     class D3D12GraphicsManager : public GraphicsManager
     {
     public:
@@ -31,9 +37,10 @@ namespace Panda {
         void UpdateConstants();
         void InitializeBuffers(const Scene& scene);
         void ClearBuffers();
-        bool InitializeShaders();
-        void ClearShaders();
         void RenderBuffers();
+
+		bool InitializeShaders();
+		void ClearShaders();
 
     private:
         HRESULT CreateDescriptorHeaps();
@@ -48,13 +55,20 @@ namespace Panda {
         HRESULT CreateRootSignature();
         HRESULT WaitForPreviousFrame();
         HRESULT PopulateCommandList();
+		HRESULT InitializePSO();
 
 		HRESULT CreateIntervalVertexBuffer();
 
+		ID3DBlob* CompileShader(const std::wstring& filename,
+			const D3D_SHADER_MACRO* defines,
+			const std::string& entrypoint,
+			const std::string& target);
+
     private:
         static const uint32_t           k_FrameCount  = 2;
-        static const uint32_t           k_MaxSceneObjectCount = 65535;
+        static const uint32_t           k_MaxSceneObjectCount = 2048;
         static const uint32_t           k_MaxTextureCount = 2048;
+		static const uint32_t			k_MaxLightCount = 10;
         static const uint32_t           k_TextureDescStartIndex = k_FrameCount * k_MaxSceneObjectCount * 2;
         ID3D12Device*                   m_pDev       = nullptr;             // the pointer to our Direct3D device interface
         D3D12_VIEWPORT                  m_ViewPort;                         // viewport structure
@@ -111,9 +125,9 @@ namespace Panda {
         std::vector<DrawBatchContext> m_DrawBatchContext;
 
         uint8_t*            m_pCbvDataBegin = nullptr;
-        static const size_t k_SizePerFrameConstantBuffer = (sizeof(DrawFrameContext) + 255) & ~255; // CB size is required to be 256-byte aligned.
-        static const size_t k_SizePerBatchConstantBuffer = (sizeof(DrawBatchContext) + 255) & ~255; // CB size is required to be 256-byte aligned.
-        static const size_t k_SizeConstantBufferPerFrame = k_SizePerFrameConstantBuffer + k_SizePerBatchConstantBuffer * k_MaxSceneObjectCount;
+		size_t				k_SizePerFrameConstantBuffer;
+		size_t				k_SizePerBatchConstantBuffer;
+		size_t				k_SizeConstantBufferPerFrame;
 
         // Synchronization objects
         uint32_t                        m_FrameIndex;

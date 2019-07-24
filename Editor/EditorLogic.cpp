@@ -21,7 +21,8 @@ int EditorLogic::Initialize()
     // {
         cout << "[EditorLogic] Loading Splash Scene" << endl;
 		// donuts.ogex
-        result = g_pSceneManager->LoadScene("Scene/cube.ogex");
+        //result = g_pSceneManager->LoadScene("Scene/cube.ogex");
+		result = g_pSceneManager->LoadScene("Scene/donuts.ogex");
     //}
 
 	return 0;

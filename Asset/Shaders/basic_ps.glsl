@@ -14,7 +14,7 @@ uniform struct Light
 {
     vec4    lightPosition;
     vec4    lightColor;
-    vec3    lightDirection;
+    vec4    lightDirection;
     float   lightIntensity;
     int     lightDistAttenCurveType;
     float   lightDistAttenCurveParams[5];
@@ -117,8 +117,8 @@ vec3 Illumination(Light l)
     vec3 L = (viewMatrix * worldMatrix * l.lightPosition).xyz - v.xyz; // vector from vertex to light
     float distance = length(L);
     L = normalize(L);
-    vec3 lightDir = normalize((viewMatrix * worldMatrix * vec4(l.lightDirection, 0.0f)).xyz);
-    float lightToSurfAngle = acos(dot(L, lightDir));
+    vec3 lightDir = normalize((viewMatrix * worldMatrix * l.lightDirection).xyz);
+    float lightToSurfAngle = acos(dot(L, -lightDir));
 
     //angle attenuation
     float atten = ImplementAttenCurve(lightToSurfAngle, l.lightAngleAttenCurveType, l.lightAngleAttenCurveParams);
@@ -140,7 +140,7 @@ void main(void)
     vec3 ill = vec3(0);
     for (int i = 0; i < numLights; ++i)
         ill += Illumination(allLights[i]);
-    
+    ill += ambientColor.rgb;
     outputColor = vec4(clamp(ill, 0.0f, 1.0f), 1.0f);
 }
 

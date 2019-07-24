@@ -34,6 +34,7 @@ IF(${WIN32})
 		d2d1
 		d3d12
 		dxgi
+		d3dcompiler
 	)
 		
 	add_library(PandaOpenGL

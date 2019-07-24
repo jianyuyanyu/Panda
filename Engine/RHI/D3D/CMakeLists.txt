@@ -1,7 +1,10 @@
 add_library(D3D12RHI
 	../GraphicsManager.hpp
 	../GraphicsManager.cpp
+	../ShaderModule.hpp
 	D3D12GraphicsManager.cpp
 	D3D12GraphicsManager.hpp
+	D3DShaderModule.cpp
+	D3DShaderModule.hpp
 	d3dx12.h
 	)
