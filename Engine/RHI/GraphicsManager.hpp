@@ -43,6 +43,7 @@ namespace Panda {
 				Vector4Df LightPosition;
 				Vector4Df LightColor;
 				Vector4Df LightDirection;
+				Vector2Df LightSize;
 				float LightIntensity;
 				AttenCurveType LightDistAttenCurveType;
 				float LightDistAttenCurveParams[5];

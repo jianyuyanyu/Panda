@@ -131,4 +131,33 @@ namespace Panda
 
 		friend std::ostream& operator<<(std::ostream& out, const SceneObjectInfiniteLight& obj);
 	};
+
+	// area light
+	class SceneObjectAreaLight : public SceneObjectLight
+	{
+		protected:
+			Vector2Df	m_LightDimension;
+
+	public:
+		SceneObjectAreaLight() : SceneObjectLight(SceneObjectType::kSceneObjectTypeLightArea),
+			m_LightDimension({ 1.0f, 1.0f })
+		{}
+
+		const Vector2Df& GetDimension() const
+		{
+			return m_LightDimension;
+		}
+
+		void SetDimension(const Vector2Df& dimension)
+		{
+			m_LightDimension = dimension;
+		}
+
+		void SetDimension(float width, float height)
+		{
+			m_LightDimension = { width, height };
+		}
+		
+		friend std::ostream& operator<<(std::ostream& out, const SceneObjectAreaLight& obj);
+	};
 }

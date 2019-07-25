@@ -15,6 +15,7 @@ uniform struct Light
     vec4    lightPosition;
     vec4    lightColor;
     vec4    lightDirection;
+    vec2    lightSize;
     float   lightIntensity;
     int     lightDistAttenCurveType;
     float   lightDistAttenCurveParams[5];
@@ -135,12 +136,98 @@ vec3 Illumination(Light l)
         return l.lightIntensity * atten * l.lightColor.rgb * (diffuseColor.rgb * clamp(dot(N, L), 0.0f, 1.0f) + specularColor.rgb * pow(clamp(dot(R,V), 0.0f, 1.0f), specularPower)); 
 }
 
+vec3 ProjectOnPlane(vec3 point, vec3 centerOfPlane, vec3 normalOfPlane)
+{
+    return point - dot(point - centerOfPlane, normalOfPlane) * normalOfPlane;
+}
+
+bool IsAbovePlane(vec3 point, vec3 centerOfPlane, vec3 normalOfPlane)
+{
+    return dot(point - centerOfPlane, normalOfPlane) > 0.0f;
+}
+
+vec3 LinePlaneIntersect(vec3 lineStart, vec3 lineDir, vec3 centerOfPlane, vec3 normalOfPlane)
+{
+    return lineStart + lineDir * (dot(centerOfPlane - lineStart, normalOfPlane) / dot(lineDir, normalOfPlane));
+}
+
+vec3 IlluminationAreaLight(Light light)
+{
+    vec3 N = normalize(normal.xyz);
+    vec3 right = normalize((viewMatrix * worldMatrix * vec4(1.0f, 0.0f, 0.0f, 0.0f)).xyz);  // light local space right axis to view space
+    vec3 pnormal = normalize((viewMatrix * worldMatrix * light.lightDirection).xyz); // light local space direction to view space light direction
+    vec3 ppos = (viewMatrix * worldMatrix * light.lightPosition).xyz; // light position in view space
+    vec3 up = normalize(cross(pnormal, right)); // up vector in view space
+    right = normalize(cross(up, pnormal)); // right vector in view space
+
+    // width and height of the area light
+    float width = light.lightSize.x;
+    float height = light.lightSize.y;
+
+    // project current vertex onto the light plane
+    vec3 projection = ProjectOnPlane(v.xyz, ppos, pnormal);
+    vec3 dir = projection - ppos;
+
+    // calculate distance from area.
+    vec2 diagonal = vec2(dot(dir, right), dot(dir,up));
+    vec2 nearest2D = vec2(clamp(diagonal.x, -width, width), clamp(diagonal.y, -height, height));
+    vec3 nearestPointInside = ppos + right * nearest2D.x + up * nearest2D.y;
+
+    vec3 L = nearestPointInside - v.xyz;
+
+    float lightToSurfDist = length(L);
+    L = normalize(L);
+
+    // distance attenuation
+    float atten = ImplementAttenCurve(lightToSurfDist, light.lightDistAttenCurveType, light.lightDistAttenCurveParams);
+
+    vec3 linearColor = vec3(0.0f);
+
+    float pnDotL = dot(pnormal, -L);
+
+    if (pnDotL > 0.0f && IsAbovePlane(v.xyz, ppos, pnormal))
+    {
+        // shoot a ray to calculate secpular
+        vec3 V = normalize(-v.xyz);
+        vec3 R = normalize(2.0f * dot(V, N) * N - V);
+        vec3 R2 = normalize(2.0f * dot(L, N) * N - L);
+        vec3 E = LinePlaneIntersect(v.xyz, R, ppos, pnormal);
+
+        float specAngle = clamp(dot(-R, pnormal), 0.0f, 1.0f);
+        vec3 dirSpec = E - ppos;
+        vec2 dirSpec2D = vec2(dot(dirSpec, right), dot(dirSpec, up));
+        vec2 nearestSpec2D = vec2(clamp(dirSpec2D.x, -width, width), clamp(dirSpec2D.y, -height, height));
+        float specFactor = 1.0f - clamp(length(nearestSpec2D - dirSpec2D), 0.0f, 1.0f);
+
+        if (usingDiffuseMap)
+        {
+            linearColor = ambientColor.rgb + light.lightIntensity * atten * light.lightColor.rgb * (texture(diffuseMap, uv).rgb * dot(N, L) * pnDotL + specularColor.rgb * pow(clamp(dot(R2, V), 0.0f, 1.0f), specularPower) * specFactor * specAngle);
+        }
+        else 
+        {
+            linearColor = ambientColor.rgb + light.lightIntensity * atten * light.lightColor.rgb * (diffuseColor.rgb * dot(N, L) * pnDotL + specularColor.rgb * pow(clamp(dot(R2, V), 0.0f, 1.0f), specularPower) * specFactor * specAngle); 
+        }
+    }
+    //return vec3(lightToSurfDist / 10.0f);
+    return linearColor;
+}
+
 void main(void)
 {
     vec3 ill = vec3(0);
     for (int i = 0; i < numLights; ++i)
-        ill += Illumination(allLights[i]);
-    ill += ambientColor.rgb;
-    outputColor = vec4(clamp(ill, 0.0f, 1.0f), 1.0f);
+    {
+        if (allLights[i].lightSize.x > 0.0f && allLights[i].lightSize.y > 0.0f)
+        {
+            ill += IlluminationAreaLight(allLights[i]);
+        }
+        else 
+        {
+            ill += Illumination(allLights[i]);
+        }
+    }
+
+    // gamma correction
+    outputColor = vec4(clamp(pow(ill, vec3(1.0f / 2.2f)), 0.0f, 1.0f), 1.0f);
 }
 

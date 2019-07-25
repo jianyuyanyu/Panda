@@ -12,6 +12,7 @@ namespace Panda
 		kSceneObjectTypeLightPoint = "LGHP"_i32,
         kSceneObjectTypeLightInfinite = "LGHI"_i32,
         kSceneObjectTypeLightSpot = "LGHS"_i32,
+		kSceneObjectTypeLightArea = "LGHA"_i32,
 		kSceneObjectTypeCamera = "CAMR"_i32,
 		kSceneObjectTypeAnimationClip = "ANIM"_i32,
 		kSceneObjectTypeClip = "CLIP"_i32,

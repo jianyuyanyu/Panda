@@ -128,6 +128,7 @@ namespace Panda
 			light.LightPosition = {-1.0f, -5.0f, 0.0f, 1.0f};
 			light.LightColor = {1.0f, 1.0f, 1.0f, 1.0f};
 			light.LightDirection = {0.0f, 0.0f, -1.0f, 0.0f};
+			light.LightSize = { 0.0f, 0.0f };
 			light.LightIntensity = 1.0f;
 			light.LightDistAttenCurveType = AttenCurveType::kAttenLinear;
 			light.LightDistAttenCurveParams[0] = 0.0f;
@@ -164,6 +165,15 @@ namespace Panda
 					const AttenCurve& angleAttenCurve = _pLight->GetAngleAttenuation();
 					light.LightAngleAttenCurveType = angleAttenCurve.type;
 					memcpy(light.LightAngleAttenCurveParams, &angleAttenCurve.u, sizeof(angleAttenCurve.u));
+				}
+				else if (pLight->GetType() == SceneObjectType::kSceneObjectTypeLightInfinite)
+				{
+					light.LightPosition.data[3] = 0.0f;
+				}
+				else if (pLight->GetType() == SceneObjectType::kSceneObjectTypeLightArea)
+				{
+					auto plight = std::dynamic_pointer_cast<SceneObjectAreaLight>(pLight);
+					light.LightSize = plight->GetDimension();
 				}
 			}
 			else 

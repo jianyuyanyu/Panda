@@ -216,6 +216,14 @@ namespace Panda
 		return out;
 	}
 
+	std::ostream& operator<<(std::ostream& out, const SceneObjectAreaLight& obj)
+	{
+		out << static_cast<const SceneObjectLight&>(obj) << std::endl;
+		out << "Light Type: Area" << std::endl;
+
+		return out;
+	}
+
     std::ostream& operator<<(std::ostream& out, const SceneObjectCamera& obj)
     {
         out << static_cast<const BaseSceneObject&>(obj) << std::endl;

@@ -226,11 +226,6 @@ namespace Panda
             return false;
         glUniformMatrix4fv(location, 1, false, m_DrawFrameContext.ProjectionMatrix);
 
-		location = glGetUniformLocation(shader, "ambientColor");
-		if (location == -1)
-			return false;
-		glUniform3fv(location, 1, m_DrawFrameContext.AmbientColor);
-
         // Set lighting parameters for PS shader
         location = glGetUniformLocation(shader, "numLights");
         if (location == -1)
@@ -257,6 +252,12 @@ namespace Panda
             if (location == -1)
                 return false;
             glUniform1f(location, m_DrawFrameContext.Lights[i].LightIntensity);
+
+			sprintf(paramName, "allLights[%d].lightSize", i);
+			location = glGetUniformLocation(shader, paramName);
+			if (location == -1)
+				return false;
+			glUniform2fv(location, 1, m_DrawFrameContext.Lights[i].LightSize);
 
             sprintf(paramName, "allLights[%d].lightDirection", i);
             location = glGetUniformLocation(shader, paramName);
@@ -288,6 +289,11 @@ namespace Panda
                 return false;
             glUniform1fv(location, 5, m_DrawFrameContext.Lights[i].LightAngleAttenCurveParams);
         }
+
+		location = glGetUniformLocation(shader, "ambientColor");
+		if (location == -1)
+			return false;
+		glUniform3fv(location, 1, m_DrawFrameContext.AmbientColor);
 
         return true;
     }

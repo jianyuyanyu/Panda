@@ -483,18 +483,24 @@ namespace Panda
                 std::string _key = _structure.GetStructureName();
                 std::shared_ptr<SceneObjectLight> light;
 
-                if (!strncmp(typeStr, "infinite", 8))
-                {
-                    light = std::make_shared<SceneObjectInfiniteLight>();
-                }
-                else if (!strncmp(typeStr, "point", 5))
-                {
-                    light = std::make_shared<SceneObjectPointLight>();
-                }
-                else if (!strncmp(typeStr, "spot", 5))
-                {
-                    light = std::make_shared<SceneObjectSpotLight>();
-                }
+				if (!strncmp(typeStr, "infinite", 8))
+				{
+					light = std::make_shared<SceneObjectInfiniteLight>();
+				}
+				else if (!strncmp(typeStr, "point", 5))
+				{
+					light = std::make_shared<SceneObjectPointLight>();
+				}
+				else if (!strncmp(typeStr, "spot", 4))
+				{
+					light = std::make_shared<SceneObjectSpotLight>();
+				}
+				else if (!strncmp(typeStr, "area", 4))
+				{
+					light = std::make_shared<SceneObjectAreaLight>();
+				}
+				else
+					assert(0);
                 light->SetIfCastShadow(isShadow);
 
                 const ODDL::Structure* subStructure = _structure.GetFirstCoreSubnode();
@@ -584,6 +590,32 @@ namespace Panda
 
                     subStructure = subStructure->Next();
                 }
+
+				// extensions
+				ODDL::Structure* extension = _structure.GetFirstExtensionSubnode();
+				while (extension)
+				{
+					const OGEX::ExtensionStructure* _extension = dynamic_cast<const OGEX::ExtensionStructure*>(extension);
+					auto _appid = _extension->GetApplicationString();
+					if (_appid == "PandaGameEngine")
+					{
+						auto _type = _extension->GetTypeString();
+						if (_type == "area_light")
+						{
+							const ODDL::Structure* subStructure = _extension->GetFirstCoreSubnode();
+							const ODDL::DataStructure<ODDL::FloatDataType>* dataStructure1 = static_cast<const ODDL::DataStructure<ODDL::FloatDataType>*>(subStructure);
+							auto elementCount = dataStructure1->GetDataElementCount();
+							assert(elementCount == 2);
+							auto width = dataStructure1->GetDataElement(0);
+							auto height = dataStructure1->GetDataElement(1);
+
+							auto _light = std::dynamic_pointer_cast<SceneObjectAreaLight>(light);
+							_light->SetDimension( width, height );
+						}
+					}
+					extension = extension->Next();
+				}
+
                 scene.Lights[_key] = light;
                 return;
             }
