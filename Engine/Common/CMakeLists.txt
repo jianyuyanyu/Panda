@@ -31,6 +31,7 @@ IF(${WIN32})
 		${OPENDDL_LIB}
 		${OPENGEX_LIB}
 		${ZLIB_LIB}
+		${ASSIMP_LIB}
 		d2d1
 		d3d12
 		dxgi
@@ -64,6 +65,7 @@ IF(${WIN32})
 		${OPENGEX_LIB}
 		${ZLIB_LIB}
 		${OPENGL_LIBRARIES}
+		${ASSIMP_LIB}
 	)
 ELSE (${WIN32})
 	add_library(PandaOpenGL

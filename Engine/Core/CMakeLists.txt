@@ -21,6 +21,16 @@ add_library(Core
 	${CORE_PARSER_SOURCE}
 	${CORE_HEADER}
 	${CORE_SOURCE})
+
+target_link_libraries(Core
+		
+		${CROSSGUID_D_LIB}
+		${OPENDDL_LIB}
+		${OPENGEX_LIB}
+		${ZLIB_LIB}
+		${OPENGL_LIBRARIES}
+		${ASSIMP_LIB}
+	)
 	
 source_group("Header Files" FILES ${CORE_HEADER})
 source_group("Header Files\\Interface" FILES ${CORE_INTERFACE_HEADER})

@@ -30,6 +30,7 @@ namespace Panda
 
         protected:
             bool LoadOgexScene(const char* ogexSceneFileName);
+			bool LoadDaeScene(const char* daeSceneFileName);
 
         protected:
             std::shared_ptr<Scene> m_pScene;

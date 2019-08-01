@@ -1,6 +1,7 @@
 #include "SceneManager.hpp"
 #include "AssetLoader.hpp"
 #include "Parser/OGEX.hpp"
+#include "Parser/DAE.hpp"
 
 namespace Panda
 {
@@ -30,18 +31,34 @@ namespace Panda
 
 	int SceneManager::LoadScene(const char* sceneFileName)
 	{
-		// now we only have ogex scene parser, call it directly
-		if (LoadOgexScene(sceneFileName)) 
+		// Judge file suffix.
+		std::string str(sceneFileName);
+		std::size_t found = str.find_last_of('.');
+		std::string suffix = str.substr(found + 1);
+		if (suffix == "ogex")
 		{
-			m_pScene->LoadResource();
-			m_DirtyFlag = true;
-			m_IsRenderingQueued = false;
-			return 0;
+			if (LoadOgexScene(sceneFileName))
+			{
+				m_pScene->LoadResource();
+				m_DirtyFlag = true;
+				m_IsRenderingQueued = false;
+				return 0;
+			}
+			else
+				return -1;
+		}
+		else if (suffix == "dae")
+		{
+			if (LoadDaeScene(sceneFileName))
+			{
+				m_pScene->LoadResource();
+				return 0;
+			}
+			else
+				return -1;
 		}
 		else
-		{
 			return -1;
-		}
 	}
 
 	void SceneManager::ResetScene()
@@ -59,6 +76,19 @@ namespace Panda
 		}
 		OgexParser ogexParser;
 		m_pScene = ogexParser.Parse(ogexText);
+
+		if (!m_pScene)
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	bool SceneManager::LoadDaeScene(const char* daeSceneFileName)
+	{
+		DaeParser daeParser;
+		m_pScene = daeParser.Parse(daeSceneFileName);
 
 		if (!m_pScene)
 		{
