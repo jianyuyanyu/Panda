@@ -10,6 +10,3 @@
 [submodule "3rdParty/libpng"]
 	path = 3rdParty/libpng
 	url = git@github.com:FlashPanda/libpng.git
-[submodule "3rdParty/assimp"]
-	path = 3rdParty/assimp
-	url = git@github.com:FlashPanda/assimp.git
