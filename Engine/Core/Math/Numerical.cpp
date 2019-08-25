@@ -327,12 +327,12 @@ namespace Panda
 
         if (g_DepthClipSpace == DepthClipSpace::kDepthClipZeroToOne)
         {
-            result.m[2][2] = far / (far - near);
+            result.m[2][2] = -far / (near - far);
             result.m[3][2] = near * far / (near - far);
         }
         else
         {
-            result.m[2][2] = (far + near) / (far - near);
+            result.m[2][2] = -(far + near) / (near - far);
             result.m[3][2] = (2 * near * far) / (near - far);
         }
 

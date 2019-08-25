@@ -4,7 +4,7 @@
 
 namespace Panda {
 	Handness g_ViewHandness = Handness::kHandnessRight;
-	DepthClipSpace g_DepthClipSpace = DepthClipSpace::kDepthClipNegativeOneToOne;
+	DepthClipSpace g_DepthClipSpace = DepthClipSpace::kDepthClipZeroToOne;
 
     extern GfxConfiguration config;
     IApplication* g_pApp                = static_cast<IApplication*>(new OpenGLApplication(config));

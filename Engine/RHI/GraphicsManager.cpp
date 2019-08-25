@@ -114,11 +114,11 @@ namespace Panda
 			float screenAspect = (float)conf.screenWidth / conf.screenHeight;
 
 			// Build the perspective projection matrix.
-			//BuildPerspectiveFovMatrix(m_DrawFrameContext.ProjectionMatrix, fieldOfView, screenAspect, nearClipDistance, farClipDistance);
+			BuildPerspectiveFovMatrix(m_DrawFrameContext.ProjectionMatrix, fieldOfView, screenAspect, nearClipDistance, farClipDistance, g_ViewHandness);
 
 			// try (l, r, b, t) projection
 			//nearClipDistance = 0.69f;
-			BuildPerspectiveFovRHMatrix(m_DrawFrameContext.ProjectionMatrix, -1.0f, 1.0f, -1 / screenAspect, 1 / screenAspect, nearClipDistance, farClipDistance);
+			//BuildPerspectiveFovRHMatrix(m_DrawFrameContext.ProjectionMatrix, -1.0f, 1.0f, -1 / screenAspect, 1 / screenAspect, nearClipDistance, farClipDistance);
 		}
 		else
 		{
