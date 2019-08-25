@@ -22,7 +22,7 @@ int EditorLogic::Initialize()
     // {
         cout << "[EditorLogic] Loading Splash Scene" << endl;
 		// donuts.ogex
-		result = g_pSceneManager->LoadScene("../../Asset/Scene/article_lefthand.dae");
+		result = g_pSceneManager->LoadScene("../../Asset/Scene/article.dae");
         //result = g_pSceneManager->LoadScene("../../Asset/Scene/camera_tawards_pz.dae");
 		//result = g_pSceneManager->LoadScene("Scene/cone2.7.2.ogex");
     //}

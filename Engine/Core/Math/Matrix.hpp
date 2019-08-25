@@ -203,6 +203,23 @@ namespace Panda
 		return result;
 	}
 
+	template <typename T, int M, int N>
+	Vector<T, N> operator*(const Vector<T, M>& vec, const Matrix<T, M, N>& mat)
+	{
+		Vector<T, N> result;
+		for (int32_t j = 0; j < N; ++j)
+		{
+			T sum = 0;
+			for (int32_t i = 0; i < M; ++i)
+			{
+				sum += mat[i][j] * vec.data[i];
+			}
+			result.data[j] = sum;
+		}
+
+		return result;
+	}
+
 	template<typename T, int M, int N>
 	bool AlmostZero(const Matrix<T, M, N>& mat)
 	{
