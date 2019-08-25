@@ -1,5 +1,6 @@
 #include <tchar.h>
 #include "WindowsApplication.hpp"
+#include "KeyCode.hpp"
 
 namespace Panda
 {
@@ -135,6 +136,26 @@ namespace Panda
                         case 0x52: // R key
                             g_pInputManager->ResetKeyDown();
                             break;
+                        case 0x41:  // A key
+                            g_pInputManager->CharKeyDown(KEY_CODE_A);
+                            break;
+                        case 0x44: // D key
+                            g_pInputManager->CharKeyDown(KEY_CODE_D);
+                            break;
+                        case 0x57: // W key
+                            g_pInputManager->CharKeyDown(KEY_CODE_W);
+                            break;
+                        case 0x53: // S key
+                            g_pInputManager->CharKeyDown(KEY_CODE_S);
+                            break;
+						case 0x45: // E key
+							g_pInputManager->CharKeyDown(KEY_CODE_E);
+							break;
+						case 0x51: // Q key
+							g_pInputManager->CharKeyDown(KEY_CODE_Q);
+							break;
+						case 0x31:	// 1 key
+							g_pInputManager->CharKeyDown(KEY_CODE_1);
                         default:
                             break;
                     }
@@ -160,6 +181,24 @@ namespace Panda
                     case 0x52: // R key
                         g_pInputManager->ResetKeyUp();
                         break;
+                    case 0x41:  // A key
+                        g_pInputManager->CharKeyUp(KEY_CODE_A);
+                        break;
+                    case 0x44: // D key
+                        g_pInputManager->CharKeyUp(KEY_CODE_D);
+                        break;
+                    case 0x57: // W key
+                        g_pInputManager->CharKeyUp(KEY_CODE_W);
+                        break;
+                    case 0x53: // S key
+                        g_pInputManager->CharKeyUp(KEY_CODE_S);
+                        break;
+					case 0x45: // E key
+						g_pInputManager->CharKeyUp(KEY_CODE_E);
+						break;
+					case 0x51: // Q key
+						g_pInputManager->CharKeyUp(KEY_CODE_Q);
+						break;
                     default:
                         break;
                 }

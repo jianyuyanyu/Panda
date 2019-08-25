@@ -1,6 +1,7 @@
 #include "EditorLogic.hpp"
 #include "Interface/IApplication.hpp"
 #include "SceneManager.hpp"
+#include "GraphicsManager.hpp"
 
 using namespace Panda;
 using namespace std;
@@ -21,8 +22,9 @@ int EditorLogic::Initialize()
     // {
         cout << "[EditorLogic] Loading Splash Scene" << endl;
 		// donuts.ogex
-        result = g_pSceneManager->LoadScene("../../Asset/Scene/cube.dae");
-		//result = g_pSceneManager->LoadScene("Scene/areas.ogex");
+		result = g_pSceneManager->LoadScene("../../Asset/Scene/article.dae");
+        //result = g_pSceneManager->LoadScene("../../Asset/Scene/camera_tawards_pz.dae");
+		//result = g_pSceneManager->LoadScene("Scene/cone2.7.2.ogex");
     //}
 
 	return 0;
@@ -96,4 +98,86 @@ void EditorLogic::OnDownKeyDown()
         // move camera along its local axis -y direction
         pCameraNode->MoveBy(camera_y_axis * -1.0f);
     }
+}
+
+void EditorLogic::OnCharKeyDown(uint32_t keyCode)
+{
+    if (keyCode == KEY_CODE_W)
+    {
+        auto& scene = g_pSceneManager->GetScene();
+        auto pCameraNode = scene.GetFirstCameraNode();
+        if (pCameraNode) {
+			Vector3Df forward = pCameraNode->GetForwardDirection();
+			float scalar = 0.3f;
+            
+            pCameraNode->MoveBy(forward * scalar);
+        }
+    }
+    else if (keyCode == KEY_CODE_S)
+    {
+        auto& scene = g_pSceneManager->GetScene();
+        auto pCameraNode = scene.GetFirstCameraNode();
+		if (pCameraNode) {
+			Vector3Df forward = pCameraNode->GetForwardDirection();
+			float scalar = -0.3f;
+
+			pCameraNode->MoveBy(forward * scalar);
+		}
+    }
+    else if (keyCode == KEY_CODE_A)
+    {
+		auto& scene = g_pSceneManager->GetScene();
+		auto pCameraNode = scene.GetFirstCameraNode();
+		if (pCameraNode) {
+			Vector3Df right = pCameraNode->GetRightDirection();
+			float scalar = -0.3f;
+
+			pCameraNode->MoveBy(right * scalar);
+		}
+    }
+    else if (keyCode == KEY_CODE_D)
+    {
+		auto& scene = g_pSceneManager->GetScene();
+		auto pCameraNode = scene.GetFirstCameraNode();
+		if (pCameraNode) {
+			Vector3Df right = pCameraNode->GetRightDirection();
+			float scalar = 0.3f;
+
+			pCameraNode->MoveBy(right * scalar);
+		}
+    }
+	else if (keyCode == KEY_CODE_E)
+	{
+		auto& scene = g_pSceneManager->GetScene();
+		auto pCameraNode = scene.GetFirstCameraNode();
+		if (pCameraNode) {
+			Vector3Df up = pCameraNode->GetUpDirection();
+			float scalar = 0.3f;
+
+			pCameraNode->MoveBy(up * scalar);
+		}
+	}
+	else if (keyCode == KEY_CODE_Q)
+	{
+		auto& scene = g_pSceneManager->GetScene();
+		auto pCameraNode = scene.GetFirstCameraNode();
+		if (pCameraNode) {
+			Vector3Df up = pCameraNode->GetUpDirection();
+			float scalar = -0.3f;
+
+			pCameraNode->MoveBy(up * scalar);
+		}
+	}
+	else if (keyCode == KEY_CODE_1)
+	{
+		if (g_pGraphicsManager->GetCurrentProjectionMethod() == ProjectionMethod::PM_PERSPECTIVE)
+			g_pGraphicsManager->UseOrghographicsProjection();
+		else
+			g_pGraphicsManager->UsePerspectiveProjection();
+	}
+}
+
+void EditorLogic::OnCharKeyUp(uint32_t keyCode)
+{
+
 }

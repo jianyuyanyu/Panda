@@ -52,6 +52,8 @@ namespace Panda
 			if (LoadDaeScene(sceneFileName))
 			{
 				m_pScene->LoadResource();
+				m_DirtyFlag = true;
+				m_IsRenderingQueued = false;
 				return 0;
 			}
 			else

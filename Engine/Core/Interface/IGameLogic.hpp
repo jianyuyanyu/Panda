@@ -1,5 +1,6 @@
 #pragma once
 #include "IRuntimeModule.hpp"
+#include "KeyCode.hpp"
 
 namespace Panda {
     class IGameLogic : implements IRuntimeModule
@@ -24,6 +25,9 @@ namespace Panda {
         virtual void OnRightKeyDown() {};
         virtual void OnRightKeyUp() {};
         virtual void OnRightKey() {};
+
+		virtual void OnCharKeyDown(uint32_t keyCode) {}
+		virtual void OnCharKeyUp(uint32_t keyCode) {}
 
         virtual void OnButton1Down() {};
         virtual void OnButton1Up() {};

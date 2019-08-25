@@ -16,6 +16,10 @@ namespace Panda
         public:
             virtual ~TreeNode() {}
 
+			virtual TreeNode* GetParent()
+			{
+				return m_Parent;
+			}
             virtual void AppendChild(std::shared_ptr<TreeNode>&& sub_node)
             {
                 sub_node->m_Parent = this;

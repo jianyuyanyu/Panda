@@ -855,7 +855,7 @@ namespace Panda
 
     std::unique_ptr<Scene> OgexParser::Parse(const std::string& buf)
     {
-        std::unique_ptr<Scene> pScene(new Scene("OGEX Scene"));
+        std::unique_ptr<Scene> pScene(new Scene("Root"));
         OGEX::OpenGexDataDescription openGexDataDescription;
 
         ODDL::DataResult result = openGexDataDescription.ProcessText(buf.c_str());

@@ -1,6 +1,7 @@
 #pragma once
 #include "Interface/IRuntimeModule.hpp"
 #include "portable.hpp"
+#include "KeyCode.hpp"
 
 namespace Panda
 {
@@ -19,6 +20,8 @@ namespace Panda
             void LeftArrowKeyUp();
             void RightArrowKeyDown();
             void RightArrowKeyUp();
+			void CharKeyDown(uint32_t keyCode);
+			void CharKeyUp(uint32_t keyCode);
 
             void ResetKeyDown();
             void ResetKeyUp();

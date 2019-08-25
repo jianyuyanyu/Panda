@@ -33,7 +33,8 @@ namespace Panda
             const float* CollisionParameters() const { return m_CollisionParameters;}
 
             void AddMesh(std::shared_ptr<SceneObjectMesh>& mesh) {m_Mesh.push_back(std::move(mesh));}
-            const std::weak_ptr<SceneObjectMesh> GetMesh() {return m_Mesh.empty()? nullptr : m_Mesh[0];}
+			uint32_t GetMeshCount() { return m_Mesh.size(); }
+            const std::weak_ptr<SceneObjectMesh> GetMesh(uint32_t index = 0) {return m_Mesh.empty()? nullptr : m_Mesh[index];}
             const std::weak_ptr<SceneObjectMesh> GetMeshLOD(size_t lod) {return lod < m_Mesh.size()? m_Mesh[lod] : nullptr;}
 
             friend std::ostream& operator<<(std::ostream& out, const SceneObjectGeometry& obj);

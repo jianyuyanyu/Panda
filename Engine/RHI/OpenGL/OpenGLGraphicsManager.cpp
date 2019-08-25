@@ -125,6 +125,7 @@ namespace Panda
 
                 // Set the polygon winding to front facing for the right handed system.
                 glFrontFace(GL_CCW);
+				//glFrontFace(GL_CW);
 
                 // Enable back face culling.
                 glEnable(GL_CULL_FACE);
@@ -359,187 +360,211 @@ namespace Panda
         for (auto _it : scene.GeometryNodes)
         {
 			auto pGeometryNode = _it.second;
-            if (pGeometryNode && pGeometryNode->Visible())
-            {
-                std::string str = pGeometryNode->GetSceneObjectRef();
-                auto pGeometry = scene.GetGeometry(pGeometryNode->GetSceneObjectRef());
-                assert(pGeometry);
-                auto pMesh = pGeometry->GetMesh().lock();
-                if (!pMesh) continue;
+			if (pGeometryNode && pGeometryNode->Visible())
+			{
+				std::string str = pGeometryNode->GetSceneObjectRef();
+				auto pGeometry = scene.GetGeometry(pGeometryNode->GetSceneObjectRef());
+				assert(pGeometry);
 
-                // Set the number of vertex properties.
-                auto vertexPropertiesCount = pMesh->GetVertexPropertiesCount();
+				// Append parents' transforms
+				BaseSceneNode* pParent = pGeometryNode->GetParent();
+				std::string parentSid = pParent->GetSid();
+				while (parentSid != "Root")
+				{
+					auto iter = scene.GeometryNodes.find(parentSid);
+					if (iter == scene.GeometryNodes.end())
+						break;
+					auto parentNode = iter->second;
 
-                // Allocate an OpenGL vertex array object.
-                GLuint vao;
-                glGenVertexArrays(1, &vao);
+					std::shared_ptr<SceneObjectTransform> _transform;
+					_transform = std::make_shared<SceneObjectTransform>(*parentNode->GetCalculatedTransform(), false);
+					pGeometryNode->AppendTransform("", std::move(_transform));
 
-                // Bind the vertex array object to store all the buffers and vertex attributes we create here.
-                glBindVertexArray(vao);
+					pParent = pParent->GetParent();
+					parentSid = pParent->GetSid();
+				}
+				
+				uint32_t meshCount = pGeometry->GetMeshCount();
+				for (uint32_t index = 0; index < meshCount; ++index)
+				{
+					auto pMesh = pGeometry->GetMesh(index).lock();
+					if (!pMesh) continue;
 
-                GLuint buffer_id;
-                for (size_t i = 0; i < vertexPropertiesCount; ++i)
-                {
-                    const SceneObjectVertexArray& v_property_array = pMesh->GetVertexPropertyArray(i);
-                    auto v_property_array_data_size = v_property_array.GetDataSize();
-                    auto v_property_array_data = v_property_array.GetData();
+					// Set the number of vertex properties.
+					auto vertexPropertiesCount = pMesh->GetVertexPropertiesCount();
 
-                    // Generated an ID for the vertex buffer
-                    glGenBuffers(1, &buffer_id);
+					// Allocate an OpenGL vertex array object.
+					GLuint vao;
+					glGenVertexArrays(1, &vao);
 
-                    // Bind the vertex buffer and load the vertex (position and color) data into the vertex buffer
-                    glBindBuffer(GL_ARRAY_BUFFER, buffer_id);
-                    glBufferData(GL_ARRAY_BUFFER, v_property_array_data_size, v_property_array_data, GL_STATIC_DRAW);
+					// Bind the vertex array object to store all the buffers and vertex attributes we create here.
+					glBindVertexArray(vao);
 
-                    glEnableVertexAttribArray(i);
+					GLuint buffer_id;
+					for (size_t i = 0; i < vertexPropertiesCount; ++i)
+					{
+						const SceneObjectVertexArray& v_property_array = pMesh->GetVertexPropertyArray(i);
+						auto v_property_array_data_size = v_property_array.GetDataSize();
+						auto v_property_array_data = v_property_array.GetData();
 
-                    glBindBuffer(GL_ARRAY_BUFFER, buffer_id);
-                    switch(v_property_array.GetDataType())
-                    {
-                        case VertexDataType::kVertexDataTypeFloat1:
-                            glVertexAttribPointer(i, 1, GL_FLOAT, false, 0, 0);
-                            break;
-                        case VertexDataType::kVertexDataTypeFloat2:
-                            glVertexAttribPointer(i, 2, GL_FLOAT, false, 0, 0);
-                            break;
-                        case VertexDataType::kVertexDataTypeFloat3:
-                            glVertexAttribPointer(i, 3, GL_FLOAT, false, 0, 0);
-                            break;
-                        case VertexDataType::kVertexDataTypeFloat4:
-                            glVertexAttribPointer(i, 4, GL_FLOAT, false, 0, 0);
-                            break;
-                        case VertexDataType::kVertexDataTypeDouble1:
-                            glVertexAttribPointer(i, 1, GL_DOUBLE, false, 0, 0);
-                            break;
-                        case VertexDataType::kVertexDataTypeDouble2:
-                            glVertexAttribPointer(i, 2, GL_DOUBLE, false, 0, 0);
-                            break;
-                        case VertexDataType::kVertexDataTypeDouble3:
-                            glVertexAttribPointer(i, 3, GL_DOUBLE, false, 0, 0);
-                            break;
-                        case VertexDataType::kVertexDataTypeDouble4:
-                            glVertexAttribPointer(i, 4, GL_DOUBLE, false, 0, 0);
-                            break;
-                        default:
-                            assert(0);
-                            break;
-                    }
+						// Generated an ID for the vertex buffer
+						glGenBuffers(1, &buffer_id);
 
-                    m_Buffers.push_back(buffer_id);
-                }
+						// Bind the vertex buffer and load the vertex (position and color) data into the vertex buffer
+						glBindBuffer(GL_ARRAY_BUFFER, buffer_id);
+						glBufferData(GL_ARRAY_BUFFER, v_property_array_data_size, v_property_array_data, GL_STATIC_DRAW);
 
-                size_t indexGroupCount = pMesh->GetIndexGroupCount();
-                GLenum mode;
-                switch(pMesh->GetPrimitiveType())
-                {
-                    case PrimitiveType::kPrimitiveTypePointList:
-                        mode = GL_POINTS;
-                        break;
-                    case PrimitiveType::kPrimitiveTypeLineList:
-                        mode = GL_LINES;
-                        break;
-                    case PrimitiveType::kPrimitiveTypeLineStrip:
-                        mode = GL_LINE_STRIP;
-                        break;
-                    case PrimitiveType::kPrimitiveTypeTriList:
-                        mode = GL_TRIANGLES;
-                        break;
-                    case PrimitiveType::kPrimitiveTypeTriStrip:
-                        mode = GL_TRIANGLE_STRIP;
-                        break;
-                    case PrimitiveType::kPrimitiveTypeTriFan:
-                        mode = GL_TRIANGLE_FAN;
-                        break;
-                    default:
-                        // ignore
-                        continue;
-                }
+						glEnableVertexAttribArray(i);
 
-                for (size_t i = 0; i < indexGroupCount; ++i)
-                {
-                    // Generate an ID for the index buffer
-                    glGenBuffers(1, &buffer_id);
+						glBindBuffer(GL_ARRAY_BUFFER, buffer_id);
+						switch (v_property_array.GetDataType())
+						{
+						case VertexDataType::kVertexDataTypeFloat1:
+							glVertexAttribPointer(i, 1, GL_FLOAT, false, 0, 0);
+							break;
+						case VertexDataType::kVertexDataTypeFloat2:
+							glVertexAttribPointer(i, 2, GL_FLOAT, false, 0, 0);
+							break;
+						case VertexDataType::kVertexDataTypeFloat3:
+							glVertexAttribPointer(i, 3, GL_FLOAT, false, 0, 0);
+							break;
+						case VertexDataType::kVertexDataTypeFloat4:
+							glVertexAttribPointer(i, 4, GL_FLOAT, false, 0, 0);
+							break;
+						case VertexDataType::kVertexDataTypeDouble1:
+							glVertexAttribPointer(i, 1, GL_DOUBLE, false, 0, 0);
+							break;
+						case VertexDataType::kVertexDataTypeDouble2:
+							glVertexAttribPointer(i, 2, GL_DOUBLE, false, 0, 0);
+							break;
+						case VertexDataType::kVertexDataTypeDouble3:
+							glVertexAttribPointer(i, 3, GL_DOUBLE, false, 0, 0);
+							break;
+						case VertexDataType::kVertexDataTypeDouble4:
+							glVertexAttribPointer(i, 4, GL_DOUBLE, false, 0, 0);
+							break;
+						default:
+							assert(0);
+							break;
+						}
 
-                    const SceneObjectIndexArray& indexArray = pMesh->GetIndexArray(i);
-                    size_t indexArraySize = indexArray.GetDataSize();
-                    const void* indexArrayData = indexArray.GetData();
+						m_Buffers.push_back(buffer_id);
+					}
 
-                    // Bind the index buffer and load the index data into it.
-                    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer_id);
-                    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexArraySize, indexArrayData, GL_STATIC_DRAW);
 
-                    // Set the number of indices in the index array
-                    GLsizei indexCount = static_cast<GLsizei>(indexArray.GetIndexCount());
+					GLenum mode;
+					switch (pMesh->GetPrimitiveType())
+					{
+					case PrimitiveType::kPrimitiveTypePointList:
+						mode = GL_POINTS;
+						break;
+					case PrimitiveType::kPrimitiveTypeLineList:
+						mode = GL_LINES;
+						break;
+					case PrimitiveType::kPrimitiveTypeLineStrip:
+						mode = GL_LINE_STRIP;
+						break;
+					case PrimitiveType::kPrimitiveTypeTriList:
+						mode = GL_TRIANGLES;
+						break;
+					case PrimitiveType::kPrimitiveTypeTriStrip:
+						mode = GL_TRIANGLE_STRIP;
+						break;
+					case PrimitiveType::kPrimitiveTypeTriFan:
+						mode = GL_TRIANGLE_FAN;
+						break;
+					default:
+						// ignore
+						continue;
+					}
 
-                    GLenum type;
-                    switch(indexArray.GetIndexType())
-                    {
-                        case IndexDataType::kIndexDataTypeInt8:
-                            type = GL_UNSIGNED_BYTE;
-                            break;
-                        case IndexDataType::kIndexDataTypeInt16:
-                            type = GL_UNSIGNED_SHORT;
-                            break;
-                        case IndexDataType::kIndexDataTypeInt32:
-                            type = GL_UNSIGNED_INT;
-                            break;
-                        default:
-                            // not supported by OpenGL
-                            std::cerr << "Error: unsupported index type " << indexArray << std::endl;
-                            std::cerr << "Mesh: " << *pMesh << std::endl;
-                            std::cerr << "Geometry: " << *pGeometry << std::endl;
-                            continue;
-                    }
+					size_t indexGroupCount = pMesh->GetIndexGroupCount();
+					for (size_t i = 0; i < indexGroupCount; ++i)
+					{
+						// Generate an ID for the index buffer
+						glGenBuffers(1, &buffer_id);
 
-                    m_Buffers.push_back(buffer_id);
+						const SceneObjectIndexArray& indexArray = pMesh->GetIndexArray(i);
+						size_t indexArraySize = indexArray.GetDataSize();
+						const void* indexArrayData = indexArray.GetData();
 
-                    size_t materialIndex = indexArray.GetMaterialIndex();
-                    std::string materialKey = pGeometryNode->GetMaterialRef(materialIndex);
-                    auto material = scene.GetMaterial(materialKey);
-                    if (material)
-                    {
-                        auto color = material->GetBaseColor();
-                        if (color.ValueMap)
-                        {
-                            Image texture = color.ValueMap->GetTextureImage();
-                            auto it = m_TextureIndex.find(materialKey);
-                            if (it == m_TextureIndex.end())
-                            {
-                                GLuint textureID;
-                                glGenTextures(1, &textureID);
-                                glActiveTexture(GL_TEXTURE0 + textureID);
-                                glBindTexture(GL_TEXTURE_2D, textureID);
-                                if (texture.BitCount == 24)
-                                {
-                                    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texture.Width, texture.Height,
-                                        0, GL_RGB, GL_UNSIGNED_BYTE, texture.Data);
-                                }
-                                else 
-                                {
-                                    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture.Width, texture.Height,
-                                        0, GL_RGBA, GL_UNSIGNED_BYTE, texture.Data);
-                                }
-                                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-                                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-                                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-                                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+						// Bind the index buffer and load the index data into it.
+						glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer_id);
+						glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexArraySize, indexArrayData, GL_STATIC_DRAW);
 
-                                m_TextureIndex[color.ValueMap->GetName()] = textureID;
-                                m_Textures.push_back(textureID);
-                            }
-                        }
-                    }
+						// Set the number of indices in the index array
+						GLsizei indexCount = static_cast<GLsizei>(indexArray.GetIndexCount());
 
-                    DrawBatchContext& dbc = *(new DrawBatchContext);
-                    dbc.vao = vao;
-                    dbc.mode = mode;
-                    dbc.type = type;
-                    dbc.count = indexCount;
-                    dbc.node = pGeometryNode;
-                    dbc.material = material;
-                    //std::cout << dbc;
-                    m_DrawBatchContext.push_back(std::move(dbc));
-                }
+						GLenum type;
+						switch (indexArray.GetIndexType())
+						{
+						case IndexDataType::kIndexDataTypeInt8:
+							type = GL_UNSIGNED_BYTE;
+							break;
+						case IndexDataType::kIndexDataTypeInt16:
+							type = GL_UNSIGNED_SHORT;
+							break;
+						case IndexDataType::kIndexDataTypeInt32:
+							type = GL_UNSIGNED_INT;
+							break;
+						default:
+							// not supported by OpenGL
+							std::cerr << "Error: unsupported index type " << indexArray << std::endl;
+							std::cerr << "Mesh: " << *pMesh << std::endl;
+							std::cerr << "Geometry: " << *pGeometry << std::endl;
+							continue;
+						}
+
+						m_Buffers.push_back(buffer_id);
+
+						size_t materialIndex = indexArray.GetMaterialIndex();
+						std::string materialKey = pGeometryNode->GetMaterialRef(materialIndex);
+						auto material = scene.GetMaterial(materialKey);
+						if (material)
+						{
+							auto color = material->GetBaseColor();
+							if (color.ValueMap)
+							{
+								Image texture = color.ValueMap->GetTextureImage();
+								auto it = m_TextureIndex.find(materialKey);
+								if (it == m_TextureIndex.end())
+								{
+									GLuint textureID;
+									glGenTextures(1, &textureID);
+									glActiveTexture(GL_TEXTURE0 + textureID);
+									glBindTexture(GL_TEXTURE_2D, textureID);
+									if (texture.BitCount == 24)
+									{
+										glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texture.Width, texture.Height,
+											0, GL_RGB, GL_UNSIGNED_BYTE, texture.Data);
+									}
+									else
+									{
+										glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture.Width, texture.Height,
+											0, GL_RGBA, GL_UNSIGNED_BYTE, texture.Data);
+									}
+									glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+									glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+									glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+									glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+									m_TextureIndex[color.ValueMap->GetName()] = textureID;
+									m_Textures.push_back(textureID);
+								}
+							}
+						}
+
+						DrawBatchContext& dbc = *(new DrawBatchContext);
+						dbc.vao = vao;
+						dbc.mode = mode;
+						dbc.type = type;
+						dbc.count = indexCount;
+						dbc.node = pGeometryNode;
+						dbc.material = material;
+						//std::cout << dbc;
+						m_DrawBatchContext.push_back(std::move(dbc));
+					}
+				}
             }
         }
 
@@ -598,35 +623,36 @@ namespace Panda
                 delete[] pIndicies;
             */
 
-            if (dbc.material)
-            {
-                Color color = dbc.material->GetBaseColor();
-                if (color.ValueMap)
-                {
-                    SetPerBatchShaderParameters(m_ShaderProgram, "diffuseMap", m_TextureIndex[color.ValueMap->GetName()]);
-                    // set this to tell shader to use texture
-                    SetPerBatchShaderParameters(m_ShaderProgram, "usingDiffuseMap", true);
-                }
-                else 
-                {
+			// For every object in our scene, we need a material on it.
+			if (dbc.material)
+			{
+				Color color = dbc.material->GetBaseColor();
+				if (color.ValueMap)
+				{
+					SetPerBatchShaderParameters(m_ShaderProgram, "diffuseMap", m_TextureIndex[color.ValueMap->GetName()]);
+					// set this to tell shader to use texture
+					SetPerBatchShaderParameters(m_ShaderProgram, "usingDiffuseMap", true);
+				}
+				else
+				{
 					SetPerBatchShaderParameters(m_ShaderProgram, "diffuseColor", Vector3Df({ color.Value.data[0], color.Value.data[1], color.Value.data[2] }));
-                }
+				}
 
-                Normal normal = dbc.material->GetNormal();
-                if (normal.ValueMap) {
-                    SetPerBatchShaderParameters(m_ShaderProgram, "normalMap", m_TextureIndex[normal.ValueMap->GetName()]);
-                    // set this to tell shader to use texture
-                    SetPerBatchShaderParameters(m_ShaderProgram, "usingNormalMap", true);
-                }
+				Normal normal = dbc.material->GetNormal();
+				if (normal.ValueMap) {
+					SetPerBatchShaderParameters(m_ShaderProgram, "normalMap", m_TextureIndex[normal.ValueMap->GetName()]);
+					// set this to tell shader to use texture
+					SetPerBatchShaderParameters(m_ShaderProgram, "usingNormalMap", true);
+				}
 
-                color = dbc.material->GetSpecularColor();
+				color = dbc.material->GetSpecularColor();
 				SetPerBatchShaderParameters(m_ShaderProgram, "specularColor", Vector3Df({ color.Value.data[0], color.Value.data[1], color.Value.data[2] }));
 
-                Parameter param = dbc.material->GetSpecularPower();
-                SetPerBatchShaderParameters(m_ShaderProgram, "specularPower", param.Value);
-            }
+				Parameter param = dbc.material->GetSpecularPower();
+				SetPerBatchShaderParameters(m_ShaderProgram, "specularPower", param.Value);
+			}
 
-            glDrawElements(dbc.mode, dbc.count, dbc.type, 0x00);
+			glDrawElements(dbc.mode, dbc.count, dbc.type, 0x00);
         }
 
 #ifdef DEBUG 

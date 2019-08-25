@@ -119,6 +119,16 @@ namespace Panda
         g_pSceneManager->ResetScene();
     }
 
+	void InputManager::CharKeyDown(uint32_t keyCode)
+	{
+		g_pGameLogic->OnCharKeyDown(keyCode);
+	}
+
+	void InputManager::CharKeyUp(uint32_t keyCode)
+	{
+		g_pGameLogic->OnCharKeyUp(keyCode);
+	}
+
     void InputManager::ResetKeyUp()
     {
         #ifdef DEBUG

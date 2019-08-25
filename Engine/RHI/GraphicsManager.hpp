@@ -6,6 +6,11 @@
 #include "Scene.hpp"
 
 namespace Panda {
+	ENUM(ProjectionMethod)
+	{
+		PM_PERSPECTIVE = 0,
+		PM_ORTHOGRAPHICS = 1
+	};
 	class GraphicsManager : implements IRuntimeModule {
 		public:
 			virtual ~GraphicsManager() {}
@@ -17,6 +22,10 @@ namespace Panda {
 
 			virtual void Clear();
 			virtual void Draw();
+
+			void UseOrghographicsProjection();
+			void UsePerspectiveProjection();
+			ProjectionMethod GetCurrentProjectionMethod();
 
 			#ifdef DEBUG
 			virtual void DrawLine(const Point& from, const Point& to, const Vector3Df& color);
@@ -36,6 +45,8 @@ namespace Panda {
 			virtual void CalculateLights();
 			virtual void UpdateConstants();
 			virtual void RenderBuffers();
+
+
 
 		protected:
 			struct LightContext
@@ -74,6 +85,8 @@ namespace Panda {
 			};
 
 			DrawFrameContext m_DrawFrameContext;
+
+			ProjectionMethod m_ProjectionMethod;
 	};
 
 	extern GraphicsManager* g_pGraphicsManager;

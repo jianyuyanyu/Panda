@@ -13,6 +13,34 @@ namespace Panda
 
             void SetTarget(Vector3Df& target) {m_Target = target;}
             const Vector3Df& GetTarget() {return m_Target;}
+			Vector3Df GetForwardDirection()
+			{
+				auto pTransform = GetCalculatedTransform();
+				Vector4Df forward = Vector4Df({ 0.0f, 0.0f, -1.0f, 0.0f });
+				TransformCoord(forward, *pTransform);
+				return Normalize(Vector3Df({ forward.data[0], forward.data[1], forward.data[2] }));
+			}
+
+			Vector3Df GetRightDirection()
+			{
+				Vector3Df forward = GetForwardDirection();
+				auto pTransform = GetCalculatedTransform();
+				Vector4Df up4 = Vector4Df({ 0.0f, 1.0f, 0.0f, 0.0f });
+				TransformCoord(up4, *pTransform);
+				Vector3Df up3 = Normalize(Vector3Df({ up4.data[0], up4.data[1], up4.data[2] }));
+
+				Vector3Df right = CrossProduct(up3, -forward);
+				return Normalize(right);
+			}
+
+			Vector3Df GetUpDirection()
+			{
+				Vector3Df forward = GetForwardDirection();
+				Vector3Df right = GetRightDirection();
+
+				return CrossProduct(-forward, right);
+			}
+
             Matrix3f GetLocalAxis()
             {
                 Matrix3f result;

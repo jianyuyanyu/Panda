@@ -1,6 +1,5 @@
 # Set the default behavior, in case people don't have core.autocrlf set.
 * text=auto
-
 # Explicitly declare text files you want to always be normalized and converted
 # to native line endings on checkout.
 *.c text
@@ -10,7 +9,6 @@
 *.ispc text
 *.txt text
 *.ogex text
-
 # Declare files that will always have CRLF line endings on checkout.
 *.sln text eol=crlf
 *.vcproj text eol=crlf
@@ -23,7 +21,6 @@
 *.rc text eol=crlf
 *.bat text eol=crlf
 *.ps1 text eol=crlf
-
 # Denote all files that are truly binary and should not be modified.
 *.png binary
 *.jpg binary
@@ -44,4 +41,4 @@
 *.so filter=lfs diff=lfs merge=lfs -text
 *.ogex filter=lfs diff=lfs merge=lfs -text
 *.ps filter=lfs diff=lfs merge=lfs -text
-*.vs filter=lfs diff=lfs merge=lfs -text
+*.dae filter=lfs diff=lfs merge=lfs -text

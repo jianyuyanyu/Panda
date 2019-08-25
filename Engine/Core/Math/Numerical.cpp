@@ -252,6 +252,14 @@ namespace Panda
         return;
     }
 
+	void BuildOrthographicMatrix(Matrix4f& result)
+	{
+		result.m[0][0] = 1; result.m[0][1] = result.m[0][2] = result.m[0][3] = 0;
+		result.m[1][1] = 1; result.m[1][0] = result.m[1][2] = result.m[1][3] = 0;
+		result.m[2][0] = result.m[2][1] = result.m[2][2] = result.m[2][3] = 0;
+		result.m[3][3] = 1; result.m[3][0] = result.m[3][1] = result.m[3][2] = 0;
+	}
+
     void BuildPerspectiveFovMatrix(Matrix4f& result, const float fov, const float aspect, const float near, const float far, Handness handness)
     {
         if (handness == Handness::kHandnessRight)
@@ -262,13 +270,13 @@ namespace Panda
         return;
     }
 
-    void BuildPerspectiveFovRHMatrix(Matrix4f& result, const float fov, const float aspect, const float near, const float far)
+    void BuildPerspectiveFovRHMatrix(Matrix4f& result, const float xfov, const float aspect, const float near, const float far)
     {
         result.Set(0);
 
-        float cFov = 1.f / tanf(fov / 2);
-        result.m[0][0] = cFov / aspect;
-        result.m[1][1] = cFov;
+        float cFov = 1.f / tanf(xfov  / 2);
+        result.m[0][0] = cFov;
+        result.m[1][1] = aspect * cFov;
         result.m[2][3] = -1;
 
         if (g_DepthClipSpace == DepthClipSpace::kDepthClipZeroToOne)
@@ -285,13 +293,36 @@ namespace Panda
         return;
     }
 
-    void BuildPerspectiveFovLHMatrix(Matrix4f& result, const float fov, const float aspect, const float near, const float far)
+    void BuildPerspectiveFovRHMatrix(Matrix4f& result, const float l, const float r, float b, float t, const float n, const float f)
     {
         result.Set(0);
 
-        float cFov = 1.f / tanf(fov / 2.f);
-        result.m[0][0] = cFov / aspect;
-        result.m[1][1] = cFov;
+        result.m[0][0] = 2 * n / (r - l);
+        result.m[1][1] = 2 * n / (t - b);
+        result.m[2][0] = (r + l) / (r - l);
+        result.m[2][1] = (t + b) / (t - b);
+		result.m[2][3] = -1;
+        if (g_DepthClipSpace == DepthClipSpace::kDepthClipZeroToOne)
+        {
+            result.m[2][2] = f / (n - f);
+            result.m[3][2] = n * f / (n - f);
+        }
+        else /* g_DepthClipSpace == DepthClipSpace::kDepthClipNegativeOneToOne */
+        {
+            result.m[2][2] = (n + f) / (n - f);
+            result.m[3][2] = (2 * n * f) / (n - f);
+        }
+
+        return;
+    }
+
+    void BuildPerspectiveFovLHMatrix(Matrix4f& result, const float xfov, const float aspect, const float near, const float far)
+    {
+        result.Set(0);
+
+        float cFov = 1.f / tanf(xfov / 2.f);
+        result.m[0][0] = cFov;
+        result.m[1][1] = aspect * cFov;
         result.m[2][3] = 1.0f;
 
         if (g_DepthClipSpace == DepthClipSpace::kDepthClipZeroToOne)

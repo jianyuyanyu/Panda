@@ -60,11 +60,14 @@ namespace Panda
 
     void BuildViewMatrixRH(Matrix4f& result, const Vector3Df& pos, const Vector3Df& target, const Vector3Df& up);
 
+	void BuildOrthographicMatrix(Matrix4f& result);
+
     void BuildPerspectiveFovMatrix(Matrix4f& result, const float fov, const float aspect, const float near, const float far, Handness handness = Handness::kHandnessRight);
 
     void BuildPerspectiveFovLHMatrix(Matrix4f& result, const float fov, const float aspect, const float near, const float far);
 
     void BuildPerspectiveFovRHMatrix(Matrix4f& result, const float fov, const float aspect, const float near, const float far);
+    void BuildPerspectiveFovRHMatrix(Matrix4f& result, const float l, const float r, float b, float t, const float n, const float f);
 
     template <typename VAL, typename PARAM>
     struct NewtonRaphson
@@ -98,7 +101,7 @@ namespace Panda
     /**
      * DO NOT FORGET our matrix is row major.
      * SO, it is called QR decompose since A = Q * R. But in our engine, we must 
-     * multiple them as A = R * Q!
+     * multiple them as A = R * Q
      */
     template <typename T, int N>
     void MatrixQRDecompositionWithImprovedGramSchmidt(const Matrix<T, N, N>& mat, Matrix<T, N, N>& Q, Matrix<T, N, N>& R)
@@ -137,7 +140,7 @@ namespace Panda
     /**
      * DO NOT FORGET our matrix is row major.
      * SO, it is called QR decompose since A = Q * R. But in our engine, we must 
-     * multiple them as A = R * Q!
+     * multiple them as A = R * Q
      */
     template <typename T, int N>
     void MatrixQRDecompositionWithTypicalGramSchmidt(const Matrix<T, N, N>& mat, Matrix<T, N, N>& Q, Matrix<T, N, N>& R)

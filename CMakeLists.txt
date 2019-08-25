@@ -31,6 +31,7 @@ include_directories("${PROJECT_SOURCE_DIR}")
 set(PANDA_EXTERNAL_ROOT ${PROJECT_SOURCE_DIR}/3rdParty)
 set(PANDA_EXTERNAL_LIBRARY_PATH ${PANDA_EXTERNAL_ROOT}/lib)
 include_directories("${PANDA_EXTERNAL_ROOT}/include")
+include_directories("${PANDA_EXTERNAL_ROOT}/assimp/code")	# I need to use assimp private code. So, it's the only way.
 
 find_library(CROSSGUID_D_LIB crossguidd PATHS ${PANDA_EXTERNAL_LIBRARY_PATH} NO_CMAKE_FIND_ROOT_PATH NO_SYSTEM_ENVIRONMENT_PATH)
 find_library(CROSSGUID_R_LIB crossguid PATHS ${PANDA_EXTERNAL_LIBRARY_PATH} NO_CMAKE_FIND_ROOT_PATH NO_SYSTEM_ENVIRONMENT_PATH)

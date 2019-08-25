@@ -16,6 +16,8 @@ namespace Panda
         void OnRightKeyDown() final;
         void OnUpKeyDown() final;
         void OnDownKeyDown() final;
+		void OnCharKeyDown(uint32_t keyCode) final;
+		void OnCharKeyUp(uint32_t keyCode) final;
 
         #ifdef DEBUG
         void DrawDebugInfo() final;

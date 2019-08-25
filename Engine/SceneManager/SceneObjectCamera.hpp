@@ -20,14 +20,16 @@ namespace Panda
 
             void SetParam(std::string& attrib, float param)
             {
-                if (attrib == "near")
-                {
-                    m_NearClipDistance = param;
-                }
-                else if (attrib == "far")
-                {
-                    m_FarClipDistance = param;
-                }
+				if (attrib == "near")
+				{
+					m_NearClipDistance = param;
+				}
+				else if (attrib == "far")
+				{
+					m_FarClipDistance = param;
+				}
+				else if (attrib == "aspect")
+					m_Aspect = param;
             }
 
             void SetTexture(std::string& attrib, std::string& textureName)

@@ -212,6 +212,32 @@ vec3 IlluminationAreaLight(Light light)
     return linearColor;
 }
 
+vec3 ApplyPointLight(Light l)
+{
+	// change light position to view space
+	vec3 lightPosInViewSpace = (viewMatrix * worldMatrix * l.lightPosition).xyz; // light position in view space
+	
+	// ambient 
+	vec3 currentAmbient = ambientColor.rgb;
+	
+	// diffuse
+    float distance = length(v.xyz - lightPosInViewSpace);
+    float kq = l.lightDistAttenCurveParams[2];
+    float kl = l.lightDistAttenCurveParams[3];
+    float kc = l.lightDistAttenCurveParams[4];
+    float atten = clamp(1.0 / (kq * distance * distance + kl * distance + kc), 0.0f, 1.0f);
+	vec3 N = normalize(normal.xyz);
+	vec3 L = normalize(lightPosInViewSpace - v.xyz);
+	vec3 currentDiffuse = l.lightIntensity * atten * l.lightColor.rgb * diffuseColor.rgb * clamp(dot(N, L), 0.0f, 1.0f);
+	
+	// specular
+	vec3 R = normalize(2.0f * clamp(dot(L, N), 0.0f, 1.0f) * N - L);
+    vec3 V = -normalize(v.xyz);
+	vec3 currentSpecular = l.lightIntensity * atten * l.lightColor.rgb * specularColor.rgb * pow(clamp(dot(R,V), 0.0f, 1.0f), specularPower);
+	
+	return currentAmbient + currentDiffuse + currentSpecular;
+}
+
 void main(void)
 {
     vec3 ill = vec3(0);
@@ -226,8 +252,10 @@ void main(void)
             ill += Illumination(allLights[i]);
         }
     }
+	
+	vec3 irr = ApplyPointLight(allLights[0]);
 
     // gamma correction
-    outputColor = vec4(clamp(pow(ill, vec3(1.0f / 2.2f)), 0.0f, 1.0f), 1.0f);
+    outputColor = vec4(clamp(pow(irr, vec3(1.0f / 2.2f)), 0.0f, 1.0f), 1.0f);
 }
 

@@ -13,6 +13,7 @@ namespace Panda
     class BaseSceneNode : public TreeNode
     {
         protected:
+			std::string m_Sid;
             std::string m_Name;
             std::vector<std::shared_ptr<SceneObjectTransform>> m_Transforms;
             std::map<std::string, std::shared_ptr<SceneObjectTransform>> m_LUTransform;
@@ -24,11 +25,32 @@ namespace Panda
 
         public:
             BaseSceneNode() {m_RuntimeTransform.SetIdentity();}
-            BaseSceneNode(const std::string& name) {m_Name = name; m_RuntimeTransform.SetIdentity();}
+            BaseSceneNode(const std::string& name) {
+				m_Name = name; 
+				m_Sid = name;
+				m_RuntimeTransform.SetIdentity();
+			}
+			BaseSceneNode(const std::string& name, const std::string& sid)
+			{
+				m_Name = name;
+				m_Sid = sid;
+				m_RuntimeTransform.SetIdentity();
+			}
             virtual ~BaseSceneNode() {}
 
-            const std::string GetName() const {return m_Name;}
+            const std::string GetName() const {
+				return m_Name;
+			}
 
+			const std::string GetSid() const
+			{
+				return m_Sid;
+			}
+
+			virtual BaseSceneNode* GetParent()
+			{
+				return reinterpret_cast<BaseSceneNode*>(m_Parent);
+			}
 			void AppendTransform(const char* key, const std::shared_ptr<SceneObjectTransform>& transform)
 			{
 				m_Transforms.push_back(transform);
@@ -131,6 +153,7 @@ namespace Panda
             {
                 out << m_SceneObjectKey << std::endl;
             }
+
 
         public:
             using BaseSceneNode::BaseSceneNode;

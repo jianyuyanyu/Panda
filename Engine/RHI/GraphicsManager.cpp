@@ -9,6 +9,7 @@ namespace Panda
 	{
 		int result = 0;
 		InitConstants();
+		m_ProjectionMethod = ProjectionMethod::PM_PERSPECTIVE;
 		return result;
 	}
 
@@ -107,11 +108,22 @@ namespace Panda
 			farClipDistance = pCamera->GetFarClipDistance();
 		}
 
-		const GfxConfiguration& conf = g_pApp->GetConfiguration();
-		float screenAspect = (float)conf.screenWidth / conf.screenHeight;
+		if (m_ProjectionMethod == ProjectionMethod::PM_PERSPECTIVE)
+		{
+			const GfxConfiguration& conf = g_pApp->GetConfiguration();
+			float screenAspect = (float)conf.screenWidth / conf.screenHeight;
 
-		// Build the perspective projection matrix.
-		BuildPerspectiveFovMatrix(m_DrawFrameContext.ProjectionMatrix, fieldOfView, screenAspect, nearClipDistance, farClipDistance);
+			// Build the perspective projection matrix.
+			//BuildPerspectiveFovMatrix(m_DrawFrameContext.ProjectionMatrix, fieldOfView, screenAspect, nearClipDistance, farClipDistance);
+
+			// try (l, r, b, t) projection
+			//nearClipDistance = 0.69f;
+			BuildPerspectiveFovRHMatrix(m_DrawFrameContext.ProjectionMatrix, -1.0f, 1.0f, -1 / screenAspect, 1 / screenAspect, nearClipDistance, farClipDistance);
+		}
+		else
+		{
+			BuildOrthographicMatrix(m_DrawFrameContext.ProjectionMatrix);
+		}
 	}
 
 	void GraphicsManager::CalculateLights()
@@ -175,6 +187,10 @@ namespace Panda
 					auto plight = std::dynamic_pointer_cast<SceneObjectAreaLight>(pLight);
 					light.LightSize = plight->GetDimension();
 				}
+				else if (pLight->GetType() == SceneObjectType::kSceneObjectTypeLightPoint)
+				{
+					light.LightDirection.data[3] = 1.0f;
+				}
 			}
 			else 
 			{
@@ -199,6 +215,21 @@ namespace Panda
 	void GraphicsManager::RenderBuffers()
 	{
 		std::cout << "[RHI] GraphcisManager::RenderBuffers()" << std::endl;
+	}
+
+	void GraphicsManager::UseOrghographicsProjection()
+	{
+		m_ProjectionMethod = ProjectionMethod::PM_ORTHOGRAPHICS;
+	}
+
+	void GraphicsManager::UsePerspectiveProjection()
+	{
+		m_ProjectionMethod = ProjectionMethod::PM_PERSPECTIVE;
+	}
+
+	ProjectionMethod GraphicsManager::GetCurrentProjectionMethod()
+	{
+		return m_ProjectionMethod;
 	}
 
 	#ifdef DEBUG
